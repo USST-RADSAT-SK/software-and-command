@@ -26,6 +26,7 @@
 \RequirePackage{ifthen}
 \RequirePackage{etoolbox}
 \RequirePackage{pdftexcmds}
+\RequirePackage{substr}
 
 %---------- Internal commands used in this style file ----------------
 
@@ -547,16 +548,16 @@
 % possibility to have sections etc. be within the margins
 % unfortunately had to copy part of book.cls and add \raggedright
 \makeatletter
-\newcommand\doxysection{\@startsection {section}{1}{\z@}%
+\newcommand\doxysection{\newpage\@startsection {section}{1}{\z@}%
                                    {-3.5ex \@plus -1ex \@minus -.2ex}%
                                    {2.3ex \@plus.2ex}%
                                    {\raggedright\normalfont\Large\bfseries}}
 \newcommand\doxysubsec{\@startsection{subsection}{2}{\z@}%
                                      {-3.25ex\@plus -1ex \@minus -.2ex}%
-                                     {1.5ex \@plus .2ex}%
+                                     {0ex}%
                                      {\raggedright\normalfont\large\bfseries}}
 \newcommand\doxysubsubsec{\@startsection{subsubsection}{3}{\z@}%
-                                     {-3.25ex\@plus -1ex \@minus -.2ex}%
+                                     {0ex}%
                                      {1.5ex \@plus .2ex}%
                                      {\raggedright\normalfont\normalsize\bfseries}}
 \newcommand\doxyparagraph{\@startsection{paragraph}{4}{\z@}%
@@ -572,28 +573,37 @@
 
 \NewDocumentCommand\doxysubsubsection{s m}{
                                   \ifnum\pdf@strcmp{\subname}{Function Documentation}=0 %
-                                    \pagebreak
+                                    \edef\subsubname{\currentname}
+                                    \ifnum\pdf@strcmp{\subsubname}{Function Documentation}=0
+
+                                    \else
+                                      \pagebreak
+                                    % \mbox{~}
+                                    \fi
                                   \fi
-                                  \subname
                                   \IfBooleanTF{#1}
                                     {% \Section*
                                       \doxysubsubsec*{#2}%
                                     }{% \Section
                                       \doxysubsubsec{#2}%
                                     }%
+
                                   }
 
+
 \NewDocumentCommand\doxysubsection{s m}{
-
-
                                   \IfBooleanTF{#1}
                                     {% \Section*
                                       \doxysubsec*{#2}%
                                     }{% \Section
+                                      \clearpage
                                       \doxysubsec{#2}%
+
                                     }%
                                   \edef\subname{\currentname}
-                                  \nopagebreak}
+                                  % \nopagebreak
+
+                                  }
 \makeatother
 % Define caption that is also suitable in a table
 \makeatletter
