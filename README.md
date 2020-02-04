@@ -2,7 +2,8 @@
 Code and Documentation for USST’s RADSAT-SK in their first Canadian CubeSat Project
 
 ## Coding Standard
-Our coding standard is very loosely based on the Qt coding style found [here](https://wiki.qt.io/Qt_Coding_Style)
+Our coding standard is very loosely based on the Qt coding style found [here](https://wiki.qt.io/Qt_Coding_Style).
+
 We have a coding standard so that everyone's code looks the same and is easily readable. Commits made to the project not adhering to these standards may not be allowed to be pushed. Source code from a third party will not be expected to follow these standards.
 
 ### Indentation
@@ -11,8 +12,9 @@ Tabs or 4 spaces are allowed.
 ### Variable Naming
 Variable names should be descriptive and abbreviations should be avoided. This doesn't apply to loop variables:
 ``` c
+int sum = 0;
 for ( int i = 0; i < maxCount; ++i ) {
-	...
+	sum += i;
 }
 ```
 All variable and function names are in camel case (first word lowercase, follwing words capitalized):
@@ -94,7 +96,9 @@ int errorResult = ( ( i & 1 ) * 4 ) + ( i & 3 );
 
 ### Switch Statements
 How switch statements work if you're unfamiliar: if you pass in a variable to a switch statement, a 'case' of that switch statement is that that variable is equal to some constant. If the exact value of the variable has a case associated with it, code execution immediately jumps to that case (if it is not found, it goes to the 'default' case). Once the end of the case is reached, the code does not stop, so a break statement must be used to forcibly stop the execution of the switch code.
+
 On this project, if you have two cases that do the exact same thing, you should simply group the cases together as shown in the example below. If you are writing code where you do not want to exit the switch statement after the correct case has finished executing, you should leave a comment stating that this was an intentional choice, since people unfamiliar with case statements will often forget to use break to exit.
+
 Here is an example where a switch statement is used to implement a recursive Fibonacci function, where the series if assumed to start from 0 and the nth Fibonacci number is to be calculated, with some liberties taken to make a better example (recall that the 0th Fibonacci number is 0 and the 1st Fibonacci is 1):
 ``` c
 int fibonacci( int n ) {
