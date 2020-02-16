@@ -1,6 +1,23 @@
 ﻿# software-and-command
 Code and Documentation for USST’s RADSAT-SK in their first Canadian CubeSat Project
 
+## Table of Contents
+1. [Coding Standard](##Coding-Standard)
+    1. [Indentation](###Indentation)
+    2. [Variable Naming](###Variable-Naming)
+    3. [Whitespace](###Whitespace)
+    4. [Braces](###Braces)
+    5. [Parentheses in Expressions](###Parentheses-in-Expressions)
+    6. [Switch Statements](###Switch-Statements)
+    7. [Line Lengths](###Line-Lengths)
+2. [Code Documentation](##Code-Documentation)
+    1. [Functions](###Functions)
+    2. [Global Variables](###Global-Variables)
+    3. [Typedefs](###Typedefs)
+    4. [Structs](###Structs)
+    5. [Enums](###Enums)
+    6. [Macros](###Macros)
+
 ## Coding Standard
 Our coding standard is very loosely based on the Qt coding style found [here](https://wiki.qt.io/Qt_Coding_Style).
 
@@ -131,7 +148,7 @@ char toChar( int digit ) {
 		// fallthrough
 	case 6:
 		++returnVal;
-		// fallthrough	
+		// fallthrough
 	case 5:
 		++returnVal;
 		// fallthrough
@@ -159,3 +176,96 @@ char toChar( int digit ) {
 
 ### Line Lengths
 Lines should be 80 characters or less long since that is the default size of a terminal window. The maximum accepted line length will be 100 since no one really uses terminals anyways. Your IDE should tell you at the bottom of your screen what character/column you are on, so you shouldn't have to count this yourself.
+
+## Code Documentation
+Our code is documented using [doxygen](http://www.doxygen.nl/). All comments
+used for documentation need to be in comment blocks starting with /** and
+ending with */ otherwise Doxygen will not recognize them.
+
+### Functions
+The documentation for functions should be put in the .c file that
+the function is defined in.
+
+``` c
+/**
+ * @brief a short one line description
+ *
+ * the detailed description can be
+ * multiple lines
+ * @header "the/include/path.h"
+ * @param c short description of the parameter
+ * @pre describe the pre condition
+ * @post describe the post condition
+ * @return describe the return value
+ */
+int function ( char c ){
+    // code
+}
+```
+
+### Global Variables
+Documentation for global variables should go inside the .c file that they
+are defined in.
+
+``` c
+/**
+ * short description of the variable
+ */
+int variable;
+```
+
+### Typedefs
+Documentation for typedefs should go inside the .h file that they are
+defined in.
+
+``` c
+/**
+ * short description of the typedef
+ */
+typedef char CHARACTER;
+```
+
+### Structs
+Documentation for structs should go inside the .h file that they are
+defined in.
+
+``` c
+/**
+ * @brief short description of the struct
+ */
+typedef struct aStruct{
+    int a; /**< short description of the member */
+    char b; /**< short description of the member*/
+} MY_STRUCT;
+```
+
+### Enums
+Documentation for enums should go inside the .h file that they are
+defined in.
+``` c
+/**
+ * short description of the enum
+ */
+typedef enum {
+    TRUE, /**< short description of the member */
+    FALSE /**< short description of the member */
+} BOOL;
+```
+
+### Macros
+Documentation for macros should go inside the .h file that they are
+defined in.
+
+``` c
+/**
+ * short description of the macro
+ */
+#define myMacro 1
+
+/**
+ * short description of the macro
+ * @param x short description of x
+ * @param y short description of y
+ */
+#define functionMacro( x, y ) ( x + y )
+```
