@@ -17,6 +17,10 @@ Code and Documentation for USST’s RADSAT-SK in their first Canadian CubeSat Pr
     4. [Structs](#Structs)
     5. [Enums](#Enums)
     6. [Macros](#Macros)
+3. [Branching](#Branching)
+    1. [Procedure](#Procedure)
+    2. [Naming](#Naming)
+
 
 ## Coding Standard
 Our coding standard is very loosely based on the Qt coding style found [here](https://wiki.qt.io/Qt_Coding_Style).
@@ -269,3 +273,30 @@ defined in.
  */
 #define functionMacro( x, y ) ( x + y )
 ```
+## Branching
+
+### Procedure
+1. In your local repo run ```git checkout alpha```
+2. run ```git checkout -b "<your branch name>"```
+3. The first time you push the branch there will an error. Just follow the instructions to set the upstream branch.
+
+### Naming
+All branches **MUST** follow the branch naming scheme. Any branch that does not follow the structure will not be allowed to be pushed.
+The structure is as follows:
+- ft-YYYY-branch_name
+
+Where YYYY is one of the 4 letter module codes:
+
+- MNGT = Management. This is just a general tag for any team management task like restructuring the code base or formatting doxygen code docs
+- BOOT = Bootloader module
+- MAIN = Main Application module
+- COMM = Comms processing module
+- IMAG = Image processing module
+- PAYL = Payload processing module
+- HOUS = Housekeeping module
+
+The branch_name after the 4 letter code is **all** lowercase with words separated by underscores.
+
+Ex:\
+Correct: ft-MAIN-aic_function_stubs\
+Incorrect: ft-main-AIC-function-stubs
