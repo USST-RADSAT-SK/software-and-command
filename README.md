@@ -295,7 +295,7 @@ Where YYYY is one of the 4 letter module codes:
 - PAYL = Payload processing module
 - HOUS = Housekeeping module
 
-The branch name is **all** lowercase with words separated by underscores.
+The branch_name after the 4 letter code is **all** lowercase with words separated by underscores.
 
 Ex:\
 Correct: ft-MAIN-aic_function_stubs\
