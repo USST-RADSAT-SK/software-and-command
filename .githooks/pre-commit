@@ -4,7 +4,10 @@ branch_name=$(git symbolic-ref --short HEAD)
 branch_pattern="ft-(MAIN|BOOT|MNGT|HOUS|PAYL|COMM|IMAG)-[a-z]+[a-z_]*" 
 echo $branch_name | egrep -x "$branch_pattern" > /dev/null
 
-if [ 1 == 1 ]; then
+if [ $? == 1 ]; then
     echo "ERROR: $branch_name does not match the branch naming scheme"
     echo "To rename the current branch run \"git branch -m new_branch_name\", for further instructions see the README on the github page"
+    exit 1
 fi
+
+exit 0
