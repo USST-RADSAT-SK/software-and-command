@@ -2,7 +2,8 @@
 Code and Documentation for USST’s RADSAT-SK in their first Canadian CubeSat Project
 
 ## Table of Contents
-1. [Coding Standard](#Coding-Standard)
+1. [Setting Up Your Repo](#Setting-Up_Your-Repo)
+2. [Coding Standard](#Coding-Standard)
     1. [Indentation](#Indentation)
     2. [Variable Naming](#Variable-Naming)
     3. [Whitespace](#Whitespace)
@@ -10,17 +11,20 @@ Code and Documentation for USST’s RADSAT-SK in their first Canadian CubeSat Pr
     5. [Parentheses in Expressions](#Parentheses-in-Expressions)
     6. [Switch Statements](#Switch-Statements)
     7. [Line Lengths](#Line-Lengths)
-2. [Code Documentation](#Code-Documentation)
+3. [Code Documentation](#Code-Documentation)
     1. [Functions](#Functions)
     2. [Global Variables](#Global-Variables)
     3. [Typedefs](#Typedefs)
     4. [Structs](#Structs)
     5. [Enums](#Enums)
     6. [Macros](#Macros)
-3. [Branching](#Branching)
+4. [Branching](#Branching)
     1. [Procedure](#Procedure)
     2. [Naming](#Naming)
 
+## Setting Up Your Repo
+1. Run ```git config core.hooksPath .githooks```
+2. Run ```chmod +x .githooks/pre-commit``` 
 
 ## Coding Standard
 Our coding standard is very loosely based on the Qt coding style found [here](https://wiki.qt.io/Qt_Coding_Style).
