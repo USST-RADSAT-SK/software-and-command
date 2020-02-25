@@ -73,11 +73,14 @@ void requestReadingsAllChannels( void )
 												dosimeterCommandBytes[adcChannel]
 											  	);
 
+			// check for success of I2C command
 			if ( i2cResult != 0 ) {
 				// 0 = success code; anything else is a failure
 				// TODO: replace assertion with logging and proper error handling
 				ASSERT("ERROR");
 			}
+
+			// TODO: Do we need to add any delays? Don't think so, but should confirm
 
 			// send the recieve command over i2c to dosimeter board; store return values
 			// high byte contains bits 11-8 (most signifigant), low contains bits 7-0
