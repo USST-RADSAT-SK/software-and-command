@@ -69,7 +69,9 @@ void requestReadingsAllChannels( void )
 		for ( uint8_t adcChannel = 0; adcChannel < 8; adcChannel++ ) {
 
 			// write command to dosimeter board using i2c
-			uint8_t i2cResult = i2c->writeByte( dosimeterBoardSlaveAddr[dosimeterBoard], dosimeterCommandBytes[adcChannel] );
+			uint8_t i2cResult = i2c->writeByte( dosimeterBoardSlaveAddr[dosimeterBoard],
+												dosimeterCommandBytes[adcChannel]
+											  	);
 
 			if ( i2cResult != 0 ) {
 				// 0 = success code; anything else is a failure
