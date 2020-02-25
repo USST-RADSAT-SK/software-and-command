@@ -1,7 +1,10 @@
 /*  payload_processing.c
 
-	Main entry point for functions controlling and interacting with the
-	experimental Melanin-Dosimeter Payload boards.
+	Main location for functions controlling and interacting with the
+	experimental Melanin-Dosimeter Payload boards. Data is read from all eight
+	channels on both boards, via the ads7828 ADC from Texas Instruments (one per
+	board). Data is recorded daily (every 24 hours), with timing controlled by
+	the higher-level FreeRTOS tasks.
 
 	Created by Tyrel Kostyk on February 11th 2020
  */
@@ -15,12 +18,20 @@
 //                                   GLOBALS
 //==============================================================================
 
+/**
+ *  The slave addresses of the two Melanin-Dosimeter boards.
+ *	TODO: confirm once actual addresses are determined
+ */
 uint8_t dosimeterBoardSlaveAddr[2] = {
 	0x90,  // board one - 1001.0000
 	0x92   // board two - 1001.0010
 };
 
 
+/**
+ *  Byte commands to request data from each of the 8 channels on each
+ *	Melanin-Dosimeter board. See datasheet for details.
+ */
 uint8_t dosimeterCommandBytes[8] = {
 	0x84,     // 0 - 1000.0100
 	0xC4,     // 1 - 1100.0100
@@ -37,7 +48,18 @@ uint8_t dosimeterCommandBytes[8] = {
 //                                  FUNCTIONS
 //==============================================================================
 
-// request a reading from all channels
+/** @brief Request and store readings from all Melanin-Dosimeter channels.
+ *
+ *	Iterates through each channel on both boards to collect and store payload
+ *	data from the experimental Melanin-Dosimeter boards. Relies on asynchronous
+ *	I2C calls to send commands and receive the information in a response.
+ *
+ *	@header	"software-and-command/payload_processing/payload_processing.h"
+ *	@param	void
+ *	@pre	Melanin-Dosimeter boards are powered on. No initialization necessary
+ * 	@post	Payload data is stored in non-volatile memory (TODO: location TBD)
+ * 	@return	void
+ */
 void requestReadingsAllChannels( void )
 {
 	// iterate through both melanin-dosimeter boards
@@ -46,28 +68,29 @@ void requestReadingsAllChannels( void )
     	// request data from each sensor on a particular board
 		for ( uint8_t adcChannel = 0; adcChannel < 8; adcChannel++ ) {
 
-	      // write command to dosimeter board using i2c
-		  uint8_t i2cResult = i2c->writeByte( dosimeterBoardSlaveAddr[dosimeterBoard], dosimeterCommandBytes[adcChannel] );
+			// write command to dosimeter board using i2c
+			uint8_t i2cResult = i2c->writeByte( dosimeterBoardSlaveAddr[dosimeterBoard], dosimeterCommandBytes[adcChannel] );
 
-	      if ( i2cResult == 0 ) {
-	        // 0 = failure code
-	        // TODO: replace assertion with logging and proper error handling
-	        ASSERT("ERROR");
-	      }
+			if ( i2cResult != 0 ) {
+				// 0 = success code; anything else is a failure
+				// TODO: replace assertion with logging and proper error handling
+				ASSERT("ERROR");
+			}
 
-	      // write 'recieve' command over i2c to dosimeter board, store return values
-	      // consecutive reads; first read is 'high' values, second is 'low' values
-	      uint8_t conversionResultByteHigh = i2c->readByte( dosimeterBoardSlaveAddr[dosimeterBoard] );
-	      uint8_t conversionResultByteLow = i2c->readByte( dosimeterBoardSlaveAddr[dosimeterBoard] );
+			// send the recieve command over i2c to dosimeter board; store return values
+			// high byte contains bits 11-8 (most signifigant), low contains bits 7-0
+			// TODO: modify in the future to work with real I2C commands
+			uint8_t conversionResultByteHigh = i2c->readByte( dosimeterBoardSlaveAddr[dosimeterBoard] );
+			uint8_t conversionResultByteLow = i2c->readByte( dosimeterBoardSlaveAddr[dosimeterBoard] );
 
-	      // combine high and low values
-	      uint16_t conversionResultTotal = ( resultByteHigh & 0x0F ) + resultByteLow;
+			// combine high and low values
+			uint16_t conversionResultTotal = ( ( resultByteHigh & 0x0F ) << 8 ) + resultByteLow;
 
-	      // scale conversion result to final voltage value
-	      float voltageResult = DOSIMETER_REFERENCE_VOLTAGE * ( conversionResultTotal / 255.0 )
+			// scale conversion result to final voltage value
+			float voltageResult = DOSIMETER_REFERENCE_VOLTAGE * ( conversionResultTotal / 255.0 )
 
-	      // store final voltage result in memory
-	      storePayload( dosimeterBoard, adcChannel, voltageResult );
+			// store final voltage result in memory
+			storePayload( dosimeterBoard, adcChannel, voltageResult );
     }
   }
 }
