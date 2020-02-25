@@ -80,8 +80,20 @@ void requestReadingsAllChannels( void )
 			// send the recieve command over i2c to dosimeter board; store return values
 			// high byte contains bits 11-8 (most signifigant), low contains bits 7-0
 			// TODO: modify in the future to work with real I2C commands
-			uint8_t conversionResultByteHigh = i2c->readByte( dosimeterBoardSlaveAddr[dosimeterBoard] );
-			uint8_t conversionResultByteLow = i2c->readByte( dosimeterBoardSlaveAddr[dosimeterBoard] );
+			uint8_t conversionResultHighByte = i2c->readByte( dosimeterBoardSlaveAddr[dosimeterBoard] );
+			uint8_t conversionResultLowByte = i2c->readByte( dosimeterBoardSlaveAddr[dosimeterBoard] );
+
+			// check for zero values in response (values should never be zero)
+			if ( conversionResultHighByte == 0 ) {
+				// reading should never be 0
+				// TODO: replace assertion with logging and proper error handling
+				ASSERT("WARNING");
+			}
+			else if ( conversionResultLowByte == 0 ) {
+				// reading should never be 0
+				// TODO: replace assertion with logging and proper error handling
+				ASSERT("WARNING");
+			}
 
 			// combine high and low values
 			uint16_t conversionResultTotal = ( ( resultByteHigh & 0x0F ) << 8 ) + resultByteLow;
