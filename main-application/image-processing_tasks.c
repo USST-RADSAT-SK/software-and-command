@@ -1,4 +1,4 @@
-def image_preperation_task(image, SRAM):
+void imagePreperationTask(imageID, SRAM, thumbnail = False):
     /**
     * @brief prepare the image for processing
     * @header software-and-command/main-application
@@ -9,9 +9,14 @@ def image_preperation_task(image, SRAM):
     * @return None
     */
     while(1){
-        // At this point do we just call the functions that
-        // were made for us by the image processing team?
+        uint_8 img = retrieveImage(imageID, thumbnail)
+        uint_8 compressed = compression(img) // idk what the compression means entirely -Addi
+        uint_8 prepared = prepDownlink(compressed) // turns it to frames?
+        // somehow send it to downlink manager
+            // is this suppose to even be in a while(1)?
+        //
 
-        // Carter can you check if our doxygen docstring makes sense
     }
-    return
+    return 0
+
+    // ask lars if 'thumbnail = False' is allowed in C
