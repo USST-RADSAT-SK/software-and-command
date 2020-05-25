@@ -13,35 +13,34 @@ void imagePreperationTask(void* pvParameters){
     * @return None
     */
     while(1){
-        const char *pcTaskName = "imagePreperationTask is running\r\n"
-        uint8_t version = version(); // version is afunction we assumed will return which version we want from a telecommand
-        uint8_t frameT = 32; // frames, telecommand ID 64
-        uint8_t frameI = 8192; // frames, telecommand ID 64
-        uint32_t img = cubesenseMemory(); // would this exist?
-        // for the cubesenseMemory function it would have to be faster then then
-        // periodic trigger on the capture Task
-        uint8_t imageDownload;
-        uint8_t compressed
-        if version == 0{    // thumbnail version
-            imageDownload = initalizeImageDownload(frameT, img)
-            if checkDownloadResults(imageDownload){
-                if qualityCheck(imageDownload){
-                    compressed = compress(imageDownload)
-                    prepDownlink(compressed)
+        const char *pcTaskName = "imagePreperationTask is running\n"
+        uint_8 imageDownload;
+        uint_8 version = initalizeImageDownloadType()
+        unit_8 img = initalizeImageDownload()
+        uint_8 compressed
+
+
+        if version == 1{ // full photo
+            if checkDownloadResults(img) == 1{
+                compressed = compressImage(img)
+                prepDownlink(compressed) // is this proper c code?
+                break // we want to exit
+
+            }
+        }
+        else if (version == 0){
+            if checkDownloadResults(img) == 1{
+                uint_8 check = qualityCheck(img)
+                if check == 1{
+                    compressed = compressImage(img)
+                    prepDownlink(compressed) // is this proper c code?
+                    break // we want to exit
+                }
+                else if (check == 0){
+                    break // is this how to exit the while?
                 }
             }
         }
-
-        if version == 1{    // Full image version
-            imageDownload = initalizeImageDownload(frameI, img)
-            if checkDownloadResults(imageDownload){
-                compressed = compress(imageDownload)
-                prepDownlink(compressed)
-            }
-        }
-    }
-}
-
 
 
 void captureTask(){
@@ -57,12 +56,31 @@ void captureTask(){
     * @post Store one image into the Cubesense memory
     * @return None
     */
-    while(1){
-    const char *pcTaskName = "captureTask is running\r\n";
+    const char *pcTaskName = "captureTask is running\n"
+    uint_8 waitFlag;
+    uint_8 CapturePaused;
+    uint_8 SuperResolution;
     uint_8 ready = cameraReadyCheck();
-        if ready == 1{ //assuming 1 is True (Ready)
-            captureImage(SRAM)
-        }
 
+    while(1){
+        if (CapturePaused == 1){ // 1 = True
+            break // we want to exit
+        }
+        else if (CapturePaused == 0){
+            if (SuperResolution == 1){ // activated
+                if ready == 1{
+                    captureImage() // this function puts it in the memory
+                    if (waitFlag == 1){ // full
+                        break // we want to exit
+                    }
+                }
+            }
+            else if (SuperResolution == 0){
+                if ready == 1{
+                    captureImage() // this function puts it in the memory
+                    break // we want to exit
+                }
+            }
+        }
     }
 }
