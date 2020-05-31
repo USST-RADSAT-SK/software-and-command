@@ -3,6 +3,7 @@
     Created by Minh Phong Bill Truong on April 28th 2020
  */
 #include "FreeRTOS.h"
+#include "task.h"
 #include "semphr.h"
 
 #include <stdio.h>
@@ -11,14 +12,22 @@
 //==============================================================================
 //                                   GLOBALS
 //==============================================================================
+/**
+ * This Queue is used to store received and unprocessed packets
+ */
+QueueHandle_t rawPacketReceiveQueue;
 
+/**
+ * This Queue is used to store deparsed packets that will be used by transmitTask
+ */
+QueueHandle_t packetsToTransmit;
 
 //==============================================================================
 //                                  FUNCTIONS
 //==============================================================================
 
 /**
- *  @brief Call functions required to deparse xxx
+ *  @brief Call functions required to deparse packet
  *  
  *  The deparser task receives the data that is to be sent down (clarify) and calls the
  *  required functions to handle the formatting of the data into a packet. 
@@ -26,18 +35,49 @@
  *  @header	"software-and-command/main-applicatoion/comms-processing_tasks.c"
  *	@param	Unused
  *	@pre	None
- * 	@post	Formatted xxx is stored in memory
+ * 	@post	Formatted packet is stored in memory
  * 	@return	None
  */
-void deparseTask(void* pvparameters) {
-    while(1) {
+void deparseTask(void* pvparameters) 
+{
+    while(1) 
+    {
         /*
-        * Wait until signal to deparse xxx is given
+        * Execute any tasks of equal priority that are Ready now.
         */
-        if (xSemaphoreTake(deparseSignal, portMAX_DELAY)){
-            deparseDataTask(void* pvparameters); // Stub function call
-            encodeTask(void* pvparameters); // Stub function call
+        taskYIELD();
+
+        /*
+        * Wait until signal to deparse packet is given.
+        */
+        if (xSemaphoreTake(deparseSignal, portMAX_DELAY))
+        {
+            /*
+            * Wait for portMAX_Delay period for data to become available on the queue.
+            */
+            ( xQueueReceive(rawPacketReceiveQueue, , portMAX_DELAY) != pdPASS)
+            {
+                
+            }
+            else
+            {
+
+            }
+
+            deparseData(); // Stub function call
+            encode(); // Stub function call
+
+            /*
+            * Send data to the tail of the deparsed packets queue.
+            */
+            if ( xQueueSendToBack(packetsToTransmit, , portMAX_DELAY) != pdPASS)
+            {
+
+            }
+            else 
+            {
+
+            }
         }
     }
-    return 0;
 }
