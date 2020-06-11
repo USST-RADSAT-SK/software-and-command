@@ -2,15 +2,15 @@
 
     Created by Minh Phong Bill Truong on April 28th 2020
  */
-#include "FreeRTOS.h"
-#include "task.h"
-#include "semphr.h"
+#include <FreeRTOS.h>
+#include <task.h>
+#include <semphr.h>
 
 #include <stdio.h>
-#include "comms-processing_tasks.h"
+#include <comms-processing_tasks.h>
 
 //==============================================================================
-//                                   GLOBALS
+//                                   External
 //==============================================================================
 /**
  * This Queue is used to store received and unprocessed packets
@@ -21,6 +21,11 @@ QueueHandle_t rawPacketReceiveQueue;
  * This Queue is used to store deparsed packets that will be used by transmitTask
  */
 QueueHandle_t packetsToTransmit;
+
+/**
+ * Used to 
+ */
+SemaphoreHandle_t deparseSignal;
 
 //==============================================================================
 //                                  FUNCTIONS
@@ -38,45 +43,31 @@ QueueHandle_t packetsToTransmit;
  * 	@post	Formatted packet is stored in memory
  * 	@return	None
  */
-void deparseTask(void* pvparameters) 
+void deparseTask( void* pvparameters ) 
 {
-    uint16_t  rawPacket;
-    uint16_t  deparsedPacket;
+    uint16_t  rawOutgoingPacket;
+    uint16_t  deparsedOutgoingPacket;
+
     while(1) 
     {
-        /*
-        * Execute any tasks of equal priority that are Ready now.
-        */
-        taskYIELD();
-
-        /*
-        * Wait until signal to deparse packet is given.
-        */
-        if (xSemaphoreTake(deparseSignal, portMAX_DELAY))
+        if ( RAW_PACKETS_QUEUED )
         {
-            /*
-            * Wait for portMAX_Delay period for data to become available on the queue.
-            */
-            if ( xQueueReceive( rawPacketReceiveQueue, rawPacket, portMAX_DELAY) != pdPASS )
-            {
-                /* 
-                * Nothing was received from the queue – even after blocking to wait
-                * for data to arrive.
-                */
-            }
-
-            &deparsedPacket = deparseData(&rawPacket); // Stub function call
-            &deparsedPacket = encode(&deparsedPacket); // Stub function call
-
-            /*
-            * Send data to the tail of the deparsed packets queue.
-            */
-            if ( xQueueSendToBack( packetsToTransmit, deparsedPacket, portMAX_DELAY) != pdPASS )
-            {
-                /* 
-                * Data could not be sent to the queue even after waiting portMAX_DELAY ticks.
-                */
-            }
+            // Wait until signal to deparse packet is given.
+            xSemaphoreTake( deparseSignal, portMAX_DELAY )
         }
+        else
+        {
+            // Execute any tasks of equal priority that are ready now.
+            taskYIELD();
+        }
+
+        // Wait for portMAX_Delay period for data to become available on the queue.
+        xQueueReceive( rawPacketReceiveQueue, rawOutgoingPacket, portMAX_DELAY );
+
+        &deparsedOutgoingPacket = deparseData( &rawOutgoingPacket ); // Stub function call
+        &deparsedOutgoingPacket = encode( deparsedOutgoingPacket ); // Stub function call
+
+        // Send data to the tail of the deparsed packets queue.
+        xQueueSendToBack( packetsToTransmit, deparsedOutgoingPacket, portMAX_DELAY);
     }
 }
