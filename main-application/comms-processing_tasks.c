@@ -57,13 +57,7 @@ void deparseTask(void* pvparameters)
             /*
             * Wait for portMAX_Delay period for data to become available on the queue.
             */
-            if ( xQueueReceive( rawPacketReceiveQueue, rawPacket, portMAX_DELAY) != pdPASS )
-            {
-                /* 
-                * Nothing was received from the queue – even after blocking to wait
-                * for data to arrive.
-                */
-            }
+            xQueueReceive( rawPacketReceiveQueue, rawPacket, portMAX_DELAY);
 
             &deparsedPacket = deparseData(&rawPacket); // Stub function call
             &deparsedPacket = encode(&deparsedPacket); // Stub function call
@@ -71,12 +65,8 @@ void deparseTask(void* pvparameters)
             /*
             * Send data to the tail of the deparsed packets queue.
             */
-            if ( xQueueSendToBack( packetsToTransmit, deparsedPacket, portMAX_DELAY) != pdPASS )
-            {
-                /* 
-                * Data could not be sent to the queue even after waiting portMAX_DELAY ticks.
-                */
-            }
+           xQueueSendToBack( packetsToTransmit, deparsedPacket, portMAX_DELAY);
+
         }
     }
 }
