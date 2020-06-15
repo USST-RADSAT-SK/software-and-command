@@ -1,8 +1,3 @@
-uint_8 imageDownload;
-uint_8 version = frameSize() // ground station command
-unit_8 img = initalizeImageDownload()
-uint_8 compressed
-uint_8 check = qualityCheck(img)
 
 /**
 * @brief prepare the image for processing
@@ -19,23 +14,33 @@ uint_8 check = qualityCheck(img)
 */
 
 void imagePreperationTask(void* pvParameters){
+    uint_8 imageDownload;
+    uint_8 version
+    unit_8 img = initalizeImageDownload()
+    uint_8 compressed
+    uint_8 check = qualityCheck(img)
+
+    QueueHandle_t xQueueImageVersion;
+    xQueueImageVersion = xQueueCreate(MAX_LENGTH, 1)
+
     while(1){
 
+        if (xQueueImageVersion != NULL){
+            if (xQueueRecieve(xQueueImageVersion, &version, portMAX_DELAY) == pdTRUE){
 
-        if (version == 1){ // full photo
-            if checkDownloadResults(img) == 1{
-                compressed = compressImage(img);
-                downlinkQueue(createPackets(compressed));
-
-            }
-        }
-        else if (version == 0){ // thumbnail
-            if checkDownloadResults(img) == 1{
-                if check == 1{
-                    compressed = compressImage(img)
-                    prepDownlink(compressed);
-                    downlinkQueue(createPackets(compressed));
-
+                if (version == 1){ // full photo
+                    if checkDownloadResults(img) == 1{
+                        compressed = compressImage(img);
+                        xQueueSend(xQueueDownLink, &(createPackets(compressed), portMAX_DELAY);
+                    }
+                }
+                else if (version == 0){ // thumbnail
+                    if checkDownloadResults(img) == 1{
+                        if check == 1{
+                            compressed = compressImage(img)
+                            xQueueSend(xQueueDownLink, &(createPackets(compressed), portMAX_DELAY);
+                        }
+                    }
                 }
             }
         }
@@ -43,12 +48,6 @@ void imagePreperationTask(void* pvParameters){
 }
 
 
-const char *pcTaskName = "captureTask is running\n"
-uint_8 waitFlag;
-uint_8 CapturePaused;
-uint_8 SuperResolution;
-uint_8 i = 0;
-uint_8 ready = cameraReadyCheck();
 
 /**
 * @brief Image capture task
@@ -64,26 +63,42 @@ uint_8 ready = cameraReadyCheck();
 */
 
 void captureTask(){
+    const char *pcTaskName = "captureTask is running\n"
+    uint_8 waitFlag;
+    uint_8 CapturePaused;
+    uint_8 SuperResolution;
+    uint_8 i = 0;
+    uint_8 ready = cameraReadyCheck();
+    uint_8 condition
+
+    QueueHandle_t xQueueSuperResolution;
+    xQueueSuperResolution = xQueueCreate(MAX_LENGTH, 1)
+    // uxitemsize parameter is 1 byte
+    // using the queue to determine if were using a SuperResolution or not
+    // We dont know how big the Queue will need to be
+
 
     while(1){
 
-        ulTaskNotifyTake(pdTrue, portMax_Delay);
+        ulTaskNotifyTake(pdTrue, portMax_Delay); //????
 
-        if (SuperResolution == 1){ // activated
-            while i < 4{
-                if ready == 1{
-                    captureImage(); // this function puts it in the memory
-                    i++;
-                    taskYIELD();
-
+        if (xQueueSuperResolution != NULL){
+            if (xQueueRecieve(xQueueSuperResolution, &condition, portMAX_DELAY) == pdTRUE){ // activated
+                if (condition == 1){
+                    while (i < 4){
+                        if (ready == 1){
+                            captureImage(); // this function puts it in the memory
+                            i++;
+                            taskYIELD();
+                        }
+                    }
                 }
-            }
-        }
-        else if (SuperResolution == 0){ // deactivated
-            if ready == 1{
-                captureImage(); // this function puts it in the memory
-
-        taskYIELD();
+                else if (condition == 0){ // deactivated
+                    if ready == 1{
+                        captureImage(); // this function puts it in the memory
+                        taskYIELD();
+                    }
+                }
             }
         }
     }
