@@ -23,8 +23,8 @@ Code and Documentation for USST’s RADSAT-SK in their first Canadian CubeSat Pr
     2. [Naming](#Naming)
 
 ## Setting Up Your Repo
-1. Run ```git config core.hooksPath .githooks```
-2. Run ```chmod +x .githooks/pre-commit``` 
+1. Run ```git config core.hooksPath .githooks``` (sets where git looks for the githooks)
+2. Run ```chmod +x .githooks/pre-commit``` (makes the githook script executable)
 
 ## Coding Standard
 Our coding standard is very loosely based on the Qt coding style found [here](https://wiki.qt.io/Qt_Coding_Style).
