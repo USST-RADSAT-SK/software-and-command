@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<launchConfiguration type="org.eclipse.cdt.debug.gdbjtag.launchConfigurationType">
+<intAttribute key="org.eclipse.cdt.debug.gdbjtag.core.delay" value="1"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.doHalt" value="false"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.doReset" value="false"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.imageFileName" value=""/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.imageOffset" value=""/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.initCommands" value="target remote localhost:2331&#13;&#10;monitor flash breakpoints = 0&#13;&#10;monitor flash download = 0&#13;&#10;monitor AllowSimulation = 0&#13;&#10;monitor endian little&#13;&#10;monitor writeu32 0xFFFFEF1C = 0x00020000 // Set EBI Slew-Rate to slow and voltage to 1.8V&#13;&#10;monitor sleep 10&#13;&#10;monitor writeu32 0xFFFFFC20 = 0x00004001 // Enable main oscillator&#13;&#10;monitor sleep 10&#13;&#10;monitor writeu32 0xFFFFEF1C = 0x00020000 // Set EBI Slew-Rate to slow and voltage to 1.8V&#13;&#10;monitor sleep 10&#13;&#10;monitor writeu32 0xFFFFFC28 = 0x202A3F01 // Set PLLA to 800MHz&#13;&#10;monitor sleep 10&#13;&#10;monitor writeu32 0xFFFFFC2C = 0x10193F05 // Set PLLB for USB usage&#13;&#10;monitor sleep 10&#13;&#10;monitor writeu32 0xFFFFFC30 = 0x00001300 // Select prescaler&#13;&#10;monitor sleep 10&#13;&#10;monitor writeu32 0xFFFFFC30 = 0x00001302 // Select master clock&#13;&#10;monitor sleep 10&#13;&#10;echo Master clock ok.\n&#13;&#10;echo Configuring the SDRAM controller...\n&#13;&#10;monitor writeu32 0xFFFFEF1C = 0x2 // Enable EBI chip select for the SDRAM &#13;&#10;monitor writeu32 0xFFFFF870 = 0xFFFF0000 // Enable PC16-PC31 pins&#13;&#10;monitor writeu32 0xFFFFF874 = 0x00000000 // Enable PC16-PC31 pins&#13;&#10;monitor writeu32 0xFFFFF804 = 0xFFFF0000 // Enable PC16-PC31 pins&#13;&#10;monitor writeu32 0xFFFFEA08 = 0xF7339375 // SDRAM configuration for 32MB: Change this one if the SDRAM Size changes&#13;&#10;monitor writeu32 0xFFFFEA00 = 0x1&#13;&#10;monitor writeu32 0x20000000 = 0&#13;&#10;monitor writeu32 0xFFFFEA00 = 0x2&#13;&#10;monitor writeu32 0x20000000 = 0&#13;&#10;monitor writeu32 0xFFFFEA00 = 0x4&#13;&#10;monitor writeu32 0x20000000 = 0&#13;&#10;monitor writeu32 0xFFFFEA00 = 0x4&#13;&#10;monitor writeu32 0x20000000 = 0&#13;&#10;monitor writeu32 0xFFFFEA00 = 0x4&#13;&#10;monitor writeu32 0x20000000 = 0&#13;&#10;monitor writeu32 0xFFFFEA00 = 0x4&#13;&#10;monitor writeu32 0x20000000 = 0&#13;&#10;monitor writeu32 0xFFFFEA00 = 0x4&#13;&#10;monitor writeu32 0x20000000 = 0&#13;&#10;monitor writeu32 0xFFFFEA00 = 0x4&#13;&#10;monitor writeu32 0x20000000 = 0&#13;&#10;monitor writeu32 0xFFFFEA00 = 0x4&#13;&#10;monitor writeu32 0x20000000 = 0&#13;&#10;monitor writeu32 0xFFFFEA00 = 0x4&#13;&#10;monitor writeu32 0x20000000 = 0&#13;&#10;monitor writeu32 0xFFFFEA00 = 0x3&#13;&#10;monitor writeu32 0x20000000 = 0&#13;&#10;monitor writeu32 0xFFFFEA00 = 0x0&#13;&#10;monitor writeu32 0x20000000 = 0&#13;&#10;monitor writeu32 0xFFFFEA04 = 0x39D&#13;&#10;echo SDRAM configuration ok.\n&#13;&#10;monitor flash breakpoints = 0&#13;&#10;monitor flash download = 0&#13;&#10;monitor AllowSimulation = 0"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.ipAddress" value=""/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.jtagDevice" value="Generic TCP/IP"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.loadImage" value="true"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.loadSymbols" value="true"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.pcRegister" value=""/>
+<intAttribute key="org.eclipse.cdt.debug.gdbjtag.core.portNumber" value="2331"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.runCommands" value=""/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.setPcRegister" value="false"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.setResume" value="true"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.setStopAt" value="true"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.stopAt" value="main"/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.symbolsFileName" value=""/>
+<stringAttribute key="org.eclipse.cdt.debug.gdbjtag.core.symbolsOffset" value=""/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useFileForImage" value="false"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useFileForSymbols" value="false"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useProjBinaryForImage" value="true"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useProjBinaryForSymbols" value="true"/>
+<booleanAttribute key="org.eclipse.cdt.debug.gdbjtag.core.useRemoteTarget" value="false"/>
+<stringAttribute key="org.eclipse.cdt.debug.mi.core.DEBUG_NAME" value="arm-none-eabi-gdb"/>
+<stringAttribute key="org.eclipse.cdt.debug.mi.core.commandFactory" value="Standard (Windows)"/>
+<stringAttribute key="org.eclipse.cdt.debug.mi.core.protocol" value="mi"/>
+<booleanAttribute key="org.eclipse.cdt.debug.mi.core.verboseMode" value="false"/>
+<stringAttribute key="org.eclipse.cdt.dsf.gdb.DEBUG_NAME" value="arm-none-eabi-gdb"/>
+<booleanAttribute key="org.eclipse.cdt.dsf.gdb.UPDATE_THREADLIST_ON_SUSPEND" value="true"/>
+<intAttribute key="org.eclipse.cdt.launch.ATTR_BUILD_BEFORE_LAUNCH_ATTR" value="1"/>
+<stringAttribute key="org.eclipse.cdt.launch.COREFILE_PATH" value=""/>
+<stringAttribute key="org.eclipse.cdt.launch.DEBUGGER_REGISTER_GROUPS" value=""/>
+<stringAttribute key="org.eclipse.cdt.launch.FORMAT" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&lt;contentList&gt;&lt;content id=&quot;buffer[0]-buffer-GECKO_GetReg-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;null-prvCheckTasksWaitingTermination-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;win[510]-win-null-check_fs-(format)&quot; val=&quot;4&quot;/&gt;&lt;content id=&quot;win[511]-win-null-check_fs-(format)&quot; val=&quot;4&quot;/&gt;&lt;/contentList&gt;"/>
+<stringAttribute key="org.eclipse.cdt.launch.GLOBAL_VARIABLES" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;globalVariableList/&gt;&#13;&#10;"/>
+<stringAttribute key="org.eclipse.cdt.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;memoryBlockExpressionList/&gt;&#13;&#10;"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROGRAM_NAME" value="Debug/satellite-subsystems-demo.elf"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_ATTR" value="satellite-subsystems-demo"/>
+<booleanAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_AUTO_ATTR" value="false"/>
+<stringAttribute key="org.eclipse.cdt.launch.PROJECT_BUILD_CONFIG_ID_ATTR" value="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.853133139"/>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_PATHS">
+<listEntry value="/satellite-subsystems-demo"/>
+</listAttribute>
+<listAttribute key="org.eclipse.debug.core.MAPPED_RESOURCE_TYPES">
+<listEntry value="4"/>
+</listAttribute>
+<mapAttribute key="org.eclipse.debug.core.preferred_launchers">
+<mapEntry key="[debug]" value="org.eclipse.cdt.debug.gdbjtag.core.cdiLaunchDelegate"/>
+</mapAttribute>
+<stringAttribute key="org.eclipse.debug.core.source_locator_id" value="org.eclipse.cdt.debug.core.sourceLocator"/>
+<stringAttribute key="org.eclipse.debug.core.source_locator_memento" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;sourceLookupDirector&gt;&#13;&#10;&lt;sourceContainers duplicates=&quot;true&quot;&gt;&#13;&#10;&lt;container memento=&quot;&amp;lt;?xml version=&amp;quot;1.0&amp;quot; encoding=&amp;quot;UTF-8&amp;quot; standalone=&amp;quot;no&amp;quot;?&amp;gt;&amp;#13;&amp;#10;&amp;lt;default/&amp;gt;&amp;#13;&amp;#10;&quot; typeId=&quot;org.eclipse.debug.core.containerType.default&quot;/&gt;&#13;&#10;&lt;/sourceContainers&gt;&#13;&#10;&lt;/sourceLookupDirector&gt;&#13;&#10;"/>
+<stringAttribute key="org.eclipse.dsf.launch.MEMORY_BLOCKS" value="&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot; standalone=&quot;no&quot;?&gt;&#13;&#10;&lt;memoryBlockExpressionList context=&quot;reserved-for-future-use&quot;&gt;&#13;&#10;    &lt;gdbmemoryBlockExpression address=&quot;537056692&quot; label=&quot;&amp;amp;(versionConfiguration)&quot;/&gt;&#13;&#10;&lt;/memoryBlockExpressionList&gt;&#13;&#10;"/>
+<stringAttribute key="process_factory_id" value="org.eclipse.cdt.dsf.gdb.GdbProcessFactory"/>
+</launchConfiguration>

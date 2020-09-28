@@ -1,0 +1,356 @@
+Changelog for ISIS OBC Satellite Subsystems library
+
+Table of contents
+
+Changelog for:
+- Version 0.1.11 (15 Jan 2020)
+- Version 0.1.10 (04 Oct 2019)
+- Version 0.1.9 (25 Oct 2018)
+- Version 0.1.8 (03 Aug 2018)
+- Version 0.1.7 (30 Oct 2017)
+- Version 0.1.6 (21 Apr 2017)
+- Version 0.1.5 (08 Apr 2016)
+- Version 0.1.4 (24 Sep 2015)
+- Version 0.1.3 (15 Jul 2015)
+- Version 0.1.2 (13 Jul 2015)
+- Version 0.1.1 (10 Jul 2015)
+- Version 0.1.0 (13 Mar 2015)
+
+Version 0.1.11
+============= 
+
+Summary: updated ISIS EPS demo, several small subsystem fixes
+Release date: 15th of January 2020
+Prepared by: Gerard Aalbers
+
+Specific changes:
+
+cspaceADCS_types.h
+
+* Fixed incorrect struct member size for command to finalize upload block
+
+GomEPS.h
+
+* Fixed issue with endianness in channel state structure
+
+Demos/GomEPSdemo.c
+
+* Added additional print outs for the hk_param struct
+
+Demos/isis_eps_demo.c
+
+* Simplified and clarified the entire demo for the ISIS EPS
+
+Version 0.1.10
+============= 
+
+Summary: Support for changes in ISIS EPS hardware, significant updates for SCS Gecko, several updates for Cubespace ADCS, demo code updates
+Release date: 4th of October 2019
+Prepared by: Alf Henrik Sauge, Pieter Botma, Gerard Aalbers
+
+General changes:
+
+* This version of satellite subsystems supports the new, fully redesigned, version of the ISIS EPS while dropping support for the obsolete hardware. The name of the module has changed from IsisEPS to isis_eps_driver.
+
+* Significant updates to the SCS Gecko driver as a result of more intense testing, including, but not limited, to:
+	- Added support for handling multiple cameras
+	- More robust commanding and data retrieval over the SPI interface while introducing several speed-ups
+	- Ability to command LVDS data output on the camera
+	- Fixed camera telemetry read-out
+
+* The Cubespace ADCS driver has been updated to be compatible with version 3.11 of the ICD, which includes two new telemetry retrieval functions and a few changed telemetry sizes
+
+Specific changes:
+
+cspaceADCS.h / cspaceADCS.c
+
+* Added commands to support file transfers to and from the Cubespace ADCS
+
+cspaceADCS_types.h
+
+* Fixed signedness of altitude telemetry field
+
+Demos/GomEPSdemo.c
+
+* Added demostration of reboot functionality
+
+Demos/IsisTRXVUdemo.c
+
+* Added task to ensure receiver watchdog gets kicked
+* Added code to demonstrate rev. D 'frame ready' pin functionality
+* Fixed bug in rev. D telemetry printout
+
+Version 0.1.9
+============= 
+
+Summary: Documentation update and binning for SCS Gecko, small changes to Cubespace ADCS
+Release date: 25th of October 2018
+Prepared by: Pieter Botma, Gerard Aalbers
+
+General changes:
+
+* Corrected issue with library version information strings
+* Significantly improved SCS Gecko driver documentation
+
+Specific changes:
+
+cspaceADCS.h / cspaceADCS.c
+
+* Added functionality to instruct the ADCS bootloader to boot a software image
+
+cspaceADCS_types.h
+
+* Fixed typos in and signedness of various type definitions
+
+Demos/ScsGeckoDemo.c
+
+* Added demo code to perform image binning using the SCS Gecko camera
+
+Version 0.1.8
+============= 
+
+Summary: preliminary support for SCS Gecko and CubeSpace ADCS, full support for ISIS TRXVU rev. D
+Release date: 3rd of August 2018
+Prepared by: Marco Alvarez, Pieter Botma, Gerard Aalbers
+
+General changes:
+
+* Added preliminary support for the SCS Gecko camera
+* Added preliminary support for CubeSpace ADCS bundle
+* Dropped support for ISIS TRXVU hardware revisions A and B and added support for TRXVU hardware revision D. Revision D is now the default hardware revision, although revision C is still supported.
+
+Specific changes:
+
+IsisAntS.c
+
+* Improved robustness of driver initialization function
+
+IsisTRXVU.c
+
+* Fixed memory leak in IsisTrxvu_rcGetCommandFrame
+* Reduced delays between I2C writes and reads to 1 ms and removed additional delay in IsisTrxvu_rcGetCommandFrame to be able to handle increased uplink bitrate for TRXVU hardware revision D
+
+IsisTRXUV.c
+
+Fixed memory leak in IsisTrxuv_imcGetCommandFrame
+
+Version 0.1.7
+============= 
+
+Summary: demo code improvements and additions, support for additional solar panel temperature sensors
+Release date: 30th of October 2017
+Prepared by: Leon Rotthier, Marco Alvarez, Gerard Aalbers
+
+General changes:
+
+* Refactoring of demo initialization code
+
+Specific changes:
+
+IsisSolarPanelv2.h / IsisSolarPanelv2.c
+
+* Extended number of supported solar panel temperature sensors to 9
+
+Demos/GomEPSdemo.c
+
+* Added ability to print EPS housekeeping data every minute
+
+Demos/ISISTRXUVdemo.c
+
+* Small improvements to command reception code
+* Added 'echo' functionality which transmits a received packet on the radio's downlink
+
+Demos/ISISTRXVUdemo.c
+
+* Small improvements to command reception code, plus addition of Doppler and RSSI metadata
+* Added 'echo' functionality which transmits a received packet on the radio's downlink
+
+Version 0.1.6
+============= 
+
+Summary: Added support for TRXVU revision C., ISIS EPS updates, demo code updates
+Release date: 21st of April 2017
+Prepared by: Leon Rotthier, Pieter Botma, Gerard Aalbers
+
+General changes:
+
+* Added support (including demo code) for TRXVU revision C. boards
+* Various updates to ISIS EPS driver, including bug fixes and newly introduced functionality
+* Improved error reporting for all subsystem demos
+
+Specific changes:
+
+Demos/IsisAntSdemo.c
+
+* Added option to manually deploy an antenna
+* AntS is no longer automatically armed when selecting a deployment command
+* Various small fixes and improvements
+
+Demos/GomEpsDemo.c
+
+* Added option to switch invidivual channels on and off
+
+Version 0.1.5
+============= 
+
+Summary: Added support for ISIS EPS subsystem, updates to demo, various small fixes for iMTQv2, TXS, TRXUV, TRXVU, and GOM EPS subsystems
+Release date: 8th of April 2016
+Prepared by: Gerard Aalbers, Leon Rotthier, Marco Alvarez
+
+General changes:
+
+* Added support for the ISIS EPS subsystem
+* Made SPI and I2C initialization common for all demos
+* Various small improvements to all demos
+
+Specific changes:
+
+IsisAntS.h
+
+* Added functions for retrieving AntS uptime and all AntS telemetry in a single block (only supported by recent versions of AntS hardware)
+
+IsisMTQv2.h & IsisMTQv2.c
+
+* Renamed and redefined most structure and enumeration definitions, plus a few functions
+* Fixed issue where IsisMTQv2_setParameter would copy data from an incorrect address
+
+IsisTxS.h & IsisTXS.c
+
+* Updated definition used for reporting TXS buffer space
+* Fixed incorrect command code used by IsisTxsGetAvailableBytes
+* Introduced structure for defining TXS PA temperature threshold and updated IsisTxsSetTempThreshold accordingly
+* Introduced maximum frame length when initializing a TXS driver and length check when sending a frame
+
+IsisTRXUV.h
+
+* Clarified definition of bitrates used for setting and reporting the radio bitrate
+
+IsisTRXUV.c & IsisTRXVU.c
+
+* Fixed issue where GetCommandFrame could overwrite memory
+* GetCommandFrame now returns proper error code when failing to obtain a semaphore
+
+GomEPS.h
+
+* Fixed bitfield order of gom_eps_channelstates_t, used in GomEpsSetOutput function
+
+Version 0.1.4
+============= 
+
+Summary: ISIS solar panels v2, several small bugfixes and improvements
+Release date: 24th of September 2015
+Prepared by: Gerard Aalbers, Marco Alvarez, Pieter Botma
+
+General changes:
+
+* Added support and demo code for ISIS solar panels version 2, obtaining solar panel temperatures using an LTC ADC driver.
+
+Specific changes:
+
+IsisMTQv2.h
+* Added enum definition for iMTQ mode
+
+IsisTRXVU.h & IsisTRXVU.c
+* Fixed issue with TRXVU bitrate specification, setting a bitrate and the reported bitrate now use two different definitions as per the ICD
+* IsisTrxvu_rcGetFrameCount now outputs number of command frames into an unsigned short as per the ICD
+* Fixed frame header handling issue in IsisTrxvu_rcGetFrameCount
+
+IsisTxS.h & IsisTxS.c
+* Added structure definition for reporting available buffer space
+
+GomEPS.h
+* Improved namespacing for definitions of enumerations
+
+Demo/IsisTRXUVdemo.c & Demo/IsisTRXVUdemo.c
+* Added missing memory allocation for retrieving command frames
+
+Version 0.1.3
+============= 
+
+Summary: fixes to IsisTRXUV and IsisTRXVU
+Release date: 15th of July 2015
+Prepared by: Gerard Aalbers & Marco Alvarez
+
+General changes:
+
+* Updated iMTQv2, TRXUV, and TRXVU demo code to match updates to library
+
+Specific changes:
+
+IsisTRXUV & IsisTRXVU
+* Removed superfluous maximum size parameter in IsisTrxuv_imcGetCommandFrame / IsisTrxvu_rcGetCommandFrame, now uses maximum reception frame size passed on initialization
+* Changed ISIStrxuvRxFrame / ISIStrxvuRxFrame structure to packed
+* Changed all enums to packed
+
+IsisTRXVU.c
+* Fixed issue with IsisTrxvu_rcGetCommandFrame not retrieving the correct amount of data
+
+Version 0.1.2
+============= 
+
+Summary: fixes and improvements for Isis MTQ v2 and demo
+Release date: 13th of July 2015
+Prepared by: Gerard Aalbers & Marco Alvarez
+
+General changes:
+
+* Various small additions and improvements to the Doxygen documentation
+
+Specific changes:
+
+IsisMTQv2.h & IsisMTQv2.c
+* Fixed definition of STAT field
+* Added enum declaration for possible errors reported in STAT field
+* Updated enum declarations to prevent name clashes
+
+IsisMTQv2demo.c
+* Updated use of MTQ v2 error codes
+
+Version 0.1.1
+============= 
+
+Summary: Isis MTQ v1 support, Isis MTQ v2 improvements, other small improvements to library and demo code
+Release date: 10th of July 2015
+Prepared by: Gerard Aalbers & Marco Alvarez
+
+General changes:
+* Updated to the latest version of HAL (0.2.1)
+* Added support and demo code for Isis MTQ v1
+* Updated demo code to use new Isis MTQ v2 functionality
+* Various clarifications and corrections to the Doxygen documentation
+* Various small fixes to IsisTRXUV and IsisTRXVU
+
+IsisMTQv2.h & IsisMTQv2.c
+* Added the following functionality
+	- Retrieve command dipole
+	- Retrieve detumbling data
+	- Retrieve raw housekeeping data
+	- Retrieve engineering housekeeping data
+	- Retrieve self test data
+* Fixed signedness of telemetry fields where appropriate
+* Fixed telemetry data definitions
+
+IsisAntsdemo.c
+* AntS temperature is now retrieved and displayed for both side A and side B
+
+IsisTRXUVdemo.c
+* Added capability to start the demo with either revision B3 or B4 of the ISIS TRXUV
+
+Version 0.1.0 
+============= 
+
+Summary: initial release to customers
+Release date: 13th of March 2015
+Prepared by: Gerard Aalbers & Marco Alvarez
+
+General changes:
+
+* The ISIS Satellite Subsystems library supports the following subsystems:
+	- ISIS deployable antenna system
+	- ISIS UHF up / VHF down transceiver
+	- ISIS VHF up / UHF down transceiver
+	- ISIS solar panel temperature sensors
+	- ISIS S-Band transmitter
+	- GOMspace Electrical Power System
+
+* Please note that the iMTQv2 driver has a complete interface but is untested and its demo still needs to be implemented
