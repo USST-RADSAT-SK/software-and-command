@@ -1,0 +1,14 @@
+//------------------------------------------------------------------------------
+/// \dir
+/// !Purpose
+///
+/// This directory contains several sub-directories, each one corresponding to
+/// a category of code modules.
+///
+/// There are different categories:
+/// - boards: everything board-related.
+/// - peripherals: internal peripherals of AT91 chips.
+/// - memories: functions related to volatile and non-volatile memories.
+/// - utility: set of small utility files, such as LEDs or debug traces.
+//------------------------------------------------------------------------------
+
