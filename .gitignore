@@ -2,3 +2,7 @@
 *.yml
 *.png
 *.tex
+
+# proprietary files and software libraries
+hal/
+
