@@ -18,23 +18,23 @@
 QueueHandle_t rawPacketReceiveQueue;
 
 /**
- * This Queue is used to store deparsed packets that will be used by transmitTask
+ * This Queue is used to store encoded packets that will be used by transmitTask
  */
 QueueHandle_t packetsToTransmit;
 
 /**
  * Used to 
  */
-SemaphoreHandle_t deparseSignal;
+SemaphoreHandle_t encodeSignal;
 
 //==============================================================================
 //                                  FUNCTIONS
 //==============================================================================
 
 /**
- *  @brief Call functions required to deparse packet
+ *  @brief Call functions required to encode packet
  *  
- *  The deparser task receives the data that is to be sent down (clarify) and calls the
+ *  The encoder task receives the data that is to be sent down (clarify) and calls the
  *  required functions to handle the formatting of the data into a packet. 
  * 
  *  @header	"software-and-command/main-applicatoion/comms-processing_tasks.c"
@@ -43,17 +43,17 @@ SemaphoreHandle_t deparseSignal;
  * 	@post	Formatted packet is stored in memory
  * 	@return	None
  */
-void deparseTask( void* pvparameters ) 
+void encodeTask( void* pvparameters ) 
 {
     uint16_t  rawOutgoingPacket;
-    uint16_t  deparsedOutgoingPacket;
+    uint16_t  encodedOutgoingPacket;
 
     while(1) 
     {
         if ( RAW_PACKETS_QUEUED )
         {
-            // Wait until signal to deparse packet is given.
-            xSemaphoreTake( deparseSignal, portMAX_DELAY )
+            // Wait until signal to encode packet is given.
+            xSemaphoreTake( encodeSignal, portMAX_DELAY )
         }
         else
         {
@@ -64,10 +64,12 @@ void deparseTask( void* pvparameters )
         // Wait for portMAX_Delay period for data to become available on the queue.
         xQueueReceive( rawPacketReceiveQueue, rawOutgoingPacket, portMAX_DELAY );
 
-        &deparsedOutgoingPacket = deparseData( &rawOutgoingPacket ); // Stub function call
-        &deparsedOutgoingPacket = encode( deparsedOutgoingPacket ); // Stub function call
+        &encodedOutgoingPacket = encodeData( &rawOutgoingPacket ); // Stub function call
+        &encodedOutgoingPacket = encode( encodedOutgoingPacket ); // Stub function call
 
-        // Send data to the tail of the deparsed packets queue.
-        xQueueSendToBack( packetsToTransmit, deparsedOutgoingPacket, portMAX_DELAY);
+        // Send data to the tail of the encoded packets queue.
+        xQueueSendToBack( packetsToTransmit, encodedOutgoingPacket, portMAX_DELAY);
+
+        xSemaphoreGive( encodeSignal );
     }
 }
