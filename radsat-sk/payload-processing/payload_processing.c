@@ -9,6 +9,7 @@
 	Created by Tyrel Kostyk on February 11th 2020
  */
 
+#ifdef DONT_COMPILE_THE_FOLLOWING_CODE
 
 #include <housekeeping/i2c.h>
 #include <housekeeping/memory.h>
@@ -111,3 +112,5 @@ void requestReadingsAllChannels( void )
     }
   }
 }
+
+#endif	// DONT_COMPILE_THE_FOLLOWING_CODE

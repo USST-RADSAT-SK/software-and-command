@@ -7,6 +7,7 @@
 #include <stdio.h>
 #include "parser.h"
 
+#ifdef DONT_COMPILE_THE_FOLLOWING_CODE
 
 // TODO: serialization library? wrapper for a serialization library?
 // TODO: API to convert to/from Telecommands struct with some serialization object?
@@ -81,3 +82,5 @@ int parseTelecommand( telecommand_t tc )
 int main( int argc, int argv[] ) {
 
 }
+
+#endif	// DONT_COMPILE_THE_FOLLOWING_CODE

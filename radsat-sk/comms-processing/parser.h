@@ -8,6 +8,7 @@
 #ifndef PARSER_H
 #define PARSER_H
 
+#ifdef DONT_COMPILE_THE_FOLLOWING_CODE
 
 typedef struct Telecommands Telecommand_t;
 
@@ -17,6 +18,6 @@ int parseQueue( xQueueHandle_t queue );
 
 int parseTelecommand( telecommand_t telecommand );
 
+#endif	// DONT_COMPILE_THE_FOLLOWING_CODE
 
-
-#endif // PARSER_H
+#endif	// PARSER_H
