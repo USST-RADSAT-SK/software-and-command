@@ -82,6 +82,9 @@
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
 									<listOptionValue builtIn="false" value="../common"/>
 									<listOptionValue builtIn="false" value="../comms-processing"/>
+									<listOptionValue builtIn="false" value="../comms-processing/protobuf"/>
+									<listOptionValue builtIn="false" value="../comms-processing/protobuf/nanopb"/>
+									<listOptionValue builtIn="false" value="../comms-processing/protobuf/types"/>
 									<listOptionValue builtIn="false" value="../housekeeping"/>
 									<listOptionValue builtIn="false" value="../image-processing"/>
 									<listOptionValue builtIn="false" value="../payload-processing"/>
@@ -141,7 +144,7 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="common"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="comms-processing"/>
+						<entry excluding="protobuf/nanopb/generator-bin|protobuf/nanopb/generator" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="comms-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="housekeeping"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="image-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="payload-processing"/>
@@ -222,6 +225,9 @@
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
 									<listOptionValue builtIn="false" value="../common"/>
 									<listOptionValue builtIn="false" value="../comms-processing"/>
+									<listOptionValue builtIn="false" value="../comms-processing/protobuf"/>
+									<listOptionValue builtIn="false" value="../comms-processing/protobuf/nanopb"/>
+									<listOptionValue builtIn="false" value="../comms-processing/protobuf/types"/>
 									<listOptionValue builtIn="false" value="../housekeeping"/>
 									<listOptionValue builtIn="false" value="../image-processing"/>
 									<listOptionValue builtIn="false" value="../payload-processing"/>
@@ -282,7 +288,7 @@
 					</folderInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="common"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="comms-processing"/>
+						<entry excluding="protobuf/nanopb/generator-bin|protobuf/nanopb/generator" flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="comms-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="housekeeping"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="image-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="payload-processing"/>
