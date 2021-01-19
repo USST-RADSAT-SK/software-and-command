@@ -1,0 +1,29 @@
+/* file: fileTransfer.proto
+ * date: January 18 2021
+ *
+ * This proto file includes the raw definitions (using proto3 syntax) of messages
+ * that are to be compiled into C structs using the protoc library.
+ *
+ * The messages defined in this file will be primarily used for file transfers,
+ * which mainly focuses on the transmission of any large data objects (images,
+ * logs, etc.) from the RADSAT-SK Satellite to the Ground Station on Earth.
+ */
+
+syntax = "proto3";
+
+
+// basic file transfer response message
+message transferResponse {
+	int32 packetType = 1;	// the ID of the type of packet that is being responded to (image, log, etc.)
+	int32 packetNumber = 2;	// the specific packet number that is being responded to
+	int32 responseType = 3;	// the value of the response (ACK, NAK, CAN, etc.)
+}
+
+
+// basic file transfer packet
+message transferPacket {
+	int32 packetType = 1;	// the ID of the type of packet that is being sent (image, log, etc.)
+	int32 packetNumber = 2;	// the specific packet number that is being sent
+	bytes data = 3;			// the raw date bytes being transmitted
+}
+
