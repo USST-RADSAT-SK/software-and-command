@@ -12,16 +12,19 @@
 #include <pb_encode.h>
 #include <pb_decode.h>
 
+#include <radsat.pb.h>
 
-typedef struct RProtoHeader {
+
+typedef struct _RProtoHeader {
 	uint32_t preamble;		///> 0x2005 -> A flag that defines the "start" of a message
 	uint32_t crc;			///> A 4-byte (32-bit) CRC of the message, not including the header
 	uint16_t topicTag;		///> The ID of the topic for which the message belongs to
 	uint16_t messageTag;	///> The ID of the message itself
-};
+} RProtoHeader;
 
 
-void protoEncode(uint8_t *messageBuffer, uint16_t messageSize, uint8_t *outgoingBuffer);
+void protoEncode(radsatMessage *rawMessage, uint16_t messageSize, uint8_t *outgoingBuffer);
+void protoDecode(uint8_t *incomingBuffer, uint16_t bufferSize, radsatMessage *decodedMessage);
 
 
 #endif /* PROTOBUF_H_ */

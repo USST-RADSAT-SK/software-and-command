@@ -9,6 +9,7 @@
 #define COMMON_H_
 
 #include <stdint.h>
+#include <assert.h>
 
 
 #endif /* COMMON_H_ */
