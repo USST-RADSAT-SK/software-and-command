@@ -10,3 +10,16 @@
  */
 
 syntax = "proto3";
+
+// top level File Transfer message object
+message telecommandMessage {
+	oneof message {
+		ceaseTransmission CeaseTransmission	= 1;
+	}
+}
+
+
+// basic file transfer response message
+message ceaseTransmission {
+	int32 delay = 1;
+}

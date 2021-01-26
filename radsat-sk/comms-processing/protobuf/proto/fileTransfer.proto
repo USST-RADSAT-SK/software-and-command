@@ -11,17 +11,25 @@
 
 syntax = "proto3";
 
+// top level File Transfer message object
+message fileTransferMessage {
+	oneof message {
+		fileTransferResponse FileTransferResponse	= 1;
+		fileTransferPacket FileTransferPacket		= 2;
+	}
+}
+
 
 // basic file transfer response message
-message transferResponse {
+message fileTransferResponse {
 	int32 packetType = 1;	// the ID of the type of packet that is being responded to (image, log, etc.)
 	int32 packetNumber = 2;	// the specific packet number that is being responded to
-	int32 responseType = 3;	// the value of the response (ACK, NAK, CAN, etc.)
+	int32 response = 3;		// the value of the response (ACK, NAK, CAN, etc.)
 }
 
 
 // basic file transfer packet
-message transferPacket {
+message fileTransferPacket {
 	int32 packetType = 1;	// the ID of the type of packet that is being sent (image, log, etc.)
 	int32 packetNumber = 2;	// the specific packet number that is being sent
 	bytes data = 3;			// the raw date bytes being transmitted
