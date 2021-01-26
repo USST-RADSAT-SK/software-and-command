@@ -85,6 +85,7 @@
 									<listOptionValue builtIn="false" value="../comms-processing/protobuf"/>
 									<listOptionValue builtIn="false" value="../comms-processing/protobuf/nanopb"/>
 									<listOptionValue builtIn="false" value="../comms-processing/protobuf/types"/>
+									<listOptionValue builtIn="false" value="../comms-processing/protobuf/handlers"/>
 									<listOptionValue builtIn="false" value="../housekeeping"/>
 									<listOptionValue builtIn="false" value="../image-processing"/>
 									<listOptionValue builtIn="false" value="../payload-processing"/>
@@ -228,6 +229,7 @@
 									<listOptionValue builtIn="false" value="../comms-processing/protobuf"/>
 									<listOptionValue builtIn="false" value="../comms-processing/protobuf/nanopb"/>
 									<listOptionValue builtIn="false" value="../comms-processing/protobuf/types"/>
+									<listOptionValue builtIn="false" value="../comms-processing/protobuf/handlers"/>
 									<listOptionValue builtIn="false" value="../housekeeping"/>
 									<listOptionValue builtIn="false" value="../image-processing"/>
 									<listOptionValue builtIn="false" value="../payload-processing"/>
