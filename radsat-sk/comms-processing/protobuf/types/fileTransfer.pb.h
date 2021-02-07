@@ -10,10 +10,11 @@
 #endif
 
 /* Struct definitions */
+typedef PB_BYTES_ARRAY_T(200) fileTransferPacket_data_t;
 typedef struct _fileTransferPacket {
     int32_t packetType;
     int32_t packetNumber;
-    pb_byte_t data[200];
+    fileTransferPacket_data_t data;
 } fileTransferPacket;
 
 typedef struct _fileTransferResponse {
@@ -38,10 +39,10 @@ extern "C" {
 /* Initializer values for message structs */
 #define fileTransferMessage_init_default         {0, {fileTransferResponse_init_default}}
 #define fileTransferResponse_init_default        {0, 0, 0}
-#define fileTransferPacket_init_default          {0, 0, {0}}
+#define fileTransferPacket_init_default          {0, 0, {0, {0}}}
 #define fileTransferMessage_init_zero            {0, {fileTransferResponse_init_zero}}
 #define fileTransferResponse_init_zero           {0, 0, 0}
-#define fileTransferPacket_init_zero             {0, 0, {0}}
+#define fileTransferPacket_init_zero             {0, 0, {0, {0}}}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define fileTransferPacket_packetType_tag        1
@@ -72,7 +73,7 @@ X(a, STATIC,   SINGULAR, INT32,    response,          3)
 #define fileTransferPacket_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, INT32,    packetType,        1) \
 X(a, STATIC,   SINGULAR, INT32,    packetNumber,      2) \
-X(a, STATIC,   SINGULAR, FIXED_LENGTH_BYTES, data,              3)
+X(a, STATIC,   SINGULAR, BYTES,    data,              3)
 #define fileTransferPacket_CALLBACK NULL
 #define fileTransferPacket_DEFAULT NULL
 

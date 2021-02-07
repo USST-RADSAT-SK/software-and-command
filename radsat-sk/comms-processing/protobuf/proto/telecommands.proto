@@ -15,11 +15,25 @@ syntax = "proto3";
 message telecommandMessage {
 	oneof message {
 		ceaseTransmission CeaseTransmission	= 1;
+		updatePassTime UpdatePassTime		= 2;
 	}
 }
 
 
+message telecommandResponse {
+	int32 response = 1;		// the value of the response (ACK, NAK, CAN, etc.)
+}
+
+
+message telecommandBegin {
+}
+
+
 // basic file transfer response message
-message ceaseTransmission {
-	int32 delay = 1;
+	message ceaseTransmission {
+}
+
+
+message updatePassTime {
+	int32 unixTime = 1;
 }

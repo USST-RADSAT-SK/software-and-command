@@ -13,6 +13,7 @@
 
 /* Struct definitions */
 typedef struct _radsatMessage {
+    int32_t crc;
     pb_size_t which_topic;
     union {
         fileTransferMessage FileTransferMessage;
@@ -26,17 +27,19 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define radsatMessage_init_default               {0, {fileTransferMessage_init_default}}
-#define radsatMessage_init_zero                  {0, {fileTransferMessage_init_zero}}
+#define radsatMessage_init_default               {0, 0, {fileTransferMessage_init_default}}
+#define radsatMessage_init_zero                  {0, 0, {fileTransferMessage_init_zero}}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define radsatMessage_FileTransferMessage_tag    1
-#define radsatMessage_TelecommandMessage_tag     2
+#define radsatMessage_crc_tag                    1
+#define radsatMessage_FileTransferMessage_tag    4
+#define radsatMessage_TelecommandMessage_tag     5
 
 /* Struct field encoding specification for nanopb */
 #define radsatMessage_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (topic,FileTransferMessage,topic.FileTransferMessage),   1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (topic,TelecommandMessage,topic.TelecommandMessage),   2)
+X(a, STATIC,   SINGULAR, INT32,    crc,               1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (topic,FileTransferMessage,topic.FileTransferMessage),   4) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (topic,TelecommandMessage,topic.TelecommandMessage),   5)
 #define radsatMessage_CALLBACK NULL
 #define radsatMessage_DEFAULT NULL
 #define radsatMessage_topic_FileTransferMessage_MSGTYPE fileTransferMessage
@@ -48,7 +51,7 @@ extern const pb_msgdesc_t radsatMessage_msg;
 #define radsatMessage_fields &radsatMessage_msg
 
 /* Maximum encoded size of messages (where known) */
-#define radsatMessage_size                       231
+#define radsatMessage_size                       242
 
 #ifdef __cplusplus
 } /* extern "C" */

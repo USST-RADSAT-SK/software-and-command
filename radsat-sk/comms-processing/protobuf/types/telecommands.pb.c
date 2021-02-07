@@ -12,4 +12,7 @@ PB_BIND(telecommandMessage, telecommandMessage, AUTO)
 PB_BIND(ceaseTransmission, ceaseTransmission, AUTO)
 
 
+PB_BIND(updatePassTime, updatePassTime, AUTO)
+
+
 
