@@ -29,7 +29,7 @@ message telecommandBegin {
 }
 
 
-// basic file transfer response message
+// message telling the Satellite to cease downlink transmissions immediately
 	message ceaseTransmission {
 }
 
