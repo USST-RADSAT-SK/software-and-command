@@ -6,7 +6,7 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-PB_BIND(radsatMessage, radsatMessage, AUTO)
+PB_BIND(RadsatMessage, RadsatMessage, AUTO)
 
 
 

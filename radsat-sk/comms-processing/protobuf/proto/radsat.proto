@@ -16,11 +16,9 @@ import "proto/fileTransfer.proto";
 import "proto/telecommands.proto";
 
 // top level RADSAT message object
-message radsatMessage {
-	int32 crc = 1;
-	
+message RadsatMessage {
 	oneof topic {
-		fileTransferMessage FileTransferMessage = 4;
-		telecommandMessage TelecommandMessage	= 5;
+		FileTransferMessage fileTransferMessage = 4;
+		TelecommandMessage telecommandMessage	= 5;
 	}
 }

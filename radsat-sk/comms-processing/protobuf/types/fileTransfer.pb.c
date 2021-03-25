@@ -6,13 +6,13 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-PB_BIND(fileTransferMessage, fileTransferMessage, AUTO)
+PB_BIND(FileTransferMessage, FileTransferMessage, AUTO)
 
 
-PB_BIND(fileTransferResponse, fileTransferResponse, AUTO)
+PB_BIND(FileTransferResponse, FileTransferResponse, AUTO)
 
 
-PB_BIND(fileTransferPacket, fileTransferPacket, AUTO)
+PB_BIND(FileTransferPacket, FileTransferPacket, AUTO)
 
 
 

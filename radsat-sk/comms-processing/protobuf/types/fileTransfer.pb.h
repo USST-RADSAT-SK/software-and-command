@@ -10,26 +10,26 @@
 #endif
 
 /* Struct definitions */
-typedef PB_BYTES_ARRAY_T(200) fileTransferPacket_data_t;
-typedef struct _fileTransferPacket {
+typedef PB_BYTES_ARRAY_T(200) FileTransferPacket_data_t;
+typedef struct _FileTransferPacket {
     int32_t packetType;
     int32_t packetNumber;
-    fileTransferPacket_data_t data;
-} fileTransferPacket;
+    FileTransferPacket_data_t data;
+} FileTransferPacket;
 
-typedef struct _fileTransferResponse {
+typedef struct _FileTransferResponse {
     int32_t packetType;
     int32_t packetNumber;
     int32_t response;
-} fileTransferResponse;
+} FileTransferResponse;
 
-typedef struct _fileTransferMessage {
+typedef struct _FileTransferMessage {
     pb_size_t which_message;
     union {
-        fileTransferResponse FileTransferResponse;
-        fileTransferPacket FileTransferPacket;
+        FileTransferResponse fileTransferResponse;
+        FileTransferPacket fileTransferPacket;
     } message;
-} fileTransferMessage;
+} FileTransferMessage;
 
 
 #ifdef __cplusplus
@@ -37,59 +37,59 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define fileTransferMessage_init_default         {0, {fileTransferResponse_init_default}}
-#define fileTransferResponse_init_default        {0, 0, 0}
-#define fileTransferPacket_init_default          {0, 0, {0, {0}}}
-#define fileTransferMessage_init_zero            {0, {fileTransferResponse_init_zero}}
-#define fileTransferResponse_init_zero           {0, 0, 0}
-#define fileTransferPacket_init_zero             {0, 0, {0, {0}}}
+#define FileTransferMessage_init_default         {0, {FileTransferResponse_init_default}}
+#define FileTransferResponse_init_default        {0, 0, 0}
+#define FileTransferPacket_init_default          {0, 0, {0, {0}}}
+#define FileTransferMessage_init_zero            {0, {FileTransferResponse_init_zero}}
+#define FileTransferResponse_init_zero           {0, 0, 0}
+#define FileTransferPacket_init_zero             {0, 0, {0, {0}}}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define fileTransferPacket_packetType_tag        1
-#define fileTransferPacket_packetNumber_tag      2
-#define fileTransferPacket_data_tag              3
-#define fileTransferResponse_packetType_tag      1
-#define fileTransferResponse_packetNumber_tag    2
-#define fileTransferResponse_response_tag        3
-#define fileTransferMessage_FileTransferResponse_tag 1
-#define fileTransferMessage_FileTransferPacket_tag 2
+#define FileTransferPacket_packetType_tag        1
+#define FileTransferPacket_packetNumber_tag      2
+#define FileTransferPacket_data_tag              3
+#define FileTransferResponse_packetType_tag      1
+#define FileTransferResponse_packetNumber_tag    2
+#define FileTransferResponse_response_tag        3
+#define FileTransferMessage_fileTransferResponse_tag 1
+#define FileTransferMessage_fileTransferPacket_tag 2
 
 /* Struct field encoding specification for nanopb */
-#define fileTransferMessage_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,FileTransferResponse,message.FileTransferResponse),   1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,FileTransferPacket,message.FileTransferPacket),   2)
-#define fileTransferMessage_CALLBACK NULL
-#define fileTransferMessage_DEFAULT NULL
-#define fileTransferMessage_message_FileTransferResponse_MSGTYPE fileTransferResponse
-#define fileTransferMessage_message_FileTransferPacket_MSGTYPE fileTransferPacket
+#define FileTransferMessage_FIELDLIST(X, a) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,fileTransferResponse,message.fileTransferResponse),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,fileTransferPacket,message.fileTransferPacket),   2)
+#define FileTransferMessage_CALLBACK NULL
+#define FileTransferMessage_DEFAULT NULL
+#define FileTransferMessage_message_fileTransferResponse_MSGTYPE FileTransferResponse
+#define FileTransferMessage_message_fileTransferPacket_MSGTYPE FileTransferPacket
 
-#define fileTransferResponse_FIELDLIST(X, a) \
+#define FileTransferResponse_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, INT32,    packetType,        1) \
 X(a, STATIC,   SINGULAR, INT32,    packetNumber,      2) \
 X(a, STATIC,   SINGULAR, INT32,    response,          3)
-#define fileTransferResponse_CALLBACK NULL
-#define fileTransferResponse_DEFAULT NULL
+#define FileTransferResponse_CALLBACK NULL
+#define FileTransferResponse_DEFAULT NULL
 
-#define fileTransferPacket_FIELDLIST(X, a) \
+#define FileTransferPacket_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, INT32,    packetType,        1) \
 X(a, STATIC,   SINGULAR, INT32,    packetNumber,      2) \
 X(a, STATIC,   SINGULAR, BYTES,    data,              3)
-#define fileTransferPacket_CALLBACK NULL
-#define fileTransferPacket_DEFAULT NULL
+#define FileTransferPacket_CALLBACK NULL
+#define FileTransferPacket_DEFAULT NULL
 
-extern const pb_msgdesc_t fileTransferMessage_msg;
-extern const pb_msgdesc_t fileTransferResponse_msg;
-extern const pb_msgdesc_t fileTransferPacket_msg;
+extern const pb_msgdesc_t FileTransferMessage_msg;
+extern const pb_msgdesc_t FileTransferResponse_msg;
+extern const pb_msgdesc_t FileTransferPacket_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
-#define fileTransferMessage_fields &fileTransferMessage_msg
-#define fileTransferResponse_fields &fileTransferResponse_msg
-#define fileTransferPacket_fields &fileTransferPacket_msg
+#define FileTransferMessage_fields &FileTransferMessage_msg
+#define FileTransferResponse_fields &FileTransferResponse_msg
+#define FileTransferPacket_fields &FileTransferPacket_msg
 
 /* Maximum encoded size of messages (where known) */
-#define fileTransferMessage_size                 228
-#define fileTransferResponse_size                33
-#define fileTransferPacket_size                  225
+#define FileTransferMessage_size                 228
+#define FileTransferResponse_size                33
+#define FileTransferPacket_size                  225
 
 #ifdef __cplusplus
 } /* extern "C" */

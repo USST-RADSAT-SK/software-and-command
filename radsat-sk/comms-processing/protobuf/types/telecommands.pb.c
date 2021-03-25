@@ -6,13 +6,19 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-PB_BIND(telecommandMessage, telecommandMessage, AUTO)
+PB_BIND(TelecommandMessage, TelecommandMessage, AUTO)
 
 
-PB_BIND(ceaseTransmission, ceaseTransmission, AUTO)
+PB_BIND(TelecommandResponse, TelecommandResponse, AUTO)
 
 
-PB_BIND(updatePassTime, updatePassTime, AUTO)
+PB_BIND(TelecommandBegin, TelecommandBegin, AUTO)
+
+
+PB_BIND(CeaseTransmission, CeaseTransmission, AUTO)
+
+
+PB_BIND(UpdatePassTime, UpdatePassTime, AUTO)
 
 
 

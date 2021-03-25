@@ -12,28 +12,28 @@
 syntax = "proto3";
 
 // top level File Transfer message object
-message telecommandMessage {
+message TelecommandMessage {
 	oneof message {
-		ceaseTransmission CeaseTransmission	= 1;
-		updatePassTime UpdatePassTime		= 2;
+		CeaseTransmission ceaseTransmission	= 1;
+		UpdatePassTime updatePassTime		= 2;
 	}
 }
 
 
-message telecommandResponse {
+message TelecommandResponse {
 	int32 response = 1;		// the value of the response (ACK, NAK, CAN, etc.)
 }
 
 
-message telecommandBegin {
+message TelecommandBegin {
 }
 
 
 // message telling the Satellite to cease downlink transmissions immediately
-	message ceaseTransmission {
+message CeaseTransmission {
 }
 
 
-message updatePassTime {
+message UpdatePassTime {
 	int32 unixTime = 1;
 }

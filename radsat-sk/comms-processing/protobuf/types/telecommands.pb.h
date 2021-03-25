@@ -10,21 +10,29 @@
 #endif
 
 /* Struct definitions */
-typedef struct _ceaseTransmission {
+typedef struct _CeaseTransmission {
     char dummy_field;
-} ceaseTransmission;
+} CeaseTransmission;
 
-typedef struct _updatePassTime {
+typedef struct _TelecommandBegin {
+    char dummy_field;
+} TelecommandBegin;
+
+typedef struct _TelecommandResponse {
+    int32_t response;
+} TelecommandResponse;
+
+typedef struct _UpdatePassTime {
     int32_t unixTime;
-} updatePassTime;
+} UpdatePassTime;
 
-typedef struct _telecommandMessage {
+typedef struct _TelecommandMessage {
     pb_size_t which_message;
     union {
-        ceaseTransmission CeaseTransmission;
-        updatePassTime UpdatePassTime;
+        CeaseTransmission ceaseTransmission;
+        UpdatePassTime updatePassTime;
     } message;
-} telecommandMessage;
+} TelecommandMessage;
 
 
 #ifdef __cplusplus
@@ -32,50 +40,71 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define telecommandMessage_init_default          {0, {ceaseTransmission_init_default}}
-#define ceaseTransmission_init_default           {0}
-#define updatePassTime_init_default              {0}
-#define telecommandMessage_init_zero             {0, {ceaseTransmission_init_zero}}
-#define ceaseTransmission_init_zero              {0}
-#define updatePassTime_init_zero                 {0}
+#define TelecommandMessage_init_default          {0, {CeaseTransmission_init_default}}
+#define TelecommandResponse_init_default         {0}
+#define TelecommandBegin_init_default            {0}
+#define CeaseTransmission_init_default           {0}
+#define UpdatePassTime_init_default              {0}
+#define TelecommandMessage_init_zero             {0, {CeaseTransmission_init_zero}}
+#define TelecommandResponse_init_zero            {0}
+#define TelecommandBegin_init_zero               {0}
+#define CeaseTransmission_init_zero              {0}
+#define UpdatePassTime_init_zero                 {0}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define updatePassTime_unixTime_tag              1
-#define telecommandMessage_CeaseTransmission_tag 1
-#define telecommandMessage_UpdatePassTime_tag    2
+#define TelecommandResponse_response_tag         1
+#define UpdatePassTime_unixTime_tag              1
+#define TelecommandMessage_ceaseTransmission_tag 1
+#define TelecommandMessage_updatePassTime_tag    2
 
 /* Struct field encoding specification for nanopb */
-#define telecommandMessage_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,CeaseTransmission,message.CeaseTransmission),   1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,UpdatePassTime,message.UpdatePassTime),   2)
-#define telecommandMessage_CALLBACK NULL
-#define telecommandMessage_DEFAULT NULL
-#define telecommandMessage_message_CeaseTransmission_MSGTYPE ceaseTransmission
-#define telecommandMessage_message_UpdatePassTime_MSGTYPE updatePassTime
+#define TelecommandMessage_FIELDLIST(X, a) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,ceaseTransmission,message.ceaseTransmission),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,updatePassTime,message.updatePassTime),   2)
+#define TelecommandMessage_CALLBACK NULL
+#define TelecommandMessage_DEFAULT NULL
+#define TelecommandMessage_message_ceaseTransmission_MSGTYPE CeaseTransmission
+#define TelecommandMessage_message_updatePassTime_MSGTYPE UpdatePassTime
 
-#define ceaseTransmission_FIELDLIST(X, a) \
+#define TelecommandResponse_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, INT32,    response,          1)
+#define TelecommandResponse_CALLBACK NULL
+#define TelecommandResponse_DEFAULT NULL
 
-#define ceaseTransmission_CALLBACK NULL
-#define ceaseTransmission_DEFAULT NULL
+#define TelecommandBegin_FIELDLIST(X, a) \
 
-#define updatePassTime_FIELDLIST(X, a) \
+#define TelecommandBegin_CALLBACK NULL
+#define TelecommandBegin_DEFAULT NULL
+
+#define CeaseTransmission_FIELDLIST(X, a) \
+
+#define CeaseTransmission_CALLBACK NULL
+#define CeaseTransmission_DEFAULT NULL
+
+#define UpdatePassTime_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, INT32,    unixTime,          1)
-#define updatePassTime_CALLBACK NULL
-#define updatePassTime_DEFAULT NULL
+#define UpdatePassTime_CALLBACK NULL
+#define UpdatePassTime_DEFAULT NULL
 
-extern const pb_msgdesc_t telecommandMessage_msg;
-extern const pb_msgdesc_t ceaseTransmission_msg;
-extern const pb_msgdesc_t updatePassTime_msg;
+extern const pb_msgdesc_t TelecommandMessage_msg;
+extern const pb_msgdesc_t TelecommandResponse_msg;
+extern const pb_msgdesc_t TelecommandBegin_msg;
+extern const pb_msgdesc_t CeaseTransmission_msg;
+extern const pb_msgdesc_t UpdatePassTime_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
-#define telecommandMessage_fields &telecommandMessage_msg
-#define ceaseTransmission_fields &ceaseTransmission_msg
-#define updatePassTime_fields &updatePassTime_msg
+#define TelecommandMessage_fields &TelecommandMessage_msg
+#define TelecommandResponse_fields &TelecommandResponse_msg
+#define TelecommandBegin_fields &TelecommandBegin_msg
+#define CeaseTransmission_fields &CeaseTransmission_msg
+#define UpdatePassTime_fields &UpdatePassTime_msg
 
 /* Maximum encoded size of messages (where known) */
-#define telecommandMessage_size                  13
-#define ceaseTransmission_size                   0
-#define updatePassTime_size                      11
+#define TelecommandMessage_size                  13
+#define TelecommandResponse_size                 11
+#define TelecommandBegin_size                    0
+#define CeaseTransmission_size                   0
+#define UpdatePassTime_size                      11
 
 #ifdef __cplusplus
 } /* extern "C" */

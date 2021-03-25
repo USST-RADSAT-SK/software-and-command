@@ -23,8 +23,8 @@ typedef struct _RProtoHeader {
 } RProtoHeader;
 
 
-void protoEncode(radsatMessage *rawMessage, uint16_t messageSize, uint8_t *outgoingBuffer);
-void protoDecode(uint8_t *incomingBuffer, uint16_t bufferSize, radsatMessage *decodedMessage);
+uint8_t protoEncode(RadsatMessage *rawMessage, uint16_t messageSize, uint8_t *outgoingBuffer);
+uint8_t protoDecode(uint8_t *incomingBuffer, uint16_t bufferSize, RadsatMessage *decodedMessage);
 
 
 #endif /* PROTOBUF_H_ */

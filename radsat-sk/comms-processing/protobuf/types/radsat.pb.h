@@ -12,14 +12,13 @@
 #endif
 
 /* Struct definitions */
-typedef struct _radsatMessage {
-    int32_t crc;
+typedef struct _RadsatMessage {
     pb_size_t which_topic;
     union {
-        fileTransferMessage FileTransferMessage;
-        telecommandMessage TelecommandMessage;
+        FileTransferMessage fileTransferMessage;
+        TelecommandMessage telecommandMessage;
     } topic;
-} radsatMessage;
+} RadsatMessage;
 
 
 #ifdef __cplusplus
@@ -27,31 +26,29 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define radsatMessage_init_default               {0, 0, {fileTransferMessage_init_default}}
-#define radsatMessage_init_zero                  {0, 0, {fileTransferMessage_init_zero}}
+#define RadsatMessage_init_default               {0, {FileTransferMessage_init_default}}
+#define RadsatMessage_init_zero                  {0, {FileTransferMessage_init_zero}}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define radsatMessage_crc_tag                    1
-#define radsatMessage_FileTransferMessage_tag    4
-#define radsatMessage_TelecommandMessage_tag     5
+#define RadsatMessage_fileTransferMessage_tag    4
+#define RadsatMessage_telecommandMessage_tag     5
 
 /* Struct field encoding specification for nanopb */
-#define radsatMessage_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    crc,               1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (topic,FileTransferMessage,topic.FileTransferMessage),   4) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (topic,TelecommandMessage,topic.TelecommandMessage),   5)
-#define radsatMessage_CALLBACK NULL
-#define radsatMessage_DEFAULT NULL
-#define radsatMessage_topic_FileTransferMessage_MSGTYPE fileTransferMessage
-#define radsatMessage_topic_TelecommandMessage_MSGTYPE telecommandMessage
+#define RadsatMessage_FIELDLIST(X, a) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (topic,fileTransferMessage,topic.fileTransferMessage),   4) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (topic,telecommandMessage,topic.telecommandMessage),   5)
+#define RadsatMessage_CALLBACK NULL
+#define RadsatMessage_DEFAULT NULL
+#define RadsatMessage_topic_fileTransferMessage_MSGTYPE FileTransferMessage
+#define RadsatMessage_topic_telecommandMessage_MSGTYPE TelecommandMessage
 
-extern const pb_msgdesc_t radsatMessage_msg;
+extern const pb_msgdesc_t RadsatMessage_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
-#define radsatMessage_fields &radsatMessage_msg
+#define RadsatMessage_fields &RadsatMessage_msg
 
 /* Maximum encoded size of messages (where known) */
-#define radsatMessage_size                       242
+#define RadsatMessage_size                       231
 
 #ifdef __cplusplus
 } /* extern "C" */
