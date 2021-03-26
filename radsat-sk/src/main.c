@@ -18,6 +18,8 @@
 #include <at91/commons.h>
 #include <stdlib.h>
 
+#include <RProtobuf.h>
+
 #define ENABLE_MAIN_TRACES 1
 #if ENABLE_MAIN_TRACES
 	#define MAIN_TRACE_INFO			TRACE_INFO

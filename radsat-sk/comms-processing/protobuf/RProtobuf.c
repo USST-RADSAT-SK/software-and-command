@@ -40,6 +40,7 @@ uint8_t protoEncode( RadsatMessage* rawMessage, uint8_t* outgoingBuffer )
 
 /**
  * Decode an encoded protobuf message, and confirm that the contents match the header.
+ *
  * @param incomingBuffer The buffer containing the encoded message/header.
  * @param decodedMessage The message that will be populated with the decoded message.
  * @return true if the message is decoded successfully, false otherwise.
