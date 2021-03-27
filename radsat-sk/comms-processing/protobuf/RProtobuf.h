@@ -1,7 +1,7 @@
 /**
  * @file RProtobuf.h
  * @date Jan 25, 2021
-   @author Tyrel Kostyk (tck290)
+ * @author Tyrel Kostyk (tck290)
  */
 
 #ifndef RPROTOBUF_H_
@@ -25,8 +25,8 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-uint8_t protoEncode(RadsatMessage *rawMessage, uint8_t *outgoingBuffer);
-uint8_t protoDecode(uint8_t *incomingBuffer, RadsatMessage *decodedMessage);
+uint8_t protoEncode( RadsatMessage *rawMessage, uint8_t *outgoingBuffer );
+uint8_t protoDecode( uint8_t *incomingBuffer, RadsatMessage *decodedMessage );
 
 
 #endif /* RPROTOBUF_H_ */

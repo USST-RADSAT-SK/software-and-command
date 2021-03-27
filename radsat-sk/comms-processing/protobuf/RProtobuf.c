@@ -1,7 +1,7 @@
 /**
  * @file RProtobuf.c
  * @date Jan 25, 2021
-   @author Tyrel Kostyk (tck290)
+ * @author Tyrel Kostyk (tck290)
  */
 
 #include <RProtobuf.h>
