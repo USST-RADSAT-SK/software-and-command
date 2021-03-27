@@ -1,13 +1,14 @@
-/* parser.c
- * Created: Saturday, Jan 18th 2020 by Tyrel Kostyk
- *
- * source file for functions relating to parsing of uplink telecommands and data
+/**
+ * @file RParser.c
+ * @date January 18 2020
+ * @author Tyrel Kostyk
 */
 
-#include <stdio.h>
-#include "parser.h"
-
 #ifdef DONT_COMPILE_THE_FOLLOWING_CODE
+
+#include <stdio.h>
+#include "RParser.h"
+
 
 // TODO: serialization library? wrapper for a serialization library?
 // TODO: API to convert to/from Telecommands struct with some serialization object?
