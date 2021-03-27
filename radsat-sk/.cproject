@@ -89,7 +89,6 @@
 									<listOptionValue builtIn="false" value="../housekeeping"/>
 									<listOptionValue builtIn="false" value="../image-processing"/>
 									<listOptionValue builtIn="false" value="../payload-processing"/>
-									<listOptionValue builtIn="false" value="../test"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.663972223" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>
@@ -235,7 +234,6 @@
 									<listOptionValue builtIn="false" value="../housekeeping"/>
 									<listOptionValue builtIn="false" value="../image-processing"/>
 									<listOptionValue builtIn="false" value="../payload-processing"/>
-									<listOptionValue builtIn="false" value="../test"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.774467720" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TRACE_LEVEL=5"/>
