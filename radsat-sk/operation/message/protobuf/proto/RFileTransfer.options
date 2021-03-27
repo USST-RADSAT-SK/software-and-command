@@ -1,0 +1,4 @@
+// @file: fileTransfer.options
+// contains protobuf options for the messages defined in fileTransfer.proto
+
+FileTransferPacket.data         max_size:200
