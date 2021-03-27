@@ -31,9 +31,6 @@ uint8_t protoEncode( RadsatMessage* rawMessage, uint8_t* outgoingBuffer )
 	// encode the message into the byte array
 	uint8_t protoSuccess = pb_encode( &stream, RadsatMessage_fields, &outgoingBuffer );
 
-	// encode header
-	// ...
-
 	return protoSuccess;
 }
 
@@ -50,9 +47,6 @@ uint8_t protoDecode( uint8_t* incomingBuffer, RadsatMessage* decodedMessage )
 	// ensure incoming buffer is not NULL
 	assert( incomingBuffer );
 	assert( decodedMessage );
-
-	// decode header
-	// ...
 
 	// create stream object
 	pb_istream_t stream = pb_istream_from_buffer( (uint8_t*)incomingBuffer, PROTO_MAX_ENCODED_SIZE );
