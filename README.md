@@ -327,9 +327,39 @@ defined in.
  * @param x short description of x
  * @param y short description of y
  */
-#define functionMacro( x, y ) ( x + y )
+#define functionMacro(x, y) (x + y)
 ```
+
+## Directory Structure
+We have chosen to follow a layered approach to code organization, partitioning our project into six *Layers*. From the top-down:
+1. Application (source)	-> Performs specific functions required by the mission. Contains ```main()``` function (program entry point)
+2. Operation			-> Provides generic operations that support the mission
+3. Framework			-> Interfaces with the OS & HAL, to support the mission operations
+4. OS					-> Wraps the Hardware to provide kernel-level support (task scheduling, semaphores, etc.)
+5. HAL					-> Abstracts (i.e. simplifies) access to OBC hardware and peripherals
+6. Hardware				-> The actual On-Board Computer's hardware and peripherals
+
+Each layer provides an API to the layer directly above it, and thus each layer only interfaces with the layer directly beneath it. For example, the code within the Operation layer *only* uses the functionality provided by the Framework layer. This allows for nice encapsulation and de-coupling between the layers.
+
+This has multiple benefits. One is that it allows for easier testing, since the top two layers should be completely hardware-independent, meaning they can (for the most part) be unit tested on a desktop PC. The decoupling also reduces complexities and debugging time, since each layer can only interface with the one directly beneath it. This can also be used to assist with deadlock prevention and other concurrency issues, since the lower layers (framework, OS) can be responsible for that.
+
+It is important to note that the RADSAT-SK team is only developing the top three layers; the bottom three have already been provided to us.
+
+If you're unsure of where to place some new code, talk to the current Software and Command Team Lead(s).
+
 ## Branching
+
+### Strategy
+We have 5 "levels" of branching used:
+1. master	-> This is reserved for FLIGHT READY code, i.e. very well tested. Should only be merged into once or twice ever
+2. beta		-> This is reserved for FLATSAT code, i.e. moderately well tested.
+3. alpha	-> Working development branch, reserved for code that has been at least partially reviewed / tested.
+4. other	-> These branches are the only places where development happens. Each of these is based off of alpha
+5. hotfix	-> These are quick, one-off branches intended for quick fixes that are found on alpha or beta branches
+
+Anyone can create a branch off of alpha and start developing. However, 2 people are required to review a PR (Pull Request) before the code can be accepted into the alpha branch. One of these people must be a team lead or project manager.
+
+alpha can be merged into beta, and beta can be merged into master. These are done very seldom throughout the project as the codebase matures, and may ONLY be done by the Software and Command Team Lead(s) or CubeSat Project Managers.  
 
 ### Procedure
 1. In your local repo run ```git checkout alpha``` (you may have to commit, stash, or throw away uncommitted changes on your current branch)
@@ -347,26 +377,9 @@ All branches **MUST** follow the few branch naming rules. Those rules are:
 GitHub (and most other Git platforms) allow you to use branch folders, simply by uses forward slashes. Some examples of *good* branch names:
 - admin/restructure-directories
 - test/write-unit-test-framework
-- app/implement-payload-collection-task
-- framework/implement-uart-wrapper
+- application/implement-payload-collection-task
 - operation/import-nanopb
+- framework/implement-uart-wrapper
 - hotfix/fix-i2c-bug
 
-Notice that all six of the directories used are based off of the Project names for the RADSAT-SK GitHub repo (minus hotfix).
-
-## Directory Structure
-We have chosen to follow a layered approach to code organization, partitioning our project into six *Layers*. From the top-down:
-1. Application (source)	-> Performs specific functions required by the mission
-2. Operation			-> Provides generic operations that support the mission
-3. Framework			-> Interfaces with the OS & HAL, to support the mission operations
-4. OS					-> Wraps the Hardware to provide kernel-level support (task scheduling, semaphores, etc.)
-5. HAL					-> Abstracts (i.e. simplifies) access to OBC hardware and peripherals
-6. Hardware				-> The actual On-Board Computer's hardware and peripherals
-
-Each layer provides an API to the layer directly above it, and thus each layer only interfaces with the layer directly beneath it. For example, the code within the Operation layer *only* uses the functionality provided by the Framework layer. This allows for nice encapsulation and de-coupling between the layers.
-
-This has multiple benefits. One is that it allows for easier testing, since the top two layers should be completely hardware-independent, meaning they can (for the most part) be unit tested on a desktop PC. The decoupling also reduces complexities and debugging time, since each layer can only interface with the one directly beneath it. This can also be used to assist with deadlock prevention and other concurrency issues, since the lower layers (framework, OS) can be responsible for that.
-
-It is important to note that the RADSAT-SK team is only developing the top three layers; the bottom three have already been provided to us.
-
-If you're unsure of where to place some new code, talk to the current Software and Command Team Lead(s).
+Notice that all six of the directories used are based off of the Project names for the RADSAT-SK GitHub repo (minus hotfix, which is for quick fixes on alpha or beta branches).
