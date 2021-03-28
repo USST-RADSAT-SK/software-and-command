@@ -352,11 +352,11 @@ If you're unsure of where to place some new code, talk to the current Software a
 
 ### Strategy
 We have 5 "levels" of branching used:
-1. **master** -> This is reserved for FLIGHT READY code, i.e. very well tested. Should only be merged into once or twice ever
+1. **master** -> This is reserved for FLIGHT READY code, i.e. very well tested.
 2. **beta**   -> This is reserved for FLATSAT code, i.e. moderately well tested.
 3. **alpha**  -> Working development branch, reserved for code that has been at least partially reviewed / tested.
-4. **other**  -> These branches are the only places where development happens. Each of these is based off of alpha
-5. **hotfix** -> These are quick, one-off branches intended for quick fixes that are found on alpha or beta branches
+4. **other**  -> These branches are the only places where development happens. Each of these is based off of alpha.
+5. **hotfix** -> These are quick, one-off branches intended for quick fixes that are found on alpha or beta branches.
 
 Anyone can create a branch off of alpha and start developing. However, 2 people are required to review a PR (Pull Request) before the code can be accepted into the alpha branch. One of these people must be a team lead or project manager.
 
