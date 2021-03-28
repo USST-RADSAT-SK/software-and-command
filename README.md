@@ -5,7 +5,7 @@ Code and Documentation for USST’s first Canadian CubeSat Project: The RADSAT-S
 1. [Setting Up Your Repo](#Setting-Up-Your-Repo)
 2. [Coding Standard](#Coding-Standard)
     1. [Indentation](#Indentation)
-    2. [Variable Naming](#Variable-Naming)
+    2. [Variables](#Variables)
     3. [Files](#Files)
     4. [Whitespace](#Whitespace)
     5. [Curly Braces](#Curly-Braces)
@@ -44,37 +44,47 @@ Like all rules, some exceptions can be allowed. The most important takeaway is t
 ### Indentation
 Tabs or 4 spaces are allowed.
 
-### Variable Naming
+### Variables
+#### Naming
 Variable names should be descriptive and abbreviations should almost always be avoided. Exemptions may apply to loop variables:
 ``` c
-int sum = 0;
-for (int i = 0; i < maxCount; ++i) {
+uint16_t sum = 0;
+for (uint16_t i = 0; i < maxCount; i++) {
 	sum += i;
 }
 ```
 All variable and function names are in camel case (first word lowercase, follwing words capitalized):
 ``` c
-int myNewVariable;
+uint16_t myNewVariable;
 ```
 This is true for most variables and constants. However, for macros (and some enumerable types), the name is in all caps with underscores in between words:
 ``` c
-#define ARRAY_SIZE 8
+#define ARRAY_SIZE ((uint8_t)8)
 enum booleanValues {
-	FALSE	= 0,
-	TRUE	= 1,
+	FALSE   = 0,
+	TRUE    = 1,
 };
 ```
+As seen above, make sure to always wrap macros in brackets, and explicitly cast their type.
+
 Most enums will have "global" scope, so you'll usually want to prepend their enumeration names with the name of the enum itself: 
 ``` c
 enum colours {
-	colourRed 	= 0,
+	colourRed   = 0,
 	colourGreen = 1,
-	colourBlue 	= 2,
+	colourBlue  = 2,
 };
 ```
 ALso note that the enumeration values are all explictly defined; this is highly recommend for readability and to prevent mistakes.
 
-In functions, most variables that will be used throughout the function should be declared at the top of the function. Exceptions may include variable declarations within the scope of an if or for loop.
+In functions, most variables that will be used throughout the function should be declared at the *top* of the function. Exceptions may include variable declarations within the scope of an if or for loop.
+
+#### Types
+Use of non-standard c types (char, int, long) should be avoided whenever possible. In embedded programming, it is always recommended to use explicit types. It's clearer to the user/reader, and consistent across all platforms. Unsigned types should always be used unless signedness is needed (should rarely be the case). Standard c types include:
+- uint8_t (instead of unsigned short or unsigned char)
+- uint16_t (instead of unsigned short)
+- uint32_t (instead of unsigned long)
+^ removed the "u" to use a signed version of the type when necessary.
 
 ### Files
 #### File Naming
@@ -94,9 +104,10 @@ Every single source and header file written for the RADSAT-SK cubesat needs a Do
 /**
  * @file RProtobuf.c
  * @date March 20 2021
- * @author Jim Lahey
+ * @author Jim Lahey (jhl211)
  */  
 ```
+Including your full name and NSID is important in case the team ever needs to contact someone about a piece of code that they wrote.
 
 #### File Section Separators
 To increase readability (especially in larger files), multi-line function separators should be used. Ideally, these are used in all files. Do not use the separators to define a section if the section is empty, however. See the main examples of sections that are used:
@@ -124,13 +135,13 @@ These are not strictly enforced, but are recommended. Consistency is the most im
 #### Around Brackets
 In function definitions and function calls, no additional whitespace is needed.
 ``` c
-int myFunction(int arg1, int arg2) {
+uint16_t myFunction(uint16_t arg1, uint16_t arg2) {
 	myOtherFunction(arg1, arg2);
 }
 ```
 If, switch, for, and while statements have a similar style. But make sure to leave a space around the "for" keyword and the curly brace. Additional whitespace can be used when necessary, but it usually isn't.
 ``` c
-for (int i = 0; i < maxCount; ++i) {
+for (uint8_t i = 0; i < maxCount; ++i) {
 	if (i == 0) {
 		i = maxCount;
 	}
@@ -140,21 +151,21 @@ for (int i = 0; i < maxCount; ++i) {
 #### Newline Whitespace
 In between function definitions, exactly two lines of whitespace should be used. 
 ``` c
-int myFunction(int arg1, int arg2) {
+uint16_t myFunction(uint16_t arg1, uint16_t arg2) {
 	return myOtherFunction(arg1, arg2);
 }
 
 
-int myOtherFunction(int arg1, int arg2) {
+uint16_t myOtherFunction(uint16_t arg1, uint16_t arg2) {
 	return (arg1 + arg2);
 }
 ```
 Within a function, one line of whitespace should separate functional "chunks" of code. Two lines *may* be used when things get crowded, however if you feel the need to partition your function like this, it may be time to split it into multiple functions, or use inline comment blocks to separate them:
 ``` c
-int myFunction(int arg1, int arg2) {
+uint16_t myFunction(uint16_t arg1, uint16_t arg2) {
 	// init
-	int newVariable = 0;
-	int otherVariable = 0;
+	uint16_t newVariable = 0;
+	uint16_t otherVariable = 0;
 
 	// do thing
 	newVariable = arg1 + 1;
@@ -174,16 +185,16 @@ Whitespace can sometimes be helpful or even necessary to increase legibility. Fe
 #### Asterisks
 When declaring a pointer variable, the asterisk goes right after the variable type, then a space is left between the asterisk and the variable name:
 ``` c
-int main(int argc, char* argv[]) {
-	int* myArray = (int*)pvPortMalloc(ARRAY_SIZE * sizeof(int));
+int main(uint16_t argc, int8_t* argv[]) {
+	uint16_t* myArray = (uint16_t*)pvPortMalloc(ARRAY_SIZE * sizeof(uint16_t));
 }
 ```
 
 #### Operators
 When using operators with a single operand (like address-of), there is no space between the variable and the operator. When using operators with 2 (or 3) operands, the operator is wrapped with spaces:
 ``` c
-int myInt = 0;
-int* myIntPtr = &myInt;
+uint16_t myInt = 0;
+uint16_t* myIntPtr = &myInt;
 myIntPtr = myIntPtr + 4;
 *myIntPtr = *myIntPtr * 2;
 ```
@@ -191,8 +202,8 @@ myIntPtr = myIntPtr + 4;
 ### Curly Braces
 For all conditional statements, loops, and function definitions, the opening curly brace goes on the *same* line as the conditional logic/function header.
 ``` c
-int myFunction(void) {
-	int i = 0;
+uint16_t myFunction(void) {
+	uint16_t i = 0;
 	while (i++ < maxCount) {
 		printf("%d", i);
 	}
@@ -215,14 +226,14 @@ else {
 ### Parentheses in expressions
 If there is any ambiguity to the order of operations in your expression, use parentheses (and additional whitespace) to make the order of operations explicit:
 ``` c
-int errorResult = ( ( i & 1 ) * 4 ) + ( i & 3 );
+uint16_t errorResult = ( ( i & 1 ) * 4 ) + ( i & 3 );
 ```
 
 ### Switch Statements
 Cases that simply fall into the following case should be grouped together. Cases that do something and intentionally fall into the next case should explicitly say so with a comment. All case statements must end in either a break *or* return. Whitespace newline is left between each distinct set of cases. See example below.
 ``` c
-int function(int n) {
-	int returnValue = 0;
+uint16_t function(uint16_t n) {
+	uint16_t returnValue = 0;
 
 	switch (n) {
 	case (0):
@@ -270,7 +281,7 @@ the function is defined in.
  * @param c short description of the parameter
  * @return describe the return value
  */
-int function (char c) {
+uint32_t function (uint8_t c) {
     // code
 }
 ```
@@ -281,7 +292,7 @@ are defined in.
 
 ``` c
 /** short description of the variable */
-int variable;
+uint16_t variable;
 ```
 
 ### Typedefs
@@ -289,7 +300,7 @@ Documentation for typedefs should go inside the header (.h) file that they are d
 
 ``` c
 /** short description of the typedef */
-typedef char CHARACTER;
+typedef uint8_t CHARACTER;
 ```
 
 ### Structs
@@ -298,8 +309,8 @@ Documentation for structs should go inside the .h file that they are defined in.
 ``` c
 /** short description of the struct */
 typedef struct _myStruct {
-    int a; 		/**< short description of the member */
-    char b; 	/**< short description of the member */
+    uint16_t a;     /**< short description of the member */
+    uint8_t b;      /**< short description of the member */
 } myStruct;
 ```
 
@@ -309,8 +320,8 @@ defined in.
 ``` c
 /** short description of the enum */
 typedef enum {
-    TRUE, /**< short description of the member */
-    FALSE /**< short description of the member */
+    TRUE,   /**< short description of the member */
+    FALSE,  /**< short description of the member */
 } BOOL;
 ```
 
