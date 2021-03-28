@@ -287,9 +287,7 @@ uint32_t function (uint8_t c) {
 ```
 
 ### Global Variables
-Documentation for global variables should go inside the source (.c) file that they
-are defined in.
-
+Documentation for global variables should go inside the source (.c) file that they are defined in.
 ``` c
 /** short description of the variable */
 uint16_t variable;
@@ -297,15 +295,12 @@ uint16_t variable;
 
 ### Typedefs
 Documentation for typedefs should go inside the header (.h) file that they are defined in.
-
 ``` c
 /** short description of the typedef */
 typedef uint8_t CHARACTER;
 ```
 
 ### Structs
-Documentation for structs should go inside the .h file that they are defined in.
-
 ``` c
 /** short description of the struct */
 typedef struct _myStruct {
@@ -315,8 +310,6 @@ typedef struct _myStruct {
 ```
 
 ### Enums
-Documentation for enums should go inside the .h file that they are
-defined in.
 ``` c
 /** short description of the enum */
 typedef enum {
@@ -326,9 +319,6 @@ typedef enum {
 ```
 
 ### Macros
-Documentation for macros should go inside the .h file that they are
-defined in.
-
 ``` c
 /** short description of the macro */
 #define myMacro 1
@@ -343,12 +333,12 @@ defined in.
 
 ## Directory Structure
 We have chosen to follow a layered approach to code organization, partitioning our project into six *Layers*. From the top-down:
-1. Application (source)	-> Performs specific functions required by the mission. Contains ```main()``` function (program entry point)
-2. Operation			-> Provides generic operations that support the mission
-3. Framework			-> Interfaces with the OS & HAL, to support the mission operations
-4. OS					-> Wraps the Hardware to provide kernel-level support (task scheduling, semaphores, etc.)
-5. HAL					-> Abstracts (i.e. simplifies) access to OBC hardware and peripherals
-6. Hardware				-> The actual On-Board Computer's hardware and peripherals
+1. **Application** -> Performs specific functions required by the mission. Contains ```main()``` function
+2. **Operation**   -> Provides generic operations that support the mission
+3. **Framework**   -> Interfaces with the OS & HAL, to support the mission operations
+4. **OS**          -> Wraps the Hardware to provide kernel-level support (task scheduling, semaphores, etc.)
+5. **HAL**         -> Abstracts (i.e. simplifies) access to OBC hardware and peripherals
+6. **Hardware**    -> The actual On-Board Computer's hardware and peripherals
 
 Each layer provides an API to the layer directly above it, and thus each layer only interfaces with the layer directly beneath it. For example, the code within the Operation layer *only* uses the functionality provided by the Framework layer. This allows for nice encapsulation and de-coupling between the layers.
 
@@ -362,11 +352,11 @@ If you're unsure of where to place some new code, talk to the current Software a
 
 ### Strategy
 We have 5 "levels" of branching used:
-1. master	-> This is reserved for FLIGHT READY code, i.e. very well tested. Should only be merged into once or twice ever
-2. beta		-> This is reserved for FLATSAT code, i.e. moderately well tested.
-3. alpha	-> Working development branch, reserved for code that has been at least partially reviewed / tested.
-4. other	-> These branches are the only places where development happens. Each of these is based off of alpha
-5. hotfix	-> These are quick, one-off branches intended for quick fixes that are found on alpha or beta branches
+1. **master** -> This is reserved for FLIGHT READY code, i.e. very well tested. Should only be merged into once or twice ever
+2. **beta**   -> This is reserved for FLATSAT code, i.e. moderately well tested.
+3. **alpha**  -> Working development branch, reserved for code that has been at least partially reviewed / tested.
+4. **other**  -> These branches are the only places where development happens. Each of these is based off of alpha
+5. **hotfix** -> These are quick, one-off branches intended for quick fixes that are found on alpha or beta branches
 
 Anyone can create a branch off of alpha and start developing. However, 2 people are required to review a PR (Pull Request) before the code can be accepted into the alpha branch. One of these people must be a team lead or project manager.
 
@@ -386,11 +376,11 @@ All branches **MUST** follow the few branch naming rules. Those rules are:
 - Must prepend new branch into one of six directories (see below)
 
 GitHub (and most other Git platforms) allow you to use branch folders, simply by uses forward slashes. Some examples of *good* branch names:
-- admin/restructure-directories
-- test/write-unit-test-framework
-- application/implement-payload-collection-task
-- operation/import-nanopb
-- framework/implement-uart-wrapper
-- hotfix/fix-i2c-bug
+- ```admin/restructure-directories```
+- ```test/write-unit-test-framework```
+- ```application/implement-payload-collection-task```
+- ```operation/import-nanopb```
+- ```framework/implement-uart-wrapper```
+- ```hotfix/fix-i2c-bug```
 
 Notice that all six of the directories used are based off of the Project names for the RADSAT-SK GitHub repo (minus hotfix, which is for quick fixes on alpha or beta branches).
