@@ -5,7 +5,7 @@ Code and Documentation for USST’s first Canadian CubeSat Project: The RADSAT-S
 1. [Setting Up Your Repo](#Setting-Up-Your-Repo)
 2. [How to Contribute](#How-to-Contribute)
     1. [Issues](#Issues)
-    2. [Projects (and Managing Issues)](#Projects-(and-Managing-Issues))
+    2. [Projects (and Managing Issues)](#Projects-and-Managing-Issues)
 3. [Branching](#Branching)
     1. [Strategy](#Strategy)
     2. [Procedure](#Procedure)
