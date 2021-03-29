@@ -1,5 +1,5 @@
-/*
- * main.c
+/**
+ * @file main.c
  */
 
 #include <freertos/FreeRTOS.h>

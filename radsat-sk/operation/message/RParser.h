@@ -1,12 +1,12 @@
-/* parser.h
- * Created: Saturday, Jan 18th 2020 by Tyrel Kostyk
- *
- * header file for functions relating to parsing of uplink telecommands and data
+/**
+ * @file RParser.h
+ * @date January 18 2020
+ * @author Tyrel Kostyk
 */
 
 // preprocessor defence against compiling this file multiple times
-#ifndef PARSER_H
-#define PARSER_H
+#ifndef RPARSER_H
+#define RPARSER_H
 
 #ifdef DONT_COMPILE_THE_FOLLOWING_CODE
 
@@ -20,4 +20,4 @@ int parseTelecommand( telecommand_t telecommand );
 
 #endif	// DONT_COMPILE_THE_FOLLOWING_CODE
 
-#endif	// PARSER_H
+#endif	// RPARSER_H

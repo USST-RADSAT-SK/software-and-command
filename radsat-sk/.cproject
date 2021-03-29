@@ -54,13 +54,7 @@
 							</builder>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1208792301" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.351597839" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" value="true" valueType="boolean"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.341491792" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="../common"/>
-									<listOptionValue builtIn="false" value="../comms-processing"/>
-									<listOptionValue builtIn="false" value="../housekeeping"/>
-									<listOptionValue builtIn="false" value="../image-processing"/>
-									<listOptionValue builtIn="false" value="../payload-processing"/>
-								</option>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.341491792" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1102762476" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__ASSEMBLY__"/>
 									<listOptionValue builtIn="false" value="sdram"/>
@@ -80,11 +74,15 @@
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
-									<listOptionValue builtIn="false" value="../common"/>
-									<listOptionValue builtIn="false" value="../comms-processing"/>
-									<listOptionValue builtIn="false" value="../housekeeping"/>
-									<listOptionValue builtIn="false" value="../image-processing"/>
-									<listOptionValue builtIn="false" value="../payload-processing"/>
+									<listOptionValue builtIn="false" value="../framework"/>
+									<listOptionValue builtIn="false" value="../framework/fileio"/>
+									<listOptionValue builtIn="false" value="../framework/utils"/>
+									<listOptionValue builtIn="false" value="../framework/wrappers"/>
+									<listOptionValue builtIn="false" value="../operation"/>
+									<listOptionValue builtIn="false" value="../operation/collection"/>
+									<listOptionValue builtIn="false" value="../operation/message"/>
+									<listOptionValue builtIn="false" value="../operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../src/tasks"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.663972223" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>
@@ -142,8 +140,10 @@
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="common"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="comms-processing"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="framework"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="housekeeping"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="image-processing"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="operation"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="payload-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
 					</sourceEntries>
@@ -200,13 +200,7 @@
 							<builder arguments="-r" buildPath="${workspace_loc:/${ProjName}}/Release" command="${cross_make}" id="ilg.gnuarmeclipse.managedbuild.cross.builder.610821742" keepEnvironmentInBuildfile="false" managedBuildOn="true" name="Gnu Make Builder" parallelBuildOn="false" superClass="ilg.gnuarmeclipse.managedbuild.cross.builder"/>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.432854127" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.336149074" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" value="true" valueType="boolean"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.2046610404" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="../common"/>
-									<listOptionValue builtIn="false" value="../comms-processing"/>
-									<listOptionValue builtIn="false" value="../housekeeping"/>
-									<listOptionValue builtIn="false" value="../image-processing"/>
-									<listOptionValue builtIn="false" value="../payload-processing"/>
-								</option>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.2046610404" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.788030515" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__ASSEMBLY__"/>
 									<listOptionValue builtIn="false" value="sdram"/>
@@ -220,11 +214,15 @@
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
-									<listOptionValue builtIn="false" value="../common"/>
-									<listOptionValue builtIn="false" value="../comms-processing"/>
-									<listOptionValue builtIn="false" value="../housekeeping"/>
-									<listOptionValue builtIn="false" value="../image-processing"/>
-									<listOptionValue builtIn="false" value="../payload-processing"/>
+									<listOptionValue builtIn="false" value="../framework"/>
+									<listOptionValue builtIn="false" value="../framework/fileio"/>
+									<listOptionValue builtIn="false" value="../framework/utils"/>
+									<listOptionValue builtIn="false" value="../framework/wrappers"/>
+									<listOptionValue builtIn="false" value="../operation"/>
+									<listOptionValue builtIn="false" value="../operation/collection"/>
+									<listOptionValue builtIn="false" value="../operation/message"/>
+									<listOptionValue builtIn="false" value="../operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../src/tasks"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.774467720" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TRACE_LEVEL=5"/>
@@ -283,8 +281,10 @@
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="common"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="comms-processing"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="framework"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="housekeeping"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="image-processing"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="operation"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="payload-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
 					</sourceEntries>
