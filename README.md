@@ -3,7 +3,15 @@ Code and Documentation for USST’s first Canadian CubeSat Project: The RADSAT-S
 
 ## Table of Contents
 1. [Setting Up Your Repo](#Setting-Up-Your-Repo)
-2. [Coding Standard](#Coding-Standard)
+2. [How to Contribute](#How-to-Contribute)
+    1. [Issues](#Issues)
+    2. [Projects (and Managing Issues)](#Projects-(and-Managing-Issues))
+3. [Branching](#Branching)
+    1. [Strategy](#Strategy)
+    2. [Procedure](#Procedure)
+    3. [Naming](#Naming)
+4. [Directory Structure](#Directory-Structure)
+5. [Coding Standard](#Coding-Standard)
     1. [Indentation](#Indentation)
     2. [Variables](#Variables)
     3. [Files](#Files)
@@ -12,17 +20,13 @@ Code and Documentation for USST’s first Canadian CubeSat Project: The RADSAT-S
     6. [Parentheses in Expressions](#Parentheses-in-Expressions)
     7. [Switch Statements](#Switch-Statements)
     8. [Line Lengths](#Line-Lengths)
-3. [Code Documentation](#Code-Documentation)
+6. [Code Documentation](#Code-Documentation)
     1. [Functions](#Functions)
     2. [Global Variables](#Global-Variables)
     3. [Typedefs](#Typedefs)
     4. [Structs](#Structs)
     5. [Enums](#Enums)
     6. [Macros](#Macros)
-4. [Branching](#Branching)
-    1. [Procedure](#Procedure)
-    2. [Naming](#Naming)
-5. [Directory Structure](#Directory-Structure)
 
 ## Setting Up Your Repository
 1. Get WSL (Windows Subsystem for Linux) or Git Bash for your computer
@@ -32,7 +36,77 @@ Code and Documentation for USST’s first Canadian CubeSat Project: The RADSAT-S
 5. Run ```git config core.hooksPath .githooks``` (sets where git looks for the githooks)
 6. Run ```chmod +x .githooks/pre-commit``` (makes the githook script executable)
 
-Now your repo should be all set up! Check out our branching strategy below and coordinate with the Software and Command Team Lead(s) for further guidance.
+Now your repo should be all set up! Check out our "How to Contribute" and "Branching" sections below and coordinate with the Software and Command Team Lead(s) for further guidance.
+
+
+## How to Contribute
+### Issues
+Issues are how we track software development tasks. Issues are typically either feature or bug related. E.g. "Implement Payload Collection Task" or "Fix I2C Bug".
+Issues can be created by going to the "Issues" tab within GitHub, and selecting "New Issue". Be sure to coordinate with your Team Lead(s) if you're unsure about this process though.
+
+Be sure to assign the appropriate Project to the Issue being created; e.g. for an I2C bugfix, that would likely go into the "Framework" Project. If you're unsure of what projec it goes under, contact your Team Lead(s).
+
+### Projects (and Managing Issues)
+GitHub has a "Projects" tab, up top near the "Issues" tab. A Project is essentially a KanBan board that tracks individual Issues (and PRs). Issues and PRs can either be "To-Do", "In Progress", "In Review" or "Done". If you're looking for something new to work on, take a look at the items in the "To-Do" list of any Project! All you have to do is drag the Issue into the "In Progress" state. Be sure to communicate with the Software Team and Team Lead if you're not super familair with the process. Don't forget to assign yourself (and anyone else you're working with) on the Issue as well, so the Team knows what you're working.
+
+When you finish (your first attempt at) the task, create a Pull Request of your working branch into alpha. Also move your issue from the "In Progress" state into the "In Review" state. Communicate with the software Team and Team Lead, and your Team Lead will facilitate reviewing and approving the PR and placing the task into the "Done" state.
+
+
+## Branching
+
+### Strategy
+We have 5 "levels" of branching used:
+1. **master** -> This is reserved for FLIGHT READY code, i.e. very well tested.
+2. **beta**   -> This is reserved for FLATSAT code, i.e. moderately well tested.
+3. **alpha**  -> Working development branch, reserved for code that has been at least partially reviewed / tested.
+4. **other**  -> These branches are the only places where development happens. Each of these is based off of alpha.
+5. **hotfix** -> These are quick, one-off branches intended for quick fixes that are found on alpha or beta branches.
+
+Anyone can create a branch off of alpha and start developing. However, 2 people are required to review a PR (Pull Request) before the code can be accepted into the alpha branch. One of these people must be a team lead or project manager.
+
+alpha can be merged into beta, and beta can be merged into master. These are done very seldom throughout the project as the codebase matures, and may ONLY be done by the Software and Command Team Lead(s) or CubeSat Project Managers.  
+
+### Procedure
+1. In your local repo run ```git checkout alpha``` (you may have to commit, stash, or throw away uncommitted changes on your current branch)
+2. Run ```git pull``` (makes sure you have the latest code)
+2. run ```git checkout -b "<your branch name>"``` (creates a new branch)
+3. The first time that you try to push on the branch it will throw an error. Just follow the instructions to set the upstream branch.
+
+### Naming
+All branches **MUST** follow the few branch naming rules. Those rules are:
+- No captials
+- No underscores
+- Use hyphens instead of spaces
+- Must prepend new branch into one of six directories (see below)
+
+GitHub (and most other Git platforms) allow you to use branch folders, simply by uses forward slashes. Some examples of *good* branch names:
+- ```admin/restructure-directories```
+- ```test/write-unit-test-framework```
+- ```application/implement-payload-collection-task```
+- ```operation/import-nanopb```
+- ```framework/implement-uart-wrapper```
+- ```hotfix/fix-i2c-bug```
+
+Notice that all six of the directories used are based off of the Project names for the RADSAT-SK GitHub repo (minus hotfix, which is for quick fixes on alpha or beta branches).
+
+
+## Directory Structure
+We have chosen to follow a layered approach to code organization, partitioning our project into six *Layers*. From the top-down:
+1. **Application** -> Performs specific functions required by the mission. Contains ```main()``` function
+2. **Operation**   -> Provides generic operations that support the mission
+3. **Framework**   -> Interfaces with the OS & HAL, to support the mission operations
+4. **OS**          -> Wraps the Hardware to provide kernel-level support (task scheduling, semaphores, etc.)
+5. **HAL**         -> Abstracts (i.e. simplifies) access to OBC hardware and peripherals
+6. **Hardware**    -> The actual On-Board Computer's hardware and peripherals
+
+Each layer provides an API to the layer directly above it, and thus each layer only interfaces with the layer directly beneath it. For example, the code within the Operation layer *only* uses the functionality provided by the Framework layer. This allows for nice encapsulation and de-coupling between the layers.
+
+This has multiple benefits. One is that it allows for easier testing, since the top two layers should be completely hardware-independent, meaning they can (for the most part) be unit tested on a desktop PC. The decoupling also reduces complexities and debugging time, since each layer can only interface with the one directly beneath it. This can also be used to assist with deadlock prevention and other concurrency issues, since the lower layers (framework, OS) can be responsible for that.
+
+It is important to note that the RADSAT-SK team is only developing the top three layers; the bottom three have already been provided to us.
+
+If you're unsure of where to place some new code, talk to the current Software and Command Team Lead(s).
+
 
 ## Coding Standard
 Our coding standard is loosely based on the Qt coding style found [here](https://wiki.qt.io/Qt_Coding_Style).
@@ -254,9 +328,9 @@ uint16_t function(uint16_t n) {
 }
 ```
 
-
 ### Line Lengths
 Lines should aim to be 80 characters or less long, but the maximum accepted line length will be roughly 100 since no one really uses terminals anyways. Some exceptions may be made, but anything over 100 lines is starting to push the limits of readability.
+
 
 ## Code Documentation
 Our code is documented using [doxygen](http://www.doxygen.nl/). All comments
@@ -330,57 +404,3 @@ typedef enum {
  */
 #define functionMacro(x, y) (x + y)
 ```
-
-## Directory Structure
-We have chosen to follow a layered approach to code organization, partitioning our project into six *Layers*. From the top-down:
-1. **Application** -> Performs specific functions required by the mission. Contains ```main()``` function
-2. **Operation**   -> Provides generic operations that support the mission
-3. **Framework**   -> Interfaces with the OS & HAL, to support the mission operations
-4. **OS**          -> Wraps the Hardware to provide kernel-level support (task scheduling, semaphores, etc.)
-5. **HAL**         -> Abstracts (i.e. simplifies) access to OBC hardware and peripherals
-6. **Hardware**    -> The actual On-Board Computer's hardware and peripherals
-
-Each layer provides an API to the layer directly above it, and thus each layer only interfaces with the layer directly beneath it. For example, the code within the Operation layer *only* uses the functionality provided by the Framework layer. This allows for nice encapsulation and de-coupling between the layers.
-
-This has multiple benefits. One is that it allows for easier testing, since the top two layers should be completely hardware-independent, meaning they can (for the most part) be unit tested on a desktop PC. The decoupling also reduces complexities and debugging time, since each layer can only interface with the one directly beneath it. This can also be used to assist with deadlock prevention and other concurrency issues, since the lower layers (framework, OS) can be responsible for that.
-
-It is important to note that the RADSAT-SK team is only developing the top three layers; the bottom three have already been provided to us.
-
-If you're unsure of where to place some new code, talk to the current Software and Command Team Lead(s).
-
-## Branching
-
-### Strategy
-We have 5 "levels" of branching used:
-1. **master** -> This is reserved for FLIGHT READY code, i.e. very well tested.
-2. **beta**   -> This is reserved for FLATSAT code, i.e. moderately well tested.
-3. **alpha**  -> Working development branch, reserved for code that has been at least partially reviewed / tested.
-4. **other**  -> These branches are the only places where development happens. Each of these is based off of alpha.
-5. **hotfix** -> These are quick, one-off branches intended for quick fixes that are found on alpha or beta branches.
-
-Anyone can create a branch off of alpha and start developing. However, 2 people are required to review a PR (Pull Request) before the code can be accepted into the alpha branch. One of these people must be a team lead or project manager.
-
-alpha can be merged into beta, and beta can be merged into master. These are done very seldom throughout the project as the codebase matures, and may ONLY be done by the Software and Command Team Lead(s) or CubeSat Project Managers.  
-
-### Procedure
-1. In your local repo run ```git checkout alpha``` (you may have to commit, stash, or throw away uncommitted changes on your current branch)
-2. Run ```git pull``` (makes sure you have the latest code)
-2. run ```git checkout -b "<your branch name>"``` (creates a new branch)
-3. The first time that you try to push on the branch it will throw an error. Just follow the instructions to set the upstream branch.
-
-### Branch Naming
-All branches **MUST** follow the few branch naming rules. Those rules are:
-- No captials
-- No underscores
-- Use hyphens instead of spaces
-- Must prepend new branch into one of six directories (see below)
-
-GitHub (and most other Git platforms) allow you to use branch folders, simply by uses forward slashes. Some examples of *good* branch names:
-- ```admin/restructure-directories```
-- ```test/write-unit-test-framework```
-- ```application/implement-payload-collection-task```
-- ```operation/import-nanopb```
-- ```framework/implement-uart-wrapper```
-- ```hotfix/fix-i2c-bug```
-
-Notice that all six of the directories used are based off of the Project names for the RADSAT-SK GitHub repo (minus hotfix, which is for quick fixes on alpha or beta branches).
