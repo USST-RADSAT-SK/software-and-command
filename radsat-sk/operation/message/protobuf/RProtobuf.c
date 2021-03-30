@@ -16,7 +16,6 @@
  * Encode a raw protobuf message with NanoPB into a buffer, and encode the header as well.
  *
  * @param rawMessage The raw (unencoded) RadSat struct message to encode.
- * @param messageSize The size (in bytes) of the message, pre-encoding.
  * @param outgoingBuffer The buffer that will hold the encoded message & header.
  * @return true if the encoded process is successful; false otherwise.
  */
