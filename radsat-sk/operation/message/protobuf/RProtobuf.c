@@ -19,8 +19,7 @@
  * @param outgoingBuffer The buffer that will hold the encoded message & header.
  * @return true if the encoded process is successful; false otherwise.
  */
-uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer)
-{
+uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer) {
 	// ensure incoming buffer is not NULL
 	assert(rawMessage);
 	assert(outgoingBuffer);
@@ -42,8 +41,7 @@ uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer)
  * @param decodedMessage The message that will be populated with the decoded message.
  * @return true if the message is decoded successfully, false otherwise.
  */
-uint8_t protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage)
-{
+uint8_t protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage) {
 	// ensure incoming buffer is not NULL
 	assert(incomingBuffer);
 	assert(decodedMessage);
