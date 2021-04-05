@@ -2,7 +2,7 @@
 
 int getPaddedBufSize(int plaintextLen);
 void padBuffer(uint8_t* buff, uint8_t* paddedBuff, int buffLen, int newBuffLen);
-int encrypt(uint8_t* plaintext, int plaintextLen);
+void encrypt(uint8_t* plaintext, int plaintextLen);
 
 
 /**
@@ -36,9 +36,9 @@ int getPaddedBufSize(int plaintextLen){
  * @return Null
  */
 void padBuffer(uint8_t* buff, uint8_t* paddedBuff, int buffLen, int newBuffLen){
-	int paddingSize = newBuffLen - buffLen;
 	memset(paddedBuff, 0, newBuffLen);
-	for (int i=0; i<buffLen; i++){
+	int i;
+	for (i=0; i<buffLen; i++){
 		paddedBuff[i] = buff[i];
 	}
 	pkcs7_padding_pad_buffer(paddedBuff, buffLen, newBuffLen, MODULUS);
@@ -51,7 +51,7 @@ void padBuffer(uint8_t* buff, uint8_t* paddedBuff, int buffLen, int newBuffLen){
  * @param plaintextLen - The length of the plaintext value
  * @return Null
  */
-int encrypt(uint8_t* plaintext, int plaintextLen){
+void encrypt(uint8_t* plaintext, int plaintextLen){
     struct AES_ctx ctx;
     AES_init_ctx_iv(&ctx, key, iv);
     AES_CBC_encrypt_buffer(&ctx, plaintext, plaintextLen);
