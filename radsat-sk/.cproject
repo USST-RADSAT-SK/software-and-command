@@ -56,19 +56,19 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.351597839" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" value="true" valueType="boolean"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.341491792" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/radsat-sk/src}&quot;"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/hal/freertos/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/hal/hal/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/hal/at91/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/framework"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/framework/fileio"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/framework/utils"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/framework/wrappers"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/operation"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/operation/collection"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/operation/message"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/operation/subsystems"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/src/tasks"/>
 									<listOptionValue builtIn="false" value="../operation/crypt/tiny-aes/"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/hal/freertos/include"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/src/tasks"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/operation/message"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/operation/collection"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/operation"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework/wrappers"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework/utils"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework/fileio"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/hal/at91/include"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/hal/hal/include"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1102762476" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__ASSEMBLY__"/>
@@ -86,19 +86,19 @@
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.894727219" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.938562612" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/radsat-sk/src}&quot;"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/hal/freertos/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/hal/hal/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/hal/at91/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/framework"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/framework/fileio"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/framework/utils"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/framework/wrappers"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/operation"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/operation/collection"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/operation/message"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/operation/subsystems"/>
-									<listOptionValue builtIn="false" value="C:/Users/T-Steak/Documents/School/usst/repo/radsat-sk/src/tasks"/>
 									<listOptionValue builtIn="false" value="../operation/crypt/tiny-aes/"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/hal/freertos/include"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/hal/hal/include"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/hal/at91/include"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework/fileio"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework/utils"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework/wrappers"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/operation"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/operation/collection"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/operation/message"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/repo/radsat-sk/operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/src/tasks"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.663972223" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>
@@ -119,8 +119,8 @@
 									<listOptionValue builtIn="false" value="${external-dependencies}/hal/at91/linker-scripts/sdram.lds"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.other.671716154" name="Other linker flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.other" value="-lc" valueType="string"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths.438200999" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths" valueType="libPaths"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs.2052718930" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs" valueType="libs"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths.438200999" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs.2052718930" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input.1144742114" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
