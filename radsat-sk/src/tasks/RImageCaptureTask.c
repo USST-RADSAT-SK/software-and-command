@@ -10,6 +10,7 @@
 //TODO: Find out where the Queues are being made and make sure they are named correctly
 
 
+#include <freertos/FreeRTOS.h>
 #include <freertos/queue.h>
 #include <RImageCaptureTask.h>
 #include <stdint.h>
@@ -42,8 +43,7 @@ extern xQueueHandle xQueueCubeSense;
 */
 uint32_t captureLocation(uint64_t *SRAMSlot){
 	uint64_t TLcapatureStatus = 0x1F7F941FFF;
-	uint8_t resultsCubeSense = 0x1;
-	uint8_t captureFlag;
+	uint8_t resultsCubeSense = 0x1;;
 	const xBlockTime = pdMS_TO_TICKS( 200 );
 
 
@@ -113,4 +113,4 @@ uint32_t captureTask(void *superresolution ){
         }
     }
     return 0;
-};
+}
