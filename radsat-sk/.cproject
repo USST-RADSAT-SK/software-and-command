@@ -57,18 +57,18 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.341491792" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/radsat-sk/src}&quot;"/>
 									<listOptionValue builtIn="false" value="../operation/crypt/tiny-aes/"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/hal/freertos/include"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/src/tasks"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/operation/subsystems"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/operation/message"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/operation/collection"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/operation"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework/wrappers"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework/utils"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework/fileio"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/hal/at91/include"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/hal/hal/include"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/framework&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/framework/fileio&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/framework/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/framework/wrappers&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/operation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/operation/collection&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/operation/message&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/operation/subsystems&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/src/tasks&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1102762476" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__ASSEMBLY__"/>
@@ -87,18 +87,18 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.938562612" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/radsat-sk/src}&quot;"/>
 									<listOptionValue builtIn="false" value="../operation/crypt/tiny-aes/"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/hal/freertos/include"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/hal/hal/include"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/hal/at91/include"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework/fileio"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework/utils"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/framework/wrappers"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/operation"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/operation/collection"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/operation/message"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/repo/radsat-sk/operation/subsystems"/>
-									<listOptionValue builtIn="false" value="../{external-dependencies}/radsat-sk/src/tasks"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/framework&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/src/tasks&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/repo/radsat-sk/operation/subsystems&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/operation/message&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/operation/collection&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/operation&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/framework/wrappers&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/framework/utils&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/radsat-sk/framework/fileio&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.663972223" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>

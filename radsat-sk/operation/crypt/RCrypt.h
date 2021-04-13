@@ -1,9 +1,10 @@
-#ifndef ENCRYPT_H_
-#define ENCRYPT_H_
-#include "crypt_globals.h"
+#ifndef RCRYPT_H_
+#define RCRYPT_H_
+#include "RCryptGlobals.h"
 
 int getPaddedBufSize(int plaintextLen);
 void padBuffer(uint8_t* buff, uint8_t* paddedBuff, int buffLen, int newBuffLen);
 void encrypt(uint8_t* plaintext, int plaintextLen);
+size_t decrypt(uint8_t* plaintext, int plaintextLen);
 
-#endif /* ENCRYPT_H_ */
+#endif /* RCRYPT_H_ */
