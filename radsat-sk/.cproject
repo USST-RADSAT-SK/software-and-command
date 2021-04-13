@@ -54,7 +54,21 @@
 							</builder>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1208792301" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.351597839" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" value="true" valueType="boolean"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.341491792" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.341491792" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
+									<listOptionValue builtIn="false" value="../framework"/>
+									<listOptionValue builtIn="false" value="../framework/fileio"/>
+									<listOptionValue builtIn="false" value="../framework/utils"/>
+									<listOptionValue builtIn="false" value="../framework/wrappers"/>
+									<listOptionValue builtIn="false" value="../operation"/>
+									<listOptionValue builtIn="false" value="../operation/collection"/>
+									<listOptionValue builtIn="false" value="../operation/message"/>
+									<listOptionValue builtIn="false" value="../operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../src/tasks"/>
+								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1102762476" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__ASSEMBLY__"/>
 									<listOptionValue builtIn="false" value="sdram"/>
