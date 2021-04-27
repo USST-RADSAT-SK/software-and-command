@@ -1,6 +1,6 @@
 /**
  * @file RProtobuf.c
- * @date Jan 25, 2021
+ * @date January 25, 2021
  * @author Tyrel Kostyk (tck290)
  */
 
@@ -17,7 +17,7 @@
  *
  * @param rawMessage The raw (unencoded) RadSat struct message to encode.
  * @param outgoingBuffer The buffer that will hold the encoded message & header.
- * @return true if the encoded process is successful; false otherwise.
+ * @return The size of the encoded message; 0 if encoding failed.
  */
 uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer) {
 	// ensure incoming buffer is not NULL
@@ -28,7 +28,11 @@ uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer) {
 	pb_ostream_t stream = pb_ostream_from_buffer((uint8_t*)rawMessage, PROTO_MAX_ENCODED_SIZE);
 
 	// encode the message into the byte array
-	return pb_encode(&stream, RadsatMessage_fields, &outgoingBuffer);
+	if (pb_encode(&stream, RadsatMessage_fields, &outgoingBuffer))
+		return stream.bytes_written;
+
+	// if the encoding failed, return 0
+	return 0;
 }
 
 

@@ -17,7 +17,7 @@ typedef struct _RadsatMessage {
     union {
         FileTransferMessage fileTransferMessage;
         TelecommandMessage telecommandMessage;
-    } topic;
+    };
 } RadsatMessage;
 
 
@@ -35,8 +35,8 @@ extern "C" {
 
 /* Struct field encoding specification for nanopb */
 #define RadsatMessage_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (topic,fileTransferMessage,topic.fileTransferMessage),   4) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (topic,telecommandMessage,topic.telecommandMessage),   5)
+X(a, STATIC,   ONEOF,    MESSAGE,  (topic,fileTransferMessage,fileTransferMessage),   4) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (topic,telecommandMessage,telecommandMessage),   5)
 #define RadsatMessage_CALLBACK NULL
 #define RadsatMessage_DEFAULT NULL
 #define RadsatMessage_topic_fileTransferMessage_MSGTYPE FileTransferMessage

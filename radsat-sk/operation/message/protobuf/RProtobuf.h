@@ -1,6 +1,6 @@
 /**
  * @file RProtobuf.h
- * @date Jan 25, 2021
+ * @date January 25, 2021
  * @author Tyrel Kostyk (tck290)
  */
 

@@ -28,7 +28,7 @@ typedef struct _FileTransferMessage {
     union {
         FileTransferResponse fileTransferResponse;
         FileTransferPacket fileTransferPacket;
-    } message;
+    };
 } FileTransferMessage;
 
 
@@ -56,8 +56,8 @@ extern "C" {
 
 /* Struct field encoding specification for nanopb */
 #define FileTransferMessage_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,fileTransferResponse,message.fileTransferResponse),   1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,fileTransferPacket,message.fileTransferPacket),   2)
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,fileTransferResponse,fileTransferResponse),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,fileTransferPacket,fileTransferPacket),   2)
 #define FileTransferMessage_CALLBACK NULL
 #define FileTransferMessage_DEFAULT NULL
 #define FileTransferMessage_message_fileTransferResponse_MSGTYPE FileTransferResponse

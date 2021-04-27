@@ -31,7 +31,7 @@ typedef struct _TelecommandMessage {
     union {
         CeaseTransmission ceaseTransmission;
         UpdatePassTime updatePassTime;
-    } message;
+    };
 } TelecommandMessage;
 
 
@@ -59,8 +59,8 @@ extern "C" {
 
 /* Struct field encoding specification for nanopb */
 #define TelecommandMessage_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,ceaseTransmission,message.ceaseTransmission),   1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,updatePassTime,message.updatePassTime),   2)
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,ceaseTransmission,ceaseTransmission),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,updatePassTime,updatePassTime),   2)
 #define TelecommandMessage_CALLBACK NULL
 #define TelecommandMessage_DEFAULT NULL
 #define TelecommandMessage_message_ceaseTransmission_MSGTYPE CeaseTransmission
