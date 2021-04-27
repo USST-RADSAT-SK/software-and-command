@@ -4,10 +4,10 @@
  * @author Thomas Slotboom (ths943)
  */
 
-#include "RCrypt.h"
+#include "RAes.h"
 
 /***************************************************************************************************
-											GLOBAL VARIABLES
+                                          GLOBAL VARIABLES
 ***************************************************************************************************/
 
 /** A 128 bit key, in the future we will pull this from fram */
