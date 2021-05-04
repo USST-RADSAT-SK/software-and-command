@@ -81,6 +81,9 @@
 									<listOptionValue builtIn="false" value="../operation"/>
 									<listOptionValue builtIn="false" value="../operation/collection"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>
+									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
+									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
+									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
 								</option>
@@ -221,6 +224,9 @@
 									<listOptionValue builtIn="false" value="../operation"/>
 									<listOptionValue builtIn="false" value="../operation/collection"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>
+									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
+									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
+									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
 								</option>

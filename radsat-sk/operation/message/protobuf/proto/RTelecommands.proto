@@ -1,0 +1,39 @@
+/* file: telecommands.proto
+ * date: January 18 2021
+ *
+ * This proto file includes the raw definitions (using proto3 syntax) of messages
+ * that are to be compiled into C structs using the protoc library.
+ *
+ * The messages defined in this file will be primarily used for sending and
+ * responding to telecommands, which mainly consist of commands that the Ground
+ * Station on Earth will send to the RADSAT-SK Satellite.
+ */
+
+syntax = "proto3";
+
+// top level File Transfer message object
+message TelecommandMessage {
+	oneof message {
+		CeaseTransmission ceaseTransmission	= 1;
+		UpdatePassTime updatePassTime		= 2;
+	}
+}
+
+
+message TelecommandResponse {
+	int32 response = 1;		// the value of the response (ACK, NAK, CAN, etc.)
+}
+
+
+message TelecommandBegin {
+}
+
+
+// message telling the Satellite to cease downlink transmissions immediately
+message CeaseTransmission {
+}
+
+
+message UpdatePassTime {
+	int32 unixTime = 1;
+}
