@@ -11,5 +11,6 @@
 
 int UART_tx(const unsigned char* data, unsigned int size);
 int UART_rx(unsigned char* data, unsigned int size);
+int UART_init();
 
 #endif /* RUART_H_ */

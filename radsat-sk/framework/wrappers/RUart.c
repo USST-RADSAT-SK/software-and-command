@@ -11,6 +11,8 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
+//TODO: Add proper values for timeGuard and rx timeout
+UARTconfig cameraConfig = {AT91C_US_USMODE_NORMAL, 57600, 1, rs232_uart, 14400};
 
 /**
  * Sends the given data over UART
@@ -31,4 +33,16 @@ int UART_tx(const unsigned char* data, unsigned int size) {
  */
 int UART_rx(unsigned char* data, unsigned int size) {
 	return UART_read(bus0_uart, data, size);
+}
+
+/**
+ * Initializes UART and enables receiving on the bus
+ * @return An integer error code. 0 indicates success
+ */
+int UART_init() {
+	int err = UART_start(bus0_uart, cameraConfig);
+	if(err != 0) {
+		return err;
+	}
+	return UART_setRxEnabled(bus0_uart, TRUE);
 }
