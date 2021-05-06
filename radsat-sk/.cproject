@@ -54,7 +54,24 @@
 							</builder>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.1208792301" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.351597839" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" value="true" valueType="boolean"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.341491792" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.341491792" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" valueType="includePath">
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/radsat-sk/radsat-sk/src"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/hal/freertos/include"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/hal/hal/include"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/hal/at91/include"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/framework"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/framework/fileio"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/framework/utils"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/framework/wrappers"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation/collection"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation/message"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation/message/protobuf"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation/message/protobuf/types"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation/message/protobuf/nanopb"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation/subsystems"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/src/tasks"/>
+								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1102762476" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__ASSEMBLY__"/>
 									<listOptionValue builtIn="false" value="sdram"/>
@@ -70,24 +87,25 @@
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.894727219" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.938562612" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/src}&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
-									<listOptionValue builtIn="false" value="../framework"/>
-									<listOptionValue builtIn="false" value="../framework/fileio"/>
-									<listOptionValue builtIn="false" value="../framework/utils"/>
-									<listOptionValue builtIn="false" value="../framework/wrappers"/>
-									<listOptionValue builtIn="false" value="../operation"/>
-									<listOptionValue builtIn="false" value="../operation/collection"/>
-									<listOptionValue builtIn="false" value="../operation/message"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
-									<listOptionValue builtIn="false" value="../operation/subsystems"/>
-									<listOptionValue builtIn="false" value="../src/tasks"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/radsat-sk/radsat-sk/src"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/hal/freertos/include"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/hal/hal/include"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/hal/at91/include"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/framework"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/framework/fileio"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/framework/utils"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/framework/wrappers"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation/collection"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation/message"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation/message/protobuf"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation/message/protobuf/types"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation/message/protobuf/nanopb"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/operation/subsystems"/>
+									<listOptionValue builtIn="false" value="C:/ISIS/usstSoftware/software-and-command/radsat-sk/src/tasks"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.663972223" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
+									<listOptionValue builtIn="false" value="__ASSEMBLY__"/>
 									<listOptionValue builtIn="false" value="sdram"/>
 									<listOptionValue builtIn="false" value="at91sam9g20"/>
 									<listOptionValue builtIn="false" value="TRACE_LEVEL=5"/>
@@ -106,16 +124,8 @@
 									<listOptionValue builtIn="false" value="${external-dependencies}/hal/at91/linker-scripts/sdram.lds"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.other.671716154" name="Other linker flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.other" value="-lc" valueType="string"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths.438200999" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths" valueType="libPaths">
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/lib&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/lib&quot;"/>
-								</option>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs.2052718930" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs" valueType="libs">
-									<listOptionValue builtIn="false" value="HALD"/>
-									<listOptionValue builtIn="false" value="FreeRTOSD"/>
-									<listOptionValue builtIn="false" value="At91D"/>
-								</option>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths.438200999" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths" valueType="libPaths"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs.2052718930" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs" valueType="libs"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input.1144742114" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -141,14 +151,9 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="common"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="comms-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="framework"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="housekeeping"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="image-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="operation"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="payload-processing"/>
-						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -285,13 +290,8 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="common"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="comms-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="framework"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="housekeeping"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="image-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="operation"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="payload-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
