@@ -19,7 +19,7 @@ UARTconfig cameraConfig = {AT91C_US_USMODE_NORMAL, CAMERA_BAUD_RATE, TIME_GUARD,
  * @param size: The number of bytes to be sent
  * @return An integer error code. 0 indicates success
  */
-int UART_tx(const unsigned char* data, unsigned int size) {
+int UART_blockingTransmit(const unsigned char* data, unsigned int size) {
 	return UART_write(bus0_uart, data, size);
 }
 
@@ -30,7 +30,7 @@ int UART_tx(const unsigned char* data, unsigned int size) {
  * @param size: The number of bytes to recieve over UART
  * @return An integer error code. 0 indicates success
  */
-int UART_rx(unsigned char* data, unsigned int size) {
+int UART_blockingRecieve(unsigned char* data, unsigned int size) {
 	return UART_read(bus0_uart, data, size);
 }
 
