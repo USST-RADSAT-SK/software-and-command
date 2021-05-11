@@ -86,6 +86,7 @@
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
+									<listOptionValue builtIn="false" value="../operation/crypt/tiny-aes"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.663972223" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>
@@ -229,6 +230,7 @@
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
+									<listOptionValue builtIn="false" value="../operation/crypt/tiny-aes"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.774467720" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TRACE_LEVEL=5"/>
