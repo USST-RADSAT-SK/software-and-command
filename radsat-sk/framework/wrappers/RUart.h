@@ -13,8 +13,8 @@
 #define TIME_GUARD 0
 #define RX_TIMEOUT 255
 
-int UART_blockingTransmit(const unsigned char* data, unsigned int size);
-int UART_blockingTransmit(unsigned char* data, unsigned int size);
+int UART_blockingTransmit(const uint8_t* data, uint16_t size);
+int UART_blockingTransmit(uint8_t* data, uint16_t size);
 int UART_init();
 
 #endif /* RUART_H_ */
