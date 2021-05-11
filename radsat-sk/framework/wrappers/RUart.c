@@ -11,8 +11,7 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-//TODO: Add proper values for timeGuard and rx timeout
-UARTconfig cameraConfig = {AT91C_US_USMODE_NORMAL, 57600, 1, rs232_uart, 14400};
+UARTconfig cameraConfig = {AT91C_US_USMODE_NORMAL, CAMERA_BAUD_RATE, TIME_GUARD, rs232_uart, RX_TIMEOUT};
 
 /**
  * Sends the given data over UART

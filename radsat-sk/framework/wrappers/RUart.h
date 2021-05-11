@@ -9,6 +9,10 @@
 
 #include "hal/Drivers/UART.h"
 
+#define CAMERA_BAUD_RATE 57600
+#define TIME_GUARD 0
+#define RX_TIMEOUT 255
+
 int UART_tx(const unsigned char* data, unsigned int size);
 int UART_rx(unsigned char* data, unsigned int size);
 int UART_init();
