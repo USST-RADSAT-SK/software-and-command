@@ -1,10 +1,10 @@
 /**
- * @file RCrypt.c
+ * @file RAes.c
  * @date April 26 2021
  * @author Thomas Slotboom (ths943)
  */
 
-#include "RAes.h"
+#include <RAes.h>
 
 /***************************************************************************************************
                                           GLOBAL VARIABLES
@@ -33,9 +33,10 @@ static uint8_t intializationVector[]  = { 0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x
 uint32_t aesDecrypt(uint8_t* cipherText, uint8_t cipherTextLength) {
 	// sets up the context for decryption and initiailizes the initialization vector
 	struct AES_ctx context;
+	// at some point we will have to pull the key from memory
 	AES_init_ctx_iv(&context, privateKey, intializationVector);
 
 	AES_CBC_decrypt_buffer(&context, cipherText, cipherTextLength);
-	uint32_t actualDataLength = (uint32_t)pkcs7_padding_data_length(cipherText, cipherTextLength, MODULUS);
+	uint32_t actualDataLength = (uint32_t)pkcs7_padding_data_length(cipherText, cipherTextLength, AES_DECRYPT_MODULUS_SIZE);
 	return actualDataLength;
 }

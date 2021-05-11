@@ -1,21 +1,23 @@
 /**
- * @file RCrypt.h
+ * @file RAes.h
  * @date April 26 2021
  * @author Thomas Slotboom (ths943)
  */
 
-#ifndef RCRYPT_H_
-#define RCRYPT_H_
+#ifndef RAES_H_
+#define RAES_H_
 
 #include <stdint.h>
-#include "aes.h"
-#include "pkcs7Padding.h"
+#include <aes.h>
+#include <pkcs7Padding.h>
 
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
-#define MODULUS ((uint8_t)16)
+
+/** Modulus size used for padding of encrypted buffers */
+#define AES_DECRYPT_MODULUS_SIZE ((uint8_t)16)
 
 uint32_t aesDecrypt(uint8_t* cipherText, uint8_t cipherTextLength);
 
-#endif /* RCRYPT_H_ */
+#endif /* RAES_H_ */
