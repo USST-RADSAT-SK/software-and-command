@@ -4,7 +4,7 @@
  * @author Addi Amaya (caa746) & Jacob Waskowic (jaw352)
  */
 
-
+#include <stdint.h>
 #include "RUart.h"
 
 /***************************************************************************************************
