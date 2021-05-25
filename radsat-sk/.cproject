@@ -112,6 +112,7 @@
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/lib&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs.2052718930" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="HALD"/>
