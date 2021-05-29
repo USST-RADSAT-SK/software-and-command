@@ -87,6 +87,7 @@
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
 									<listOptionValue builtIn="false" value="../operation/crypt/tiny-aes"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.663972223" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>
@@ -111,11 +112,13 @@
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/lib&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs.2052718930" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="HALD"/>
 									<listOptionValue builtIn="false" value="FreeRTOSD"/>
 									<listOptionValue builtIn="false" value="At91D"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="HCCD"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input.1144742114" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -226,6 +229,7 @@
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
 									<listOptionValue builtIn="false" value="../operation/crypt/tiny-aes"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.774467720" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TRACE_LEVEL=5"/>
@@ -249,11 +253,13 @@
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/lib&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/lib&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs.1980502589" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs" valueType="libs">
 									<listOptionValue builtIn="false" value="HAL"/>
 									<listOptionValue builtIn="false" value="FreeRTOS"/>
 									<listOptionValue builtIn="false" value="At91"/>
+									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="HCC"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input.1145212187" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -282,13 +288,8 @@
 						</toolChain>
 					</folderInfo>
 					<sourceEntries>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="common"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="comms-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="framework"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="housekeeping"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="image-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="operation"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="payload-processing"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
 					</sourceEntries>
 				</configuration>
