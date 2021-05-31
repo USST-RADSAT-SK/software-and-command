@@ -11,7 +11,8 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-UARTconfig cameraConfig = {AT91C_US_USMODE_NORMAL, CAMERA_BAUD_RATE, TIME_GUARD, rs232_uart, RX_TIMEOUT};
+UARTconfig cameraConfig = {AT91C_US_USMODE_NORMAL | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS | AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
+		CAMERA_BAUD_RATE, TIME_GUARD, rs232_uart, RX_TIMEOUT};
 
 /**
  * Sends the given data over UART
@@ -19,7 +20,7 @@ UARTconfig cameraConfig = {AT91C_US_USMODE_NORMAL, CAMERA_BAUD_RATE, TIME_GUARD,
  * @param size: The number of bytes to be sent
  * @return An integer error code. 0 indicates success
  */
-uint32_t UART_blockingTransmit(const uint8_t* data, uint16_t size) {
+uint32_t uartBlockingTransmit(const uint8_t* data, uint16_t size) {
 	return UART_write(bus0_uart, data, size);
 }
 
@@ -30,7 +31,7 @@ uint32_t UART_blockingTransmit(const uint8_t* data, uint16_t size) {
  * @param size: The number of bytes to recieve over UART
  * @return An integer error code. 0 indicates success
  */
-uint32_t UART_blockingRecieve(uint8_t* data, uint16_t size) {
+uint32_t uartBlockingRecieve(uint8_t* data, uint16_t size) {
 	return UART_read(bus0_uart, data, size);
 }
 
@@ -38,7 +39,7 @@ uint32_t UART_blockingRecieve(uint8_t* data, uint16_t size) {
  * Initializes UART and enables receiving on the bus
  * @return An integer error code. 0 indicates success
  */
-uint32_t UART_init() {
+uint32_t uartInit() {
 	int err = UART_start(bus0_uart, cameraConfig);
 	if(err != 0) {
 		return err;
