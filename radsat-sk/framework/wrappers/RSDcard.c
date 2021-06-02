@@ -42,7 +42,7 @@ static xTaskHandle _task[2] = {0};
  * commands refer to the user guide.
  */
 
-uint32_t SD_init( uint16_t volID) {
+uint32_t SDinit( uint16_t volID) {
 	uint16_t ret;
 
 	if( volID != 0 && volID != 1 ) {
@@ -72,6 +72,21 @@ uint32_t SD_init( uint16_t volID) {
 
 	return 1;
 
+}
+
+uint32_t SDstop( uint16_t volID ){
+
+	f_delvolume(volID); /* delete the volID */
+
+	f_releaseFS(); /* release this task from the filesystem */
+
+	fs_delete(); /* delete the filesystem */
+
+	hcc_mem_delete(); /* free the memory used by the filesystem */
+
+	SD_TRACE_INFO("SD Card (%d) de-initialization completed!\n\r", volID);
+
+	return 1;
 }
 
 void sdBasic( uint16_t volID ){

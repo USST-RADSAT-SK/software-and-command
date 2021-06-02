@@ -29,7 +29,9 @@
 #define ENABLE_SD_TRACES 1
 
 
-uint32_t SD_init(uint16_t volID);
+uint32_t SDinit(uint16_t volID);
+
+uint32_t SDstop(uint16_t volID);
 
 uint32_t SD_read(uint8_t filename);
 
