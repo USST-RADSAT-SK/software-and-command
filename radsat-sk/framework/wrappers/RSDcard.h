@@ -33,9 +33,9 @@ uint32_t SDinit(uint16_t volID);
 
 uint32_t SDstop(uint16_t volID);
 
-uint32_t SD_read(uint8_t filename);
+uint32_t SDread(uint8_t filename, uint16_t volID);
 
-uint32_t SD_write(uint8_t filename);
+uint32_t SDwrite(uint8_t* filename, uint16_t volID);
 
 
 #endif /* RSDCARD_H_ */
