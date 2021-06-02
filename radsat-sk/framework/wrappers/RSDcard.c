@@ -42,15 +42,15 @@ static xTaskHandle _task[2] = {0};
  * commands refer to the user guide.
  */
 
-void SD_init( uint16_t volID) {
+uint32_t SD_init( uint16_t volID) {
 	uint16_t ret;
 
 	if( volID != 0 && volID != 1 ) {
-		return;
+		return 0;
 	}
 
 	hcc_mem_init(); /* Initialize the memory to be used by filesystem */
-	ASSERT( (ret == HCC_MEM_SUCCESS), "hcc_mem_init pb: %d\n\r", ret);
+
 	ret = fs_init(); /* Initialize the filesystem */
 	ASSERT( (ret == F_NO_ERROR), "fs_init pb: %d\n\r", ret);
 	ret = f_enterFS(); /* Register this task with filesystem */
@@ -69,6 +69,8 @@ void SD_init( uint16_t volID) {
 	}
 
 	SD_TRACE_INFO("SD Card (%d) initialization completed!\n\r", volID);
+
+	return 1;
 
 }
 
