@@ -20,12 +20,13 @@
 #include <at91/utility/assert.h>
 #include <stdint.h>
 
-#define _BUFF_SIZE ( 2 * 1024 )
-#define _SAFE 1
 
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
+#define _BUFF_SIZE ( 2 * 1024 )
+#define _SAFE 1
+#define ENABLE_SD_TRACES 1
 
 
 uint32_t SD_init(uint16_t volID);

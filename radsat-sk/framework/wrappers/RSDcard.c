@@ -11,22 +11,20 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-#define ENABLE_DEMO_SD_TRACES 1
-#if ENABLE_DEMO_SD_TRACES
-	#define DEMO_SD_TRACE_INFO		TRACE_INFO
-	#define DEMO_SD_TRACE_DEBUG		TRACE_DEBUG
-	#define DEMO_SD_TRACE_WARNING	TRACE_WARNING
-	#define DEMO_SD_TRACE_ERROR		TRACE_ERROR
-	#define DEMO_SD_TRACE_FATAL		TRACE_FATAL
+#if ENABLE_SD_TRACES
+	#define SD_TRACE_INFO		TRACE_INFO
+	#define SD_TRACE_DEBUG		TRACE_DEBUG
+	#define SD_TRACE_WARNING	TRACE_WARNING
+	#define SD_TRACE_ERROR		TRACE_ERROR
+	#define SD_TRACE_FATAL		TRACE_FATAL
 #else
-	#define DEMO_SD_TRACE_INFO(...)	{ }
-	#define DEMO_SD_TRACE_DEBUG(...)	{ }
-	#define DEMO_SD_TRACE_WARNING(...)	{ }
-	#define DEMO_SD_TRACE_ERROR		TRACE_ERROR
-	#define DEMO_SD_TRACE_FATAL		TRACE_FATAL
+	#define SD_TRACE_INFO(...)	{ }
+	#define SD_TRACE_DEBUG(...)	{ }
+	#define SD_TRACE_WARNING(...)	{ }
+	#define SD_TRACE_ERROR		TRACE_ERROR
+	#define SD_TRACE_FATAL		TRACE_FATAL
 #endif
 
-#define _BUFF_SIZE ( 2 * 1024 )
 
 unsigned char pWriteBuff[ _BUFF_SIZE ];
 unsigned char pReadBuff[ _BUFF_SIZE ];
@@ -52,8 +50,7 @@ void SD_init( uint16_t volID) {
 	}
 
 	hcc_mem_init(); /* Initialize the memory to be used by filesystem */
-
-	//check
+	ASSERT( (ret == HCC_MEM_SUCCESS), "hcc_mem_init pb: %d\n\r", ret);
 	ret = fs_init(); /* Initialize the filesystem */
 	ASSERT( (ret == F_NO_ERROR), "fs_init pb: %d\n\r", ret);
 	ret = f_enterFS(); /* Register this task with filesystem */
@@ -70,6 +67,8 @@ void SD_init( uint16_t volID) {
 		ret = f_format( 0, F_FAT32_MEDIA ); /* Format the filesystem */
 		ASSERT( (ret == F_NO_ERROR), "f_format pb: %d\n\r", ret);
 	}
+
+	SD_TRACE_INFO("SD Card (%d) initialization completed!\n\r", volID);
 
 }
 
