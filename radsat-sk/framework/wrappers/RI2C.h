@@ -13,7 +13,8 @@
 
 #include <hal/Drivers/I2C.h>
 
-//TODO: Determine a speed for the i2c
+//TODO: Find all slaveaddresses for all components
+//TODO: Determine a speed for the i2c. look at datasheets
 #define I2C_BUSSPEED_HZ 200000
 #define I2C_TRANSFERTIMEOUT 0
 #define WRITEREAD_DELAY 0
