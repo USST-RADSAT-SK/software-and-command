@@ -13,7 +13,7 @@
 
 #include <hal/Drivers/I2C.h>
 
-//TODO: Find all slaveaddresses for all components
+//TODO: Find all slaveaddresses for all components. Look at CDR and Pre-CDR
 #define I2C_BUSSPEED_HZ 100000 //100000 according to 0937/0938/1192/1335 datasheet
 #define I2C_TRANSFERTIMEOUT 0
 #define WRITEREAD_DELAY 0
