@@ -13,7 +13,16 @@
 
 #include <hal/Drivers/I2C.h>
 
-//TODO: Find all slaveaddresses for all components. Look at CDR and Pre-CDR
+
+//Slaveaddress for each components
+#define DOSIMETER1 0x4A
+#define DOSIMETER2 0x48
+#define PDB 0x2B
+#define RX 0x60
+#define TX 0x61
+#define ANTENNA 0x31
+
+
 #define I2C_BUSSPEED_HZ 100000 //100000 according to 0937/0938/1192/1335 datasheet
 #define I2C_TRANSFERTIMEOUT 0
 #define WRITEREAD_DELAY 0
