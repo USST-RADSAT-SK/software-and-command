@@ -13,6 +13,9 @@
 #define TIME_GUARD 0
 #define RX_TIMEOUT 255
 
+/***************************************************************************************************
+                                             FUNCTION DECLARATIONS
+***************************************************************************************************/
 
 uint32_t UART_blockingTransmit(const uint8_t* data, uint16_t size);
 uint32_t UART_blockingRecieve(uint8_t* data, uint16_t size);
