@@ -123,7 +123,7 @@ uint32_t i2cQueue(uint16_t slaveAddress, uint16_t writeSize, uint16_t readSize, 
 
 	struct _I2CgenericTransfer master;
 	master.slaveAddress = slaveAddress;
-	master.direction = 0xFF;
+	master.direction = writeRead_i2cDir;
 	master.writeSize = writeSize;
 	master.readSize = readSize;
 	master.writeData = writeData;
