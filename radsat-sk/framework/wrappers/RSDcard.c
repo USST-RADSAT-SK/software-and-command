@@ -26,11 +26,9 @@
 #endif
 
 
-unsigned char pWriteBuff[ _BUFF_SIZE ];
-unsigned char pReadBuff[ _BUFF_SIZE ];
 
 /**
- * Function to initialize SD card. It will initilize the File System then initialize the chosen SD card
+ * Function to initialize SD card. It will initialize the File System then initialize the chosen SD card
  * @pre volID is either 0 or 1
  * @param int volID: The ID of the SD card
  * @return 1 if initialization is successful, 0 otherwise
@@ -57,18 +55,18 @@ uint32_t SDinit( uint16_t volID) {
 
 	#if(_SAFE)
 		//Initialize volID as safe
-		ret = f_initvolume(0, atmel_mcipdc_initfunc, volID);
+		ret = f_initvolume(volID, atmel_mcipdc_initfunc, volID);
 
 	#else
 		//Initialize volID as nonsafe
-		ret = f_initvolume_nonsafe(0, atmel_mcipdc_initfunc, volID);
+		ret = f_initvolume_nonsafe(volID, atmel_mcipdc_initfunc, volID);
 
 	#endif
 		ASSERT( ((ret == F_NO_ERROR) || (ret == F_ERR_NOTFORMATTED)), "f_initvolume pb: %d\n\r", ret);
 
 	if(F_ERR_NOTFORMATTED == ret){
 		//Format the filesystem
-		ret = f_format( 0, F_FAT32_MEDIA );
+		ret = f_format(volID, F_FAT32_MEDIA);
 		ASSERT( (ret == F_NO_ERROR), "f_format pb: %d\n\r", ret);
 	}
 
@@ -107,11 +105,15 @@ uint32_t SDstop( uint16_t volID ){
 /**
  * Function to write to the SD card,
  * @post Data is written to the given file name
- * @param char* filename: the name of the file to be written
- * @return 1 if write is succesful
+ * @param filename: the name of the file to be written
+ * @param voldID: the ID of the SD card
+ * @param pWriteBuff: the pointer to data to be written to the file
+ * @param buff_size: the size of the data
+ * @param numItems: number of items to be written
+ * @return 1 if write is successful
  */
-uint32_t SDwrite(uint8_t* filename, uint16_t volID){
-	uint16_t ret, i, bw;
+uint32_t SDwrite(uint8_t* filename, uint16_t volID, uint8_t* pWriteBuff, uint32_t buff_size, uint16_t numItems){
+	uint16_t ret, bw;
 	F_FILE* file;
 
 
@@ -120,22 +122,18 @@ uint32_t SDwrite(uint8_t* filename, uint16_t volID){
 		file = f_open(filename, "w");
 
 	#else
-		//open file for writing in nonsafe mode
+		//open file for writing in nonsafe modes
 		file = f_open_nonsafe(filename, "w");
 
 	#endif
 		//if file pointer is NULL, get the error
 		ASSERT( (file), "f_open pb: %d\n\r", f_getlasterror() );
 
-	for( i = 0; i < 4; i++ ){
-		bw = f_write( pWriteBuff, 1, _BUFF_SIZE, file );
 
-		// if bytes to write doesn't equal bytes written, get the error
-		ASSERT( ( _BUFF_SIZE == bw ),  "f_write pb: %d\n\r", f_getlasterror() );
+	bw = f_write(pWriteBuff, buff_size, numItems, file);
 
-		// only after flushing can data be considered safe
-		f_flush( file );
-	}
+	// if bytes to write doesn't equal bytes written, get the error
+	ASSERT( ( numItems == bw ),  "f_write pb: %d\n\r", f_getlasterror() );
 
 	//data is also considered safe when file is closed
 	ret = f_close( file );
@@ -148,11 +146,15 @@ uint32_t SDwrite(uint8_t* filename, uint16_t volID){
 
 /**
  * Function to read from the SD card
- * @param char* filename: the name of the file to be read
- * @return 1 if it is succesfull
+ * @param filename: the name of the file to be read
+ * @param volID: the ID of the SD card
+ * @param pReadBuff: the buffer to store data
+ * @param numItems: number of items to be stored
+ * @return 1 if it is successful
  */
-uint32_t SDread(uint8_t filename, uint16_t volID){
+uint32_t SDread(uint8_t* filename, uint16_t volID, uint8_t* pReadBuff, uint32_t numItems){
 	uint16_t br;
+	uint32_t buff_size;
 
 	//open file for reading, which is always safe
 	F_FILE* file = f_open(filename, "r");
@@ -160,7 +162,10 @@ uint32_t SDread(uint8_t filename, uint16_t volID){
 	//if file pointer is NULL, get the error
 	ASSERT( ( file ), "f_open pb: %d\n\r", f_getlasterror() );
 
-	br = f_read(pReadBuff, 1, _BUFF_SIZE, file);
+	//get the size of items to be read
+	buff_size = f_filelength(filename);
+
+	br = f_read(pReadBuff, buff_size, numItems, file);
 
 	//if bytes to read doesn't equal bytes read, get the error
 	ASSERT( (_BUFF_SIZE == br),  "f_read pb: %d\n\r", f_getlasterror() );
