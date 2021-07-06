@@ -18,7 +18,7 @@
 ***************************************************************************************************/
 
 uint32_t uartBlockingTransmit(const uint8_t* data, uint16_t size);
-uint32_t uartBlockingRecieve(uint8_t* data, uint16_t size);
+uint32_t uartBlockingReceive(uint8_t* data, uint16_t size);
 uint32_t uartInit();
 
 #endif /* RUART_H_ */

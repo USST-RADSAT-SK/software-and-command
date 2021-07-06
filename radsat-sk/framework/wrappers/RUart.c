@@ -28,10 +28,10 @@ uint32_t uartBlockingTransmit(const uint8_t* data, uint16_t size) {
 /**
  * Receives data over UART and stores it in the given buffer
  * @param data: A buffer to store the received data in
- * @param size: The number of bytes to recieve over UART
+ * @param size: The number of bytes to receive over UART
  * @return An integer error code. 0 indicates success
  */
-uint32_t uartBlockingRecieve(uint8_t* data, uint16_t size) {
+uint32_t uartBlockingReceive(uint8_t* data, uint16_t size) {
 	return UART_read(bus0_uart, data, size);
 }
 
