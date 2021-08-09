@@ -1,6 +1,6 @@
 /**
  * @file RHeaderAdder.h
- * @date August 7 2021
+ * @date August 9 2021
  * @author Grace Jegede (gkj724)
  */
 
@@ -13,7 +13,7 @@
 *************************************************************************/
 
 /** Size of Buffer **/
-#define BUFFERSIZE 30
+#define BUFFERSIZE 32
 
 void joinTwoStrings(char* message, char* iv, size_t messageLength, char* newBuffer);
 
