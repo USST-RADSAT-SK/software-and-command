@@ -28,6 +28,14 @@ void framInit(void) {
  * @return 0 for success, below 0 for failure. See hal/Storage/FRAM.h for more details.
  */
 int16_t framRead(uint8_t* data, uint32_t address, uint32_t size) {
+
+	uint16_t err = framRead(data, address, size);
+
+	if (err != 0) {
+			return err;
+		}
+
+
 	return FRAM_read(data, address, size);
 }
 
