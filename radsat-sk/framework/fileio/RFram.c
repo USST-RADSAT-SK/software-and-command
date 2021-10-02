@@ -29,7 +29,7 @@ void framInit(void) {
  */
 int16_t framRead(uint8_t* data, uint32_t address, uint32_t size) {
 
-	uint16_t err = framRead(data, address, size);
+	uint16_t err = FRAM_read(data, address, size);
 
 	if (err != 0) {
 			return err;
