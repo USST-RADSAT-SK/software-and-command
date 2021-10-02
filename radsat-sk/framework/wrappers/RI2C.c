@@ -40,7 +40,7 @@ uint32_t i2cInit() {
  * @param size Number of bytes to be written to the I2C slave
  * @return 0 for success, otherwise review I2C.h for return definition
  */
-uint32_t i2cBlockingTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_t size) {
+uint32_t i2cTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_t size) {
 
 	uint16_t err = I2C_write(slaveAddress, data, size);
 
@@ -61,7 +61,7 @@ uint32_t i2cBlockingTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_
  * @param size Number of bytes to be read from the I2C slave.
  * @return 0 for success, otherwise review I2C.h for return definition
  */
-uint32_t i2cBlockingRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size) {
+uint32_t i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size) {
 
 	uint16_t err = I2C_read(slaveAddress, data, size);
 
