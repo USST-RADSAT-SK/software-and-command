@@ -40,5 +40,13 @@ int16_t framRead(uint8_t* data, uint32_t address, uint32_t size) {
  * @return 0 for success, below 0 for failure. See hal/Storage/FRAM.h for more details.
  */
 int16_t framWrite(uint8_t* data, uint32_t address, uint32_t size) {
+
+	int16_t err = FRAM_writeAndVerify(data, address, size);
+
+	if(err != 0){
+		return err;
+}
+
+
 	return FRAM_writeAndVerify(data, address, size);
 }
