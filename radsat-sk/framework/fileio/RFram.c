@@ -16,6 +16,13 @@
  * @brief Initialize the FRAM peripheral driver.
  */
 void framInit(void) {
+
+	uint16_t err = FRAM_start();
+
+	if (err != 0) {
+		return err;
+	}
+
 	FRAM_start();
 }
 
