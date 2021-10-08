@@ -31,7 +31,7 @@ uint32_t uartTransmit(const uint8_t* data, uint16_t size) {
  * @param size: The number of bytes to receive over UART
  * @return An integer error code. 0 indicates success
  */
-uint32_t uartBlockingReceive(uint8_t* data, uint16_t size) {
+uint32_t uartReceive(uint8_t* data, uint16_t size) {
 	return UART_read(bus0_uart, data, size);
 }
 
