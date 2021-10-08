@@ -72,40 +72,6 @@ uint32_t i2cBlockingRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size)
 	return 0;
 }
 
-
-/**
- * Writes and then reads data to/from a slave on the I2C
- *
- * @note If tx->readSize is zero but tx->writeSize is non-zero, this becomes a write transfer.
- * Conversely, If tx->writeSize is zero but tx->readSize is non-zero, this becomes a read transfer.
- * @note this is a blocking call
- * @pre i2cInit must be successful
- * @param slaveAddress Address of the slave where to make the transfer.
- * @param writeSize Number of bytes to be written to the I2C slave.
- * @param readSize Number of bytes to be read from the I2C slave
- * @param writeData Memory location of the data to be written to the I2C slave
- * @param readData Memory location to store the data read from the I2C slave
- * @return 0 for success, otherwise review I2C.h for return definition
- */
-uint32_t i2cBlockingRxTx(uint16_t slaveAddress, uint16_t writeSize, uint16_t readSize, uint8_t* writeData, volatile uint8_t* readData) {
-
-	I2Ctransfer master;
-	master.slaveAddress = slaveAddress;
-	master.writeSize = writeSize;
-	master.readSize = readSize;
-	master.writeData = writeData;
-	master.readData = readData;
-	master.writeReadDelay = WRITEREAD_DELAY;
-
-	uint16_t err = I2C_writeRead(&master);
-
-	if (err != 0) {
-		return err;
-	}
-
-	return 0;
-}
-
 /**
  * Queues a transfer into the I2C driver
  *
