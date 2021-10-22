@@ -18,6 +18,6 @@
 /** Modulus size used for padding of encrypted buffers */
 #define AES_DECRYPT_MODULUS_SIZE ((uint8_t)16)
 
-uint32_t aesDecrypt(uint8_t* cipherText, uint8_t cipherTextLength);
+uint32_t aesDecrypt(uint8_t* cipherText, uint32_t cipherTextLength, uint8_t* initializationVector);
 
 #endif /* RAES_H_ */
