@@ -20,8 +20,15 @@ UARTconfig cameraConfig = {AT91C_US_USMODE_NORMAL | AT91C_US_CLKS_CLOCK | AT91C_
  * @param size: The number of bytes to be sent
  * @return An integer error code. 0 indicates success
  */
-uint32_t uartBlockingTransmit(const uint8_t* data, uint16_t size) {
-	return UART_write(bus0_uart, data, size);
+uint32_t uartTransmit(const uint8_t* data, uint16_t size) {
+	int err = UART_write(bus0_uart, data, size);
+	
+	if(err == 0) {
+		return err;
+	}
+	else {
+		return 1;
+	}
 }
 
 
@@ -31,8 +38,15 @@ uint32_t uartBlockingTransmit(const uint8_t* data, uint16_t size) {
  * @param size: The number of bytes to receive over UART
  * @return An integer error code. 0 indicates success
  */
-uint32_t uartBlockingReceive(uint8_t* data, uint16_t size) {
-	return UART_read(bus0_uart, data, size);
+uint32_t uartReceive(uint8_t* data, uint16_t size) {
+	int err = UART_read(bus0_uart, data, size);
+	
+	if(err == 0) {
+		return err;
+	}
+	else {
+		return 1;
+	}
 }
 
 /**
