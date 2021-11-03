@@ -38,14 +38,14 @@ int16_t framRead(uint8_t* data, uint32_t address, uint32_t size) {
  * @param data The pointer to where the data will be copied from.
  * @param address The FRAM address to begin writing data to.
  * @param size The number of bytes to copy into the FRAM peripheral.
- * @return 0 for success, below 0 for failure. See hal/Storage/FRAM.h for more details.
+ * @return 0 for success, 1 for failure. See hal/Storage/FRAM.h for more details.
  */
 int16_t framWrite(uint8_t* data, uint32_t address, uint32_t size) {
 
 	int16_t err = FRAM_writeAndVerify(data, address, size);
 
 	if(err != 0){
-		return err;
+		return 1;
 	}
 
 
