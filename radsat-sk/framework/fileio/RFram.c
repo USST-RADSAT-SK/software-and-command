@@ -1,3 +1,4 @@
+
 /**
  * @file RFram.c
  * @date May 18 2021
@@ -45,7 +46,7 @@ int16_t framWrite(uint8_t* data, uint32_t address, uint32_t size) {
 
 	if(err != 0){
 		return err;
-}
+	}
 
 
 	return FRAM_writeAndVerify(data, address, size);
