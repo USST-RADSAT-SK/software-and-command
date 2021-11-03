@@ -25,10 +25,18 @@ void framInit(void) {
  * @param data The pointer to where the extracted data will be copied.
  * @param address The FRAM address to begin extracting data from.
  * @param size The number of bytes to copy out of the FRAM peripheral.
- * @return 0 for success, below 0 for failure. See hal/Storage/FRAM.h for more details.
+ * @return 0 for success, 1 for failure. See hal/Storage/FRAM.h for more details.
  */
 int16_t framRead(uint8_t* data, uint32_t address, uint32_t size) {
-	return FRAM_read(data, address, size);
+
+	uint16_t err = FRAM_read(data, address, size);
+
+	if (err != 0) {
+		return 1;
+	}
+	else {
+		return err;
+	}
 }
 
 
