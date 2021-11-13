@@ -34,8 +34,8 @@
 
 
 uint32_t i2cInit();
-uint32_t i2cBlockingTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_t size);
-uint32_t i2cBlockingRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size);
+uint32_t i2cTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_t size);
+uint32_t i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size);
 uint32_t i2cQueue(uint16_t slaveAddress, uint16_t writeSize, uint16_t readSize, uint8_t* writeData, volatile uint8_t* readData);
 
 
