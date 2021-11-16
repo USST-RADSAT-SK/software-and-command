@@ -34,6 +34,5 @@ uint32_t spiTransmitRecieve(){
 		return 1;
 	}
 
-    return 0;
 
 }
