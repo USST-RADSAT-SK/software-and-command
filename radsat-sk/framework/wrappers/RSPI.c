@@ -14,11 +14,12 @@ uint32_t spiInit() {
 
     uint16_t err = SPI_start();
 
-    if (err != 0){
-        return err;
-    }
-
-    return 0;
+   if(err == 0) {
+		return err;
+	}
+	else {
+		return 1;
+	}
 
 }
 
@@ -26,9 +27,12 @@ uint32_t spiTransmitRecieve(){
 
     uint16_t err = SPI_writeRead();
 
-    if (err != 0){
-        return err;
-    }
+    if(err == 0) {
+		return err;
+	}
+	else {
+		return 1;
+	}
 
     return 0;
 
