@@ -10,9 +10,9 @@
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
-uint32_t spiInit() {
+uint32_t spiInit(SPIbus bus, SPIslave spi1_max_cs) {
 
-    uint16_t err = SPI_start();
+    uint16_t err = SPI_start(bus, spi1_max_cs);
 
    if(err == 0) {
 		return err;
@@ -20,12 +20,12 @@ uint32_t spiInit() {
 	else {
 		return 1;
 	}
-    
+
 }
 
-uint32_t spiTransmitRecieve(){
+uint32_t spiTransmitRecieve(SPItransfer *tx){
 
-    uint16_t err = SPI_writeRead();
+    uint16_t err = SPI_writeRead(tx);
 
     if(err == 0) {
 		return err;
@@ -33,6 +33,5 @@ uint32_t spiTransmitRecieve(){
 	else {
 		return 1;
 	}
-
 
 }
