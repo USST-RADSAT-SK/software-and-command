@@ -20,7 +20,7 @@ uint32_t spiInit() {
 	else {
 		return 1;
 	}
-
+    
 }
 
 uint32_t spiTransmitRecieve(){
