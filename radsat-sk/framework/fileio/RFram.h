@@ -14,8 +14,7 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-void framInit(void);
-
+uint16_t framInit(void);
 uint16_t framRead(uint8_t* data, uint32_t address, uint32_t size);
 uint16_t framWrite(uint8_t* data, uint32_t address, uint32_t size);
 
