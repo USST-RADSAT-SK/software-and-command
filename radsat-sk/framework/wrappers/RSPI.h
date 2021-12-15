@@ -17,7 +17,7 @@
                                              FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-uint32_t spiInit();
-uint32_t spiTransmitRecieve();
+uint32_t spiInit(SPIbus bus, SPIslave spi1_max_cs);
+uint32_t spiTransmitRecieve(SPItransfer *tx);
 
 #endif /* SPI_H_ */

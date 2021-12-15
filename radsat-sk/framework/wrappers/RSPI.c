@@ -1,7 +1,7 @@
 /**
  * @file RSPI.c
  * @date November 12, 2021
- * @author Atharva P. Kulkarni (iya789)
+ * @author Atharva P. Kulkarni (iya789), Addi Amaya (caa746)
  */
 
 #include <stdint.h>
@@ -42,7 +42,7 @@ uint32_t spiTransmitRecieve(SPItransfer *tx){
     uint16_t err = SPI_writeRead(tx);
 
     if(err == 0) {
-		return err;
+		return 0;
 	}
 	else {
 		return 1;
