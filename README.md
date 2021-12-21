@@ -20,6 +20,7 @@ Code and Documentation for USST’s first Canadian CubeSat Project: The RADSAT-S
     6. [Parentheses in Expressions](#Parentheses-in-Expressions)
     7. [Switch Statements](#Switch-Statements)
     8. [Line Lengths](#Line-Lengths)
+    9. [Error Codes](#Error-Codes)
 6. [Code Documentation](#Code-Documentation)
     1. [Functions](#Functions)
     2. [Global Variables](#Global-Variables)
@@ -331,6 +332,26 @@ uint16_t function(uint16_t n) {
 ### Line Lengths
 Lines should aim to be 80 characters or less long, but the maximum accepted line length will be roughly 100 since no one really uses terminals anyways. Some exceptions may be made, but anything over 100 lines is starting to push the limits of readability.
 
+### Error Codes
+Functions that wish to return an "error code" (e.g. a value that represents if the function was successful in its operation) should follow the following format:
+Return type: int
+Return value: 0 for success, non-zero for failure. Reference the HAL, SSI, or other underlying files for more info if the error code does not originate in the function you're describing. An example is shown below:
+``` c
+/**
+ * @brief Write data into the FRAM peripheral.
+ * @param data The pointer to where the data will be copied from.
+ * @param address The FRAM address to begin writing data to.
+ * @param size The number of bytes to copy into the FRAM peripheral.
+ * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
+ */
+int framWrite(uint8_t* data, uint32_t address, uint32_t size) {
+
+	int error = FRAM_writeAndVerify(data, address, size);
+	return error;
+}
+```
+Note that for functions which use their return values for other purposes (e.g. returning a calculated value) or simply return `void`, this section can be ignored.
+
 
 ## Code Documentation
 Our code is documented using [doxygen](http://www.doxygen.nl/). All comments
@@ -352,13 +373,30 @@ the function is defined in.
  * @note give a notice to anyone using this function (if any; usually not)
  * @pre describe the pre condition (if any; usually not)
  * @post describe the post condition (if any; usually not)
- * @param c short description of the parameter
+ * @param input short description of the input parameter
  * @return describe the return value
  */
-uint32_t function (uint8_t c) {
+int function (uint8_t input) {
     // code
 }
 ```
+
+Another real example is shown below:
+``` c
+/**
+ * @brief Write data into the FRAM peripheral.
+ * @param data The pointer to where the data will be copied from.
+ * @param address The FRAM address to begin writing data to.
+ * @param size The number of bytes to copy into the FRAM peripheral.
+ * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
+ */
+int framWrite(uint8_t* data, uint32_t address, uint32_t size) {
+
+	int error = FRAM_writeAndVerify(data, address, size);
+	return error;
+}
+```
+
 
 ### Global Variables
 Documentation for global variables should go inside the source (.c) file that they are defined in.
