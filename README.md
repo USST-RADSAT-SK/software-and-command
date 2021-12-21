@@ -376,7 +376,7 @@ the function is defined in.
  * @param input short description of the input parameter
  * @return describe the return value
  */
-int function (uint8_t input) {
+int function(uint8_t input) {
     // code
 }
 ```
