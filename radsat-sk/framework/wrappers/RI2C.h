@@ -32,11 +32,10 @@
                                              FUNCTION DECLARATIONS
 ***************************************************************************************************/
 
-
-uint32_t i2cInit();
-uint32_t i2cTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_t size);
-uint32_t i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size);
-uint32_t i2cQueue(uint16_t slaveAddress, uint16_t writeSize, uint16_t readSize, uint8_t* writeData, volatile uint8_t* readData);
+int i2cInit(void);
+int i2cTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_t size);
+int i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size);
+int i2cQueue(uint16_t slaveAddress, uint16_t writeSize, uint16_t readSize, uint8_t* writeData, volatile uint8_t* readData);
 
 
 #endif /* RI2C_H_ */

@@ -11,24 +11,20 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-UARTconfig cameraConfig = {AT91C_US_USMODE_NORMAL | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS | AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
-		CAMERA_BAUD_RATE, TIME_GUARD, rs232_uart, RX_TIMEOUT};
+UARTconfig cameraConfig = {AT91C_US_USMODE_NORMAL | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS |
+						   AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
+						   CAMERA_BAUD_RATE, TIME_GUARD, rs232_uart, RX_TIMEOUT};
 
 /**
  * Sends the given data over UART
  * @param data: A pointer to the data to send over UART
  * @param size: The number of bytes to be sent
- * @return An integer error code. 0 indicates success
+ * @return 0 for success, non-zero for failure. See hal/Drivers/UART.h for details.
  */
-uint32_t uartTransmit(const uint8_t* data, uint16_t size) {
-	int err = UART_write(bus0_uart, data, size);
-	
-	if(err == 0) {
-		return err;
-	}
-	else {
-		return 1;
-	}
+int uartTransmit(const uint8_t* data, uint16_t size) {
+
+	int error = UART_write(bus0_uart, data, size);
+	return error;
 }
 
 
@@ -36,27 +32,24 @@ uint32_t uartTransmit(const uint8_t* data, uint16_t size) {
  * Receives data over UART and stores it in the given buffer
  * @param data: A buffer to store the received data in
  * @param size: The number of bytes to receive over UART
- * @return An integer error code. 0 indicates success
+ * @return 0 for success, non-zero for failure. See hal/Drivers/UART.h for details.
  */
-uint32_t uartReceive(uint8_t* data, uint16_t size) {
-	int err = UART_read(bus0_uart, data, size);
-	
-	if(err == 0) {
-		return err;
-	}
-	else {
-		return 1;
-	}
+int uartReceive(uint8_t* data, uint16_t size) {
+
+	int error = UART_read(bus0_uart, data, size);
+	return error;
 }
+
 
 /**
  * Initializes UART and enables receiving on the bus
- * @return An integer error code. 0 indicates success
+ * @return 0 for success, non-zero for failure. See hal/Drivers/UART.h for details.
  */
-uint32_t uartInit() {
-	int err = UART_start(bus0_uart, cameraConfig);
-	if(err != 0) {
-		return err;
+int uartInit(void) {
+
+	int error = UART_start(bus0_uart, cameraConfig);
+	if (error != 0) {
+		return error;
 	}
 	return UART_setRxEnabled(bus0_uart, TRUE);
 }
