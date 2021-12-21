@@ -205,7 +205,7 @@ To increase readability (especially in larger files), multi-line function separa
 ***************************************************************************************************/
 ```
 Each line ends after exactly 100 characters, and the words are centered.
-These are not strictly enforced, but are recommended. Consistency is the most important thing.
+These are not strictly enforced, but are highly recommended. Consistency is the most important thing.
 
 ### Whitespace
 #### Around Brackets
