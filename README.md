@@ -155,12 +155,17 @@ ALso note that the enumeration values are all explictly defined; this is highly 
 In functions, most variables that will be used throughout the function should be declared at the *top* of the function. Exceptions may include variable declarations within the scope of an if or for loop.
 
 #### Types
-Use of "non-standard" c types (char, int, long) should be avoided whenever possible. In embedded programming, it is always recommended to use explicit types. It's clearer to the user/reader, and consistent across all platforms. However, signed types do have their uses; e.g. the HAL and SSI libraries use `int` for return types (error codes), so it's fine to use them when working directly with those libraries. Standard c types include:
+Use of "non-standard" c types (`char`, `int`, `long`) should be avoided whenever possible. In embedded programming, it is always recommended to use explicit types. It's clearer to the user/reader, and consistent across all platforms. However, signed types do have their uses; e.g. the HAL and SSI libraries use `int` for return types (error codes), so it's fine to use them when working directly with those libraries.
+
+Standard c types (also called fixed-width types, or explicit types) include:
 - `uint8_t` (instead of `unsigned short` or `unsigned char`)
 - `uint16_t` (instead of `unsigned int`)
 - `uint32_t` (instead of `unsigned long`)
-^ remove the "u" prefix to use a signed version of the type when necessary.
-We only have 1 system to worry about with our project (the OBC), so portability isn't a _huge_ concern, but it's still good practice to use explicit types whenever reasonable and possible.
+
+Remove the "u" prefix to use a signed version of the above types when signed values are needed.
+
+We only have 1 system to worry about with our project (the OBC), so portability isn't a _huge_ concern, but it's still good practice to use explicit types whenever reasonable and possible. IF YOU'RE UNSURE OF WHAT TO USE: just use fixed-width (standard) c types, as listed above.
+
 
 ### Files
 #### File Naming
@@ -377,7 +382,7 @@ the function is defined in.
  * @param input short description of the input parameter
  * @return describe the return value
  */
-int function(uint8_t input) {
+uint16_t function(uint8_t input) {
     // code
 }
 ```
