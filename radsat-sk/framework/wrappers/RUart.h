@@ -7,18 +7,24 @@
 #ifndef RUART_H_
 #define RUART_H_
 
+#include <stdint.h>
 #include <hal/Drivers/UART.h>
 
-#define CAMERA_BAUD_RATE 57600
-#define TIME_GUARD 0
-#define RX_TIMEOUT 255
 
 /***************************************************************************************************
-                                             FUNCTION DECLARATIONS
+                                            DEFINITIONS
 ***************************************************************************************************/
 
-int uartTransmit(const uint8_t* data, uint16_t size);
-int uartReceive(uint8_t* data, uint16_t size);
-int uartInit(void);
+#define CAMERA_UART_BUS		((UARTbus) bus0_uart)
+#define DEBUG_UART_BUS		((UARTbus) bus2_uart)
+
+
+/***************************************************************************************************
+                                             PUBLIC API
+***************************************************************************************************/
+
+int uartInit(UARTbus bus);
+int uartTransmit(UARTbus bus, const uint8_t* data, uint16_t size);
+int uartReceive(UARTbus bus, uint8_t* data, uint16_t size);
 
 #endif /* RUART_H_ */

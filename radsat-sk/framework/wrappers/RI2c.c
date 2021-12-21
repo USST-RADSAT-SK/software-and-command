@@ -1,12 +1,12 @@
-/*
- * @file RI2C.c
+/**
+ * @file RI2c.c
  * @date June 7, 2021
  * @author Addi Amaya (caa746)
  */
 
-#include <stdint.h>
+#include <RI2c.h>
 #include <string.h>
-#include "RI2C.h"
+#include <hal/Drivers/I2C.h>
 
 
 /***************************************************************************************************

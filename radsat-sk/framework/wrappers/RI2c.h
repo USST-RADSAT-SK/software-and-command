@@ -1,27 +1,19 @@
 /**
  *
- * @file RI2C.h
+ * @file RI2c.h
  * @date June 8, 2021
  * @author Addi Amaya (caa746)
- *
  */
-
 
 #ifndef RI2C_H_
 #define RI2C_H_
 
+#include <stdint.h>
 
-#include <hal/Drivers/I2C.h>
 
-
-//Slaveaddress for each components
-#define DOSIMETER1 0x4A
-#define DOSIMETER2 0x48
-#define PDB 0x2B
-#define RX 0x60
-#define TX 0x61
-#define ANTENNA 0x31
-
+/***************************************************************************************************
+                                            DEFINITIONS
+***************************************************************************************************/
 
 #define I2C_BUSSPEED_HZ 100000 //100000 according to 0937/0938/1192/1335 datasheet
 #define I2C_TRANSFERTIMEOUT 0
@@ -29,7 +21,7 @@
 
 
 /***************************************************************************************************
-                                             FUNCTION DECLARATIONS
+                                             PUBLIC API
 ***************************************************************************************************/
 
 int i2cInit(void);
