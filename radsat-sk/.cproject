@@ -76,7 +76,6 @@
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
 									<listOptionValue builtIn="false" value="../framework"/>
 									<listOptionValue builtIn="false" value="../framework/fileio"/>
-									<listOptionValue builtIn="false" value="../framework/utils"/>
 									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
 									<listOptionValue builtIn="false" value="../operation/collection"/>
@@ -221,7 +220,6 @@
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
 									<listOptionValue builtIn="false" value="../framework"/>
 									<listOptionValue builtIn="false" value="../framework/fileio"/>
-									<listOptionValue builtIn="false" value="../framework/utils"/>
 									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
 									<listOptionValue builtIn="false" value="../operation/collection"/>
