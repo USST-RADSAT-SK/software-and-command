@@ -15,16 +15,12 @@
 
 /**
  * @brief Initialize the FRAM peripheral driver.
- * @return 0 for success, 1 for failure.
+ * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
  */
-uint16_t framInit(void) {
-	int16_t err = FRAM_start();
+int framInit(void) {
 
-	if (err != 0) {
-		return 1;
-	}
-
-	return 0;
+	int error = FRAM_start();
+	return error;
 }
 
 
@@ -33,17 +29,12 @@ uint16_t framInit(void) {
  * @param data The pointer to where the extracted data will be copied.
  * @param address The FRAM address to begin extracting data from.
  * @param size The number of bytes to copy out of the FRAM peripheral.
- * @return 0 for success, 1 for failure. See hal/Storage/FRAM.h for more details.
+ * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
  */
-uint16_t framRead(uint8_t* data, uint32_t address, uint32_t size) {
+int framRead(uint8_t* data, uint32_t address, uint32_t size) {
 
-	int16_t err = FRAM_read(data, address, size);
-
-	if (err != 0) {
-		return 1;
-	}
-
-	return 0;
+	int error = FRAM_read(data, address, size);
+	return error;
 }
 
 
@@ -52,16 +43,10 @@ uint16_t framRead(uint8_t* data, uint32_t address, uint32_t size) {
  * @param data The pointer to where the data will be copied from.
  * @param address The FRAM address to begin writing data to.
  * @param size The number of bytes to copy into the FRAM peripheral.
- * @return 0 for success, 1 for failure. See hal/Storage/FRAM.h for more details.
+ * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
  */
-uint16_t framWrite(uint8_t* data, uint32_t address, uint32_t size) {
+int framWrite(uint8_t* data, uint32_t address, uint32_t size) {
 
-	int16_t err = FRAM_writeAndVerify(data, address, size);
-
-	if (err != 0) {
-		return 1;
-	}
-
-	return 0;
-
+	int error = FRAM_writeAndVerify(data, address, size);
+	return error;
 }

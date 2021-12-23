@@ -13,22 +13,17 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-
 /**
  * Initializes the I2C driver
  *
- * @return 0 for success, otherwise review I2C.h for return definition
+ * @return 0 for success, non-zero for failure. See hal/Drivers/I2C.h for details.
  */
-uint32_t i2cInit() {
+int i2cInit(void) {
 
-	uint16_t err = I2C_start(I2C_BUSSPEED_HZ, I2C_TRANSFERTIMEOUT);
-
-	if (err != 0) {
-		return err;
-	}
-
-	return 0;
+	int error = I2C_start(I2C_BUSSPEED_HZ, I2C_TRANSFERTIMEOUT);
+	return error;
 }
+
 
 /**
  * Writes data to a slave
@@ -38,18 +33,14 @@ uint32_t i2cInit() {
  * @param slaveAddress address of the slave where to make the transfer
  * @param data Memory location of the data to be written
  * @param size Number of bytes to be written to the I2C slave
- * @return 0 for success, otherwise review I2C.h for return definition
+ * @return 0 for success, non-zero for failure. See hal/Drivers/I2C.h for details.
  */
-uint32_t i2cTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_t size) {
+int i2cTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_t size) {
 
-	uint16_t err = I2C_write(slaveAddress, data, size);
-
-	if (err != 0) {
-		return err;
-	}
-
-	return 0;
+	int error = I2C_write(slaveAddress, data, size);
+	return error;
 }
+
 
 /**
  * Reads data from a slave
@@ -59,18 +50,14 @@ uint32_t i2cTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_t size) 
  * @param slaveAddress Address of the slave where to make the transfer.
  * @param data Memory location to store the data read from the I2C slave. Must be able to store size bytes.
  * @param size Number of bytes to be read from the I2C slave.
- * @return 0 for success, otherwise review I2C.h for return definition
+ * @return 0 for success, non-zero for failure. See hal/Drivers/I2C.h for details.
  */
-uint32_t i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size) {
+int i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size) {
 
-	uint16_t err = I2C_read(slaveAddress, data, size);
-
-	if (err != 0) {
-		return err;
-	}
-
-	return 0;
+	int error = I2C_read(slaveAddress, data, size);
+	return error;
 }
+
 
 /**
  * Queues a transfer into the I2C driver
@@ -82,10 +69,10 @@ uint32_t i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size) {
  * @param readSize Number of bytes to be read from the I2C slave
  * @param writeData Memory location of the data to be written to the I2C slave
  * @param readData Memory location to store the data read from the I2C slave
- * @return 0 for success, otherwise review I2C.h for return definition
+ * @return 0 for success, non-zero for failure. See hal/Drivers/I2C.h for details.
  *
  */
-uint32_t i2cQueue(uint16_t slaveAddress, uint16_t writeSize, uint16_t readSize, uint8_t* writeData, volatile uint8_t* readData) {
+int i2cQueue(uint16_t slaveAddress, uint16_t writeSize, uint16_t readSize, uint8_t* writeData, volatile uint8_t* readData) {
 
 	struct _I2CgenericTransfer master;
 	master.slaveAddress = slaveAddress;
@@ -98,16 +85,6 @@ uint32_t i2cQueue(uint16_t slaveAddress, uint16_t writeSize, uint16_t readSize, 
 	uint16_t status = I2C_getCurrentTransferStatus();
 	master.result = status;
 
-	uint16_t err = I2C_queueTransfer(&master);
-
-	if (err != 0) {
-		return err;
-	}
-
-	return 0;
-
+	int error = I2C_queueTransfer(&master);
+	return error;
 }
-
-
-
-
