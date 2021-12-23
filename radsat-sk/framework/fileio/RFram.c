@@ -22,7 +22,7 @@ static int initialized = 0;
 ***************************************************************************************************/
 
 /**
- * @brief Initialize the FRAM peripheral driver
+ * Initialize the FRAM peripheral driver.
  * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
  */
 int framInit(void) {
