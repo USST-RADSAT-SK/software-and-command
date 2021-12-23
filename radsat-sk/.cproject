@@ -77,7 +77,7 @@
 									<listOptionValue builtIn="false" value="../framework"/>
 									<listOptionValue builtIn="false" value="../framework/fileio"/>
 									<listOptionValue builtIn="false" value="../framework/utils"/>
-									<listOptionValue builtIn="false" value="../framework/wrappers"/>
+									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
 									<listOptionValue builtIn="false" value="../operation/collection"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>
@@ -219,7 +219,7 @@
 									<listOptionValue builtIn="false" value="../framework"/>
 									<listOptionValue builtIn="false" value="../framework/fileio"/>
 									<listOptionValue builtIn="false" value="../framework/utils"/>
-									<listOptionValue builtIn="false" value="../framework/wrappers"/>
+									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
 									<listOptionValue builtIn="false" value="../operation/collection"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>

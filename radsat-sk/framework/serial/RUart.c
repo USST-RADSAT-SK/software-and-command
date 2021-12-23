@@ -5,6 +5,7 @@
  */
 
 #include <RUart.h>
+#include <hal/errors.h>
 
 
 /***************************************************************************************************
@@ -49,8 +50,9 @@ int uartInit(UARTbus bus) {
 
 	// only allow initialization once
 	if (initialized[bus] != 0)
-		return -1;
+		return E_IS_INITIALIZED;
 
+	// select appropriate pre-made configuration
 	UARTconfig config = {0};
 	if (bus == CAMERA_UART_BUS)
 		config = cameraConfig;
@@ -79,16 +81,17 @@ int uartInit(UARTbus bus) {
 /**
  * Sends the given data over the specified UART port
  *
- * @param bus: the bus to initialize; either debug port or camera port
- * @param data: A pointer to the data to send over UART
- * @param size: The number of bytes to be sent
+ * @note this is a semi-blocking call (only the calling FreeRTOS task is put to sleep)
+ * @param bus The bus to initialize; either debug port or camera port
+ * @param data A pointer to the data to send over UART
+ * @param size The number of bytes to be sent
  * @return 0 for success, non-zero for failure. See hal/Drivers/UART.h for details
  */
 int uartTransmit(UARTbus bus, const uint8_t* data, uint16_t size) {
 
 	// UART port must be initialized first
-	if (initialized[bus] == 0)
-		return -1;
+	if (!initialized[bus])
+		return E_NOT_INITIALIZED;
 
 	int error = UART_write(bus, data, size);
 	return error;
@@ -98,16 +101,17 @@ int uartTransmit(UARTbus bus, const uint8_t* data, uint16_t size) {
 /**
  * Receives data over UART and stores it in the given buffer
  *
- * @param bus: the bus to initialize; either debug port or camera port.
- * @param data: A buffer to store the received data in
- * @param size: The number of bytes to receive over UART
+ * @note this is a semi-blocking call (only the calling FreeRTOS task is put to sleep)
+ * @param bus the bus to initialize; either debug port or camera port.
+ * @param data A buffer to store the received data in
+ * @param size The number of bytes to receive over UART
  * @return 0 for success, non-zero for failure. See hal/Drivers/UART.h for details
  */
 int uartReceive(UARTbus bus, uint8_t* data, uint16_t size) {
 
 	// UART port must be initialized first
-	if (initialized[bus] == 0)
-		return -1;
+	if (!initialized[bus])
+		return E_NOT_INITIALIZED;
 
 	int error = UART_read(bus, data, size);
 	return error;
