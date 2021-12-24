@@ -15,25 +15,25 @@
 
 #define TRX_RX_CMD_WRITE_SIZE	1
 
-typedef struct _rx_command_t {
+typedef struct _rx_rx_command_t {
 	uint8_t readSize;
 	uint8_t code;
 	uint8_t destination;
-} command_t;
+} rx_command_t;
 
-static const command_t getNumberOfFramesInRxBuffer = {
+static const rx_command_t getNumberOfFramesInRxBuffer = {
 		.readSize = 1,
 		.code = 0x21,
 		.destination = TRANSCEIVER_RX_I2C_SLAVE_ADDR,
 };
 
-static const command_t receiveOldestFrameInRxBuffer = {
+static const rx_command_t receiveOldestFrameInRxBuffer = {
 		.readSize = TRX_RECEIVER_FRAME_PREAMBLE_SIZE,	// first read obtains size (and other info) of the frame
 		.code = 0x22,
 		.destination = TRANSCEIVER_RX_I2C_SLAVE_ADDR,
 };
 
-static const command_t deleteOldestFrameInRxBuffer = {
+static const rx_command_t deleteOldestFrameInRxBuffer = {
 		.readSize = 1,
 		.code = 0x24,
 		.destination = TRANSCEIVER_RX_I2C_SLAVE_ADDR,
@@ -46,7 +46,7 @@ static const command_t deleteOldestFrameInRxBuffer = {
 
 uint8_t transceiverFrameCount(void) {
 
-	const command_t cmd = getNumberOfFramesInRxBuffer;
+	const rx_command_t cmd = getNumberOfFramesInRxBuffer;
 
 	uint8_t writeData[TRX_RX_CMD_WRITE_SIZE] = { cmd.code };
 	uint8_t readData[TRX_RX_CMD_WRITE_SIZE] = {0};
@@ -68,7 +68,7 @@ uint8_t transceiverGetFrame(uint8_t* msgBuffer) {
 		return 0;
 
 	// first read will obtain the size (and other info) of the frame to be read
-	const command_t receiveCmd = receiveOldestFrameInRxBuffer;
+	const rx_command_t receiveCmd = receiveOldestFrameInRxBuffer;
 
 	uint8_t writeData[TRX_RX_CMD_WRITE_SIZE] = { receiveCmd.code };
 	uint8_t readData[receiveCmd.readSize];
@@ -92,7 +92,7 @@ uint8_t transceiverGetFrame(uint8_t* msgBuffer) {
 		return 0;
 
 	// finally, delete the now-received frame
-	command_t deleteCmd = deleteOldestFrameInRxBuffer;
+	rx_command_t deleteCmd = deleteOldestFrameInRxBuffer;
 	uint8_t deleteCmdBuffer[TRX_RX_CMD_WRITE_SIZE] = { deleteCmd.code };
 
 	error = i2cTransmit(receiveCmd.destination, deleteCmdBuffer, TRX_RX_CMD_WRITE_SIZE);
