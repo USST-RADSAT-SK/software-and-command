@@ -6,10 +6,7 @@
 
 #ifdef DONT_COMPILE_THE_FOLLOWING_CODE
 
-// TODO: update this code
-
-#include <housekeeping/i2c.h>
-#include <housekeeping/memory.h>
+// TODO: update this code to use real code instead of pseudocode
 
 
 //==============================================================================
@@ -21,8 +18,8 @@
  *	TODO: confirm once actual addresses are determined
  */
 uint8_t dosimeterBoardSlaveAddr[2] = {
-	0x90,  // board one - 1001.0000
-	0x92   // board two - 1001.0010
+	DOSIMETER_1_I2C_SLAVE_ADDR,
+	DOSIMETER_2_I2C_SLAVE_ADDR
 };
 
 
@@ -61,7 +58,7 @@ uint8_t dosimeterCommandBytes[8] = {
 void requestReadingsAllChannels( void )
 {
 	// iterate through both melanin-dosimeter boards
-	for ( uint8_t dosimeterBoard = 0; dosimeterBoard < 2; dosimeterBoard++ ) {
+	for ( uint8_t dosimeterBoard = 0; dosimeterBoard < DOSIMETER_COUNT; dosimeterBoard++ ) {
 
     	// request data from each sensor on a particular board
 		for ( uint8_t adcChannel = 0; adcChannel < 8; adcChannel++ ) {
