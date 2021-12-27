@@ -223,7 +223,7 @@ uint8_t transceiverSendFrame(uint8_t* message, uint8_t message_size){
 /**
  * Gets the receiver's current telemetry
  * 
- * @param telemetryBuffer an 18 byte buffer to store the receiver's telemetry info
+ * @param telemetryBuffer a buffer to store 9 floats (36 bytes) to store the receiver's telemetry info
  * 		[00] Instantanious Doppler offset of the signal at the receiver port (Hz).
  * 		[01] Instantaneous signal strength of the signal at the receiver (dBm).
  * 		[02] Value of the power bus voltage (V).
@@ -235,7 +235,7 @@ uint8_t transceiverSendFrame(uint8_t* message, uint8_t message_size){
  * 		[08] Value of the local oscillator temperature (C).
  * @return void
  */
-void transceiverRxTelemetry(uint8_t* telemetryBuffer){}
+void transceiverRxTelemetry(float32_t* telemetryBuffer){}
 
 /**
  * Gets the receiver's current up time
@@ -247,7 +247,7 @@ uint32_t transceiverRxUpTime(void){}
 /**
  * Gets the transmitter's telemetry during its last transmission.
  * 
- * @param telemetryBuffer an buffer to store 9 floats (36 bytes) to store the transmitter's telemetry info
+ * @param telemetryBuffer a buffer to store 9 floats (36 bytes) to store the transmitter's telemetry info
  * 		[00] Value of the instantaneous RF reflected power at the transmitter port (mW).
  * 			Only valid during transmission.
  * 		[01] Value of the instantaneous RF forward power at the transmitter port (mW).
@@ -261,12 +261,12 @@ uint32_t transceiverRxUpTime(void){}
  * 		[08] Value of the local oscillator temperature (C).
  * @return void
  */
-void transcevierTxTelemetry(uint8_t* telemetryBuffer){}
+void transcevierTxTelemetry(float32_t* telemetryBuffer){}
 
 /**
  * Gets the transmitter's telemetry during its last transmission.
  * 
- * @param telemetryBuffer an buffer to store 9 floats (36 bytes) to store the transmitter's telemetry info
+ * @param telemetryBuffer a buffer to store 9 floats (36 bytes) to store the transmitter's telemetry info
  * 		[00] Value of the instantaneous RF reflected power at the transmitter port (mW).
  * 			Only valid during transmission.
  * 		[01] Value of the instantaneous RF forward power at the transmitter port (mW).
@@ -280,7 +280,7 @@ void transcevierTxTelemetry(uint8_t* telemetryBuffer){}
  * 		[08] Value of the local oscillator temperature (C).
  * @return void
  */
-void transcevierTxTelemetryLastTransmit(uint8_t* telemetryBuffer){}
+void transcevierTxTelemetryLastTransmit(float32_t* telemetryBuffer){}
 
 /**
  * Gets the transmitter's current up time
