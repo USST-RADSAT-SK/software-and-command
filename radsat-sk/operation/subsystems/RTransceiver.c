@@ -14,6 +14,7 @@
 ***************************************************************************************************/
 
 #define TRX_RX_CMD_WRITE_SIZE	1
+#define TRX_TX_CMD_WRITE_SIZE	1
 
 typedef struct _rx_rx_command_t {
 	uint8_t readSize;
@@ -45,21 +46,47 @@ static const rx_command_t powerCycle = {
 		.destination = TRANSCEIVER_RX_I2C_SLAVE_ADDR,
 };
 
-static const rx_command_t rx_telemetry = {
+static const rx_command_t rxTelemetry = {
 		.readSize = 18,
-		.code = 0xA1,
+		.code = 0x1A,
 		.destination = TRANSCEIVER_RX_I2C_SLAVE_ADDR,
 };
 
+static const rx_command_t rxUpTime = {
+		.readSize = 4,
+		.code = 0x40,
+		.destination = TRANSCEIVER_RX_I2C_SLAVE_ADDR,
+};
+
+static const rx_command_t sendFrame = {
+		.readSize = 1,
+		.code = 0x10,
+		.destination = TRANSCEIVER_TX_I2C_SLAVE_ADDR,
+};
+
+static const rx_command_t txTelemetry = {
+		.readSize = 18,
+		.code = 0x25,
+		.destination = TRANSCEIVER_TX_I2C_SLAVE_ADDR,
+};
+
+static const rx_command_t txTelemetryLastTransmit = {
+		.readSize = 18,
+		.code = 0x26,
+		.destination = TRANSCEIVER_TX_I2C_SLAVE_ADDR,
+};
+
+static const rx_command_t txUpTime = {
+		.readSize = 4,
+		.code = 0x40,
+		.destination = TRANSCEIVER_TX_I2C_SLAVE_ADDR,
+};
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 /** @brief Gets the number of frames in the Receiver's message buffer.
  *
- *	Gets the number of frames in the Receiver's message buffer.
- *
- *	@header	"software-and-command/radsat-sk/operation/subsystems/RTransceiver.h"
  *	@param	void 
  *	@pre	Receiver has N messages in it's buffer.
  * 	@post	Receiver has N messages in it's buffer.
@@ -81,13 +108,11 @@ uint8_t transceiverFrameCount(void) {
 	return numberOfFrames;
 }
 
-/** @brief Gets next frame from the receiver buffer and returns the 
- *  size of the message.
+/** @brief Gets next frame from the receiver buffer and the size of the message.
  *
  *	Retreives information from the receiver message buffer, places it 
  *  in the provided buffer and returns the message size. 
  *
- *	@header	"software-and-command/radsat-sk/operation/subsystems/RTransceiver.h"
  *	@param	msgBuffer A 200 byte array to copy the message into. 
  *	@pre	Receiver has N messages in it's buffer.
  * 	@post	Receiver has N-1 messages in it's buffer.
@@ -147,7 +172,6 @@ uint8_t transceiverGetFrame(uint8_t* msgBuffer) {
  *  This is to be used only when a catastrophic error has occured as all frames in 
  *  the receiver buffer will be lost.
  *
- *	@header	"software-and-command/radsat-sk/operation/subsystems/RTransceiver.h"
  *	@param	void
  *	@pre	Transiever is powered on and receiving commands.
  * 	@post	Transceiver is reset and will need to re-connect.
@@ -162,14 +186,95 @@ void transceiverPowerCycle(void) {
 	i2cTalk(cmd.destination, TRX_RX_CMD_WRITE_SIZE, cmd.readSize, writeData, readData, 0);
 }
 
-uint8_t transceiverSendFrame(uint8_t* message){}
+/**
+ * Sends a data frame to the Transmitter's buffer
+ *
+ * @param message buffer that is a maximum of 235 bytes 
+ * 		long to be transmitted
+ * @param message_size the length of the message in bytes.
+ * @return The number of slots left in the transmission buffer.
+ * 		255 (0xff) if the frame was not added.
+ */
+uint8_t transceiverSendFrame(uint8_t* message, uint8_t message_size){
+	const rx_command_t cmd = sendFrame;
 
-uint8_t transceiverRxTelemetry(uint8_t* telemetryBuffer){}
+	uint8_t* code[1] = cmd.code;
+	uint8_t i2c_msg_size = TRX_TX_CMD_WRITE_SIZE + message_size;
 
+	// the message over i2c is the command in byte 0 followed by the message
+	uint8_t writeData[i2c_msg_size] = { code | message };
+	uint8_t readData[TRX_TX_CMD_WRITE_SIZE] = {0};
+
+	uint8_t slots_remaining = i2cTalk(cmd.destination, i2c_msg_size, cmd.readSize, writeData, readData, 0);
+
+	return slots_remaining;
+}
+
+/**
+ * Gets the receiver's current telemetry
+ * 
+ * @param telemetryBuffer an 18 byte buffer to store the receiver's telemetry info
+ * 		[00 - 01] Instantanious Doppler offset of the signal at the receiver port (Hz).
+ * 		[02 - 03] Instantaneous signal strength of the signal at the receiver (dBm).
+ * 		[04 - 05] Value of the power bus voltage (V).
+ * 		[06 - 07] Value of the total supply current (mA).
+ * 		[08 - 09] Value of the transmitter current (mA).
+ * 		[10 - 11] Value of the receiver current (mA).
+ * 		[12 - 13] Value of the power amplifier current (mA).
+ * 		[14 - 15] Value of the power amplifier temperature (C).
+ * 		[16 - 17] Value of the local oscillator temperature (C).
+ * @return void
+ */
+void transceiverRxTelemetry(uint8_t* telemetryBuffer){}
+
+/**
+ * Gets the receiver's current up time
+ * 
+ * @return Receiver's up time in seconds
+ */
 uint32_t transceiverRxUpTime(void){}
 
-uint8_t transcevierTxTelemetry(uint8_t* telemetryBuffer){}
+/**
+ * Gets the transmitter's current telemetry
+ * 
+ * @param telemetryBuffer an 18 byte buffer to store the transmitter's telemetry info
+ * 		[00 - 01] Value of the instantaneous RF reflected power at the transmitter port (mW).
+ * 			Only valid during transmission.
+ * 		[02 - 03] Value of the instantaneous RF forward power at the transmitter port (mW).
+ * 			Only valid during transmission.
+ * 		[04 - 05] Value of the power bus voltage (V).
+ * 		[06 - 07] Value of the total supply current (mA).
+ * 		[08 - 09] Value of the transmitter current (mA).
+ * 		[10 - 11] Value of the receiver current (mA).
+ * 		[12 - 13] Value of the power amplifier current (mA).
+ * 		[14 - 15] Value of the power amplifier temperature (C).
+ * 		[16 - 17] Value of the local oscillator temperature (C).
+ * @return void
+ */
+void transcevierTxTelemetry(uint8_t* telemetryBuffer){}
 
-uint8_t transcevierTxTelemetryLastTransmit(uint8_t* telemetryBuffer){}
+/**
+ * Gets the transmitter's telemetry during its last transmission.
+ * 
+ * @param telemetryBuffer an 18 byte buffer to store the transmitter's telemetry info
+ * 		[00 - 01] Value of the instantaneous RF reflected power at the transmitter port (mW).
+ * 			Only valid during transmission.
+ * 		[02 - 03] Value of the instantaneous RF forward power at the transmitter port (mW).
+ * 			Only valid during transmission.
+ * 		[04 - 05] Value of the power bus voltage (V).
+ * 		[06 - 07] Value of the total supply current (mA).
+ * 		[08 - 09] Value of the transmitter current (mA).
+ * 		[10 - 11] Value of the receiver current (mA).
+ * 		[12 - 13] Value of the power amplifier current (mA).
+ * 		[14 - 15] Value of the power amplifier temperature (C).
+ * 		[16 - 17] Value of the local oscillator temperature (C).
+ * @return void
+ */
+void transcevierTxTelemetryLastTransmit(uint8_t* telemetryBuffer){}
 
+/**
+ * Gets the transmitter's current up time
+ * 
+ * @return Transmitter's up time in seconds
+ */
 uint32_t transceiverTxUpTime(void){}
