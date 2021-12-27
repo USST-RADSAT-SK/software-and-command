@@ -45,6 +45,12 @@ static const rx_command_t powerCycle = {
 		.destination = TRANSCEIVER_RX_I2C_SLAVE_ADDR,
 };
 
+static const rx_command_t rx_telemetry = {
+		.readSize = 18,
+		.code = 0xA1,
+		.destination = TRANSCEIVER_RX_I2C_SLAVE_ADDR,
+};
+
 
 /***************************************************************************************************
                                              PUBLIC API
@@ -156,4 +162,14 @@ void transceiverPowerCycle(void) {
 	i2cTalk(cmd.destination, TRX_RX_CMD_WRITE_SIZE, cmd.readSize, writeData, readData, 0);
 }
 
+uint8_t transceiverSendFrame(uint8_t* message){}
 
+uint8_t transceiverRxTelemetry(uint8_t* telemetryBuffer){}
+
+uint32_t transceiverRxUpTime(void){}
+
+uint8_t transcevierTxTelemetry(uint8_t* telemetryBuffer){}
+
+uint8_t transcevierTxTelemetryLastTransmit(uint8_t* telemetryBuffer){}
+
+uint32_t transceiverTxUpTime(void){}
