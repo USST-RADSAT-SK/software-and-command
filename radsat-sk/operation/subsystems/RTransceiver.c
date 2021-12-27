@@ -7,6 +7,7 @@
 #include <RTransceiver.h>
 #include <RI2c.h>
 #include <string.h>
+#include <float.h>
 
 
 /***************************************************************************************************
@@ -81,6 +82,15 @@ static const rx_command_t txUpTime = {
 		.code = 0x40,
 		.destination = TRANSCEIVER_TX_I2C_SLAVE_ADDR,
 };
+
+/***************************************************************************************************
+                                       PRIVATE FUNCTION STUBS                                       
+***************************************************************************************************/
+void convertRxTelemetry(uint16_t* rawTelemetryBuffer, float32_t* trueTelemetryBuffer);
+
+void convertTxTelemetry(uint16_t* rawTelemetryBuffer, float32_t* trueTelemetryBuffer);
+
+void convertSharedTelemetry(uint16_t* rawTelemetryBuffer, float32_t* trueTelemetryBuffer);
 
 /***************************************************************************************************
                                              PUBLIC API
@@ -214,15 +224,15 @@ uint8_t transceiverSendFrame(uint8_t* message, uint8_t message_size){
  * Gets the receiver's current telemetry
  * 
  * @param telemetryBuffer an 18 byte buffer to store the receiver's telemetry info
- * 		[00 - 01] Instantanious Doppler offset of the signal at the receiver port (Hz).
- * 		[02 - 03] Instantaneous signal strength of the signal at the receiver (dBm).
- * 		[04 - 05] Value of the power bus voltage (V).
- * 		[06 - 07] Value of the total supply current (mA).
- * 		[08 - 09] Value of the transmitter current (mA).
- * 		[10 - 11] Value of the receiver current (mA).
- * 		[12 - 13] Value of the power amplifier current (mA).
- * 		[14 - 15] Value of the power amplifier temperature (C).
- * 		[16 - 17] Value of the local oscillator temperature (C).
+ * 		[00] Instantanious Doppler offset of the signal at the receiver port (Hz).
+ * 		[01] Instantaneous signal strength of the signal at the receiver (dBm).
+ * 		[02] Value of the power bus voltage (V).
+ * 		[03] Value of the total supply current (mA).
+ * 		[04] Value of the transmitter current (mA).
+ * 		[05] Value of the receiver current (mA).
+ * 		[06] Value of the power amplifier current (mA).
+ * 		[07] Value of the power amplifier temperature (C).
+ * 		[08] Value of the local oscillator temperature (C).
  * @return void
  */
 void transceiverRxTelemetry(uint8_t* telemetryBuffer){}
@@ -235,20 +245,20 @@ void transceiverRxTelemetry(uint8_t* telemetryBuffer){}
 uint32_t transceiverRxUpTime(void){}
 
 /**
- * Gets the transmitter's current telemetry
+ * Gets the transmitter's telemetry during its last transmission.
  * 
- * @param telemetryBuffer an 18 byte buffer to store the transmitter's telemetry info
- * 		[00 - 01] Value of the instantaneous RF reflected power at the transmitter port (mW).
+ * @param telemetryBuffer an buffer to store 9 floats (36 bytes) to store the transmitter's telemetry info
+ * 		[00] Value of the instantaneous RF reflected power at the transmitter port (mW).
  * 			Only valid during transmission.
- * 		[02 - 03] Value of the instantaneous RF forward power at the transmitter port (mW).
+ * 		[01] Value of the instantaneous RF forward power at the transmitter port (mW).
  * 			Only valid during transmission.
- * 		[04 - 05] Value of the power bus voltage (V).
- * 		[06 - 07] Value of the total supply current (mA).
- * 		[08 - 09] Value of the transmitter current (mA).
- * 		[10 - 11] Value of the receiver current (mA).
- * 		[12 - 13] Value of the power amplifier current (mA).
- * 		[14 - 15] Value of the power amplifier temperature (C).
- * 		[16 - 17] Value of the local oscillator temperature (C).
+ * 		[02] Value of the power bus voltage (V).
+ * 		[03] Value of the total supply current (mA).
+ * 		[04] Value of the transmitter current (mA).
+ * 		[05] Value of the receiver current (mA).
+ * 		[06] Value of the power amplifier current (mA).
+ * 		[07] Value of the power amplifier temperature (C).
+ * 		[08] Value of the local oscillator temperature (C).
  * @return void
  */
 void transcevierTxTelemetry(uint8_t* telemetryBuffer){}
@@ -256,18 +266,18 @@ void transcevierTxTelemetry(uint8_t* telemetryBuffer){}
 /**
  * Gets the transmitter's telemetry during its last transmission.
  * 
- * @param telemetryBuffer an 18 byte buffer to store the transmitter's telemetry info
- * 		[00 - 01] Value of the instantaneous RF reflected power at the transmitter port (mW).
+ * @param telemetryBuffer an buffer to store 9 floats (36 bytes) to store the transmitter's telemetry info
+ * 		[00] Value of the instantaneous RF reflected power at the transmitter port (mW).
  * 			Only valid during transmission.
- * 		[02 - 03] Value of the instantaneous RF forward power at the transmitter port (mW).
+ * 		[01] Value of the instantaneous RF forward power at the transmitter port (mW).
  * 			Only valid during transmission.
- * 		[04 - 05] Value of the power bus voltage (V).
- * 		[06 - 07] Value of the total supply current (mA).
- * 		[08 - 09] Value of the transmitter current (mA).
- * 		[10 - 11] Value of the receiver current (mA).
- * 		[12 - 13] Value of the power amplifier current (mA).
- * 		[14 - 15] Value of the power amplifier temperature (C).
- * 		[16 - 17] Value of the local oscillator temperature (C).
+ * 		[02] Value of the power bus voltage (V).
+ * 		[03] Value of the total supply current (mA).
+ * 		[04] Value of the transmitter current (mA).
+ * 		[05] Value of the receiver current (mA).
+ * 		[06] Value of the power amplifier current (mA).
+ * 		[07] Value of the power amplifier temperature (C).
+ * 		[08] Value of the local oscillator temperature (C).
  * @return void
  */
 void transcevierTxTelemetryLastTransmit(uint8_t* telemetryBuffer){}
@@ -278,3 +288,37 @@ void transcevierTxTelemetryLastTransmit(uint8_t* telemetryBuffer){}
  * @return Transmitter's up time in seconds
  */
 uint32_t transceiverTxUpTime(void){}
+
+
+/***************************************************************************************************
+                                          PRIVATE FUNCTIONS                                          
+***************************************************************************************************/
+/**
+ * Converts the telemetry representation from the receiver into 
+ * the true data values.
+ *
+ * @param rawTelemetryBuffer buffer that contains the telemetry from the receiver.
+ * @param trueTelementryBuffer a 36 byte buffer that will hold the true telemetry values.
+ * @return void
+ */
+void convertRxTelemetry(uint16_t* rawTelemetryBuffer, float32_t* trueTelemetryBuffer);
+
+/**
+ * Converts the telemetry representation from the transmitter into 
+ * the true data values.
+ *
+ * @param rawTelemetryBuffer buffer that contains the telemetry from the transmitter.
+ * @param trueTelementryBuffer a 36 byte buffer that will hold the true telemetry values.
+ * @return void
+ */
+void convertTxTelemetry(uint16_t* rawTelemetryBuffer, float32_t* trueTelemetryBuffer);
+
+/**
+ * Converts the telemetry representation of the last 7 telemetry values
+ *
+ * @param rawTelemetryBuffer buffer that contains the last 7 telemetry from the 
+ * 		receiver or transmitter.
+ * @param trueTelementryBuffer a 24 byte buffer that will hold the true telemetry values.
+ * @return void
+ */
+void convertSharedTelemetry(uint16_t* rawTelemetryBuffer, float32_t* trueTelemetryBuffer);
