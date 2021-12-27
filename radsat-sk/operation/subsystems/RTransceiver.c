@@ -39,11 +39,26 @@ static const rx_command_t deleteOldestFrameInRxBuffer = {
 		.destination = TRANSCEIVER_RX_I2C_SLAVE_ADDR,
 };
 
+static const rx_command_t powerCycle = {
+		.readSize = 0,
+		.code = 0xAB,
+		.destination = TRANSCEIVER_RX_I2C_SLAVE_ADDR,
+};
+
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
-
+/** @brief Gets the number of frames in the Receiver's message buffer.
+ *
+ *	Gets the number of frames in the Receiver's message buffer.
+ *
+ *	@header	"software-and-command/radsat-sk/operation/subsystems/RTransceiver.h"
+ *	@param	void 
+ *	@pre	Receiver has N messages in it's buffer.
+ * 	@post	Receiver has N messages in it's buffer.
+ * 	@return	N, the number of frames in the Receiver's message buffer.
+ */
 uint8_t transceiverFrameCount(void) {
 
 	const rx_command_t cmd = getNumberOfFramesInRxBuffer;
@@ -60,7 +75,18 @@ uint8_t transceiverFrameCount(void) {
 	return numberOfFrames;
 }
 
-
+/** @brief Gets next frame from the receiver buffer and returns the 
+ *  size of the message.
+ *
+ *	Retreives information from the receiver message buffer, places it 
+ *  in the provided buffer and returns the message size. 
+ *
+ *	@header	"software-and-command/radsat-sk/operation/subsystems/RTransceiver.h"
+ *	@param	msgBuffer A 200 byte array to copy the message into. 
+ *	@pre	Receiver has N messages in it's buffer.
+ * 	@post	Receiver has N-1 messages in it's buffer.
+ * 	@return	The size of the message in bytes.
+ */
 uint8_t transceiverGetFrame(uint8_t* msgBuffer) {
 
 	// ensure the pointer is pointing to a valid buffer
@@ -107,6 +133,27 @@ uint8_t transceiverGetFrame(uint8_t* msgBuffer) {
 	memcpy(msgBuffer, &readFullFrame[TRX_RECEIVER_FRAME_PREAMBLE_SIZE], sizeOfMessage);
 
 	return sizeOfMessage;
+}
+
+/** @brief Emergency function to perform a hardware reset of the transceiver.
+ *
+ *	Sends a command to the transceiver to perform a full hardware reset (power cycle). 
+ *  This is to be used only when a catastrophic error has occured as all frames in 
+ *  the receiver buffer will be lost.
+ *
+ *	@header	"software-and-command/radsat-sk/operation/subsystems/RTransceiver.h"
+ *	@param	void
+ *	@pre	Transiever is powered on and receiving commands.
+ * 	@post	Transceiver is reset and will need to re-connect.
+ * 	@return	void
+ */
+void transceiverPowerCycle(void) {
+	const rx_command_t cmd = powerCycle;
+
+	uint8_t writeData[TRX_RX_CMD_WRITE_SIZE] = { cmd.code };
+	uint8_t readData[TRX_RX_CMD_WRITE_SIZE] = {0};
+
+	i2cTalk(cmd.destination, TRX_RX_CMD_WRITE_SIZE, cmd.readSize, writeData, readData, 0);
 }
 
 
