@@ -81,12 +81,21 @@ int main(void)
 	LED_waveReverse(1);
 
 	// TODO: System Initialization (HAL, SSI, other low-level initializations, etc.)
-	// TODO: Subsystem Initialization (Transceiver, Downlink Manager, etc. (if necessary))
+	// TODO: Subsystem Initialization (Transceiver, Downlink Manager, etc. if necessary)
 
 #ifdef TEST
 
 	// run unit test suite
 	testSuiteRunAll();
+
+	// TODO: Initialize FreeRTOS Tasks for Integration Testing
+
+#else /* TEST */
+
+	// TODO: Antenna Diagnostic & Deployment (if necessary)
+	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
+
+	// TODO: Initialize FreeRTOS Tasks
 
 #endif /* TEST */
 
