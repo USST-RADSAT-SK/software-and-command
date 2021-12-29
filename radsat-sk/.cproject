@@ -355,27 +355,7 @@
 							</builder>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.153039560" name="Cross ARM GNU Assembler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor.573047453" name="Use preprocessor" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.usepreprocessor" value="true" valueType="boolean"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.2090938726" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/radsat-sk/src}&quot;"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/hal/freertos/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/hal/hal/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/hal/at91/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/framework"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/framework/fileio"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/framework/serial"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/collection"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/message"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/message/protobuf"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/message/protobuf/types"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/message/protobuf/nanopb"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/subsystems"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/src/tasks"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/crypt/tiny-aes"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/hal/hcc/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/satellite-subsystems/satellite-subsystems/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/testing"/>
-								</option>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths.2090938726" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.include.paths"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs.1665126207" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.defs" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__ASSEMBLY__"/>
 									<listOptionValue builtIn="false" value="sdram"/>
@@ -392,25 +372,26 @@
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.926867254" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler">
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.2036718290" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="false" valueType="includePath">
-									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/radsat-sk/src}&quot;"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/hal/freertos/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/hal/hal/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/hal/at91/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/framework"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/framework/fileio"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/framework/serial"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/collection"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/message"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/message/protobuf"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/message/protobuf/types"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/message/protobuf/nanopb"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/subsystems"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/src/tasks"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/operation/crypt/tiny-aes"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/hal/hcc/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/satellite-subsystems/satellite-subsystems/include"/>
-									<listOptionValue builtIn="false" value="C:/Users/short/Documents/git-repos/software-and-command/radsat-sk/testing"/>
+									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/src}&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
+									<listOptionValue builtIn="false" value="../framework"/>
+									<listOptionValue builtIn="false" value="../framework/fileio"/>
+									<listOptionValue builtIn="false" value="../framework/serial"/>
+									<listOptionValue builtIn="false" value="../operation"/>
+									<listOptionValue builtIn="false" value="../operation/collection"/>
+									<listOptionValue builtIn="false" value="../operation/message"/>
+									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
+									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
+									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
+									<listOptionValue builtIn="false" value="../operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../src/tasks"/>
+									<listOptionValue builtIn="false" value="../operation/crypt/tiny-aes"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/satellite-subsystems/satellite-subsystems/include&quot;"/>
+									<listOptionValue builtIn="false" value="../testing"/>
+									<listOptionValue builtIn="false" value="../testing/unit"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1971370393" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="__ASSEMBLY__"/>
@@ -433,8 +414,8 @@
 									<listOptionValue builtIn="false" value="${external-dependencies}/hal/at91/linker-scripts/sdram.lds"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.other.527146464" name="Other linker flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.other" value="-lc" valueType="string"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths.114461409" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths" valueType="libPaths"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs.1154351373" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs" valueType="libs"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths.114461409" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs.1154351373" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input.498498045" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
