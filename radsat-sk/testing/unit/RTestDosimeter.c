@@ -8,6 +8,7 @@
 
 #include <assert.h>
 #include <RDosimeter.h>
+#include <stdint.h>
 
 
 /***************************************************************************************************
@@ -28,19 +29,21 @@ static void testDosimeterTemperature(void) {
 	int boardTwo = 1;
 
 	// variable to store temperature readings
-	float temperature = 0;
+	int16_t temperature = 0;
 
 	// grab temperature reading from dosimeter board one
 	temperature = dosimeterTemperature(boardOne);
 
-	// temperature reading must not be exactly 0
-	assert(temperature != 0);
+	// temperature reading must be between -50 and +150
+	assert(temperature >= -51);
+	assert(temperature <= 150);
 
 	// grab temperature reading from dosimeter board two
 	temperature = dosimeterTemperature(boardTwo);
 
-	// temperature reading must not be exactly 0
-	assert(temperature != 0);
+	// temperature reading must be between -50 and +150
+	assert(temperature >= -51);
+	assert(temperature <= 150);
 }
 
 
