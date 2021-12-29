@@ -15,18 +15,24 @@
 
 /** I2C Slave Address for Antenna Receive Port */
 #define ANTENNA_I2C_SLAVE_ADDR_PRIMARY (0x31)
-#define ANTENNA_I2C_SLAVE_ADDR_REDUNDANT (0x32)
 
 typedef struct _antennaDeploymentStatus {
 	int DeployedsideA;
 	int DeployedsideB;
 } antennaDeploymentStatus;
 
+typedef struct _antennaTemperature {
+	int TemperatureSideA;
+	int TemperatureSideB;
+} antennaTemperature;
+
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
 int antennaInit(void);
+int antennaDeployment(void);
+antennaTemperature antennaGetTemperature(void);
 
 
 #endif /* RANTENNA_H_ */

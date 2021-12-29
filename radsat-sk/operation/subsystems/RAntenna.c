@@ -17,8 +17,9 @@
 /***************************************************************************************************
                                          PRIVATE VARIABLES
 ***************************************************************************************************/
-ISISantsI2Caddress RAntennaI2Caddress = {ANTENNA_I2C_SLAVE_ADDR_PRIMARY,ANTENNA_I2C_SLAVE_ADDR_REDUNDANT};
+ISISantsI2Caddress RAntennaI2Caddress = {ANTENNA_I2C_SLAVE_ADDR_PRIMARY,ANTENNA_I2C_SLAVE_ADDR_PRIMARY};
 antennaDeploymentStatus RantennaDeploymentStatus;
+antennaTemperature RantennaTemperature;
 static int AntennaInitialized = 0;
 
 /***************************************************************************************************
@@ -58,7 +59,7 @@ int antennaDeployment(void) {
 
 	//deploying B side
 	if (RantennaDeploymentStatus.DeployedsideB == 0) {
-		int error = IsisAntS_autoDeployment(ANTENNA_I2C_SLAVE_ADDR_REDUNDANT,isisants_sideB,60);
+		int error = IsisAntS_autoDeployment(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,60);
 		if(error != 0)
 			return error;
 		RantennaDeploymentStatus.DeployedsideB = 1;
@@ -67,6 +68,26 @@ int antennaDeployment(void) {
 	return ANTENNAS_DEPLOYED;
 }
 
-int antennaGetTemperature(void) {
+/**
+ * Collect temperature data from the ISISpace Antenna
+ * @return 0 for success, non-zero for failure. See hal/errors.h for details.
+ */
+antennaTemperature antennaGetTemperature(void) {
+
+	unsigned short sideATemperature = 0;
+	unsigned short sideBTemperature = 0;
+
+	int errorA = IsisAntS_getTemperature(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,&sideATemperature);
+	if(errorA != 0)
+		RantennaTemperature.TemperatureSideA = 0;
+	RantennaTemperature.TemperatureSideA = sideATemperature;
+
+	int errorB = IsisAntS_getTemperature(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,&sideBTemperature);
+	if(errorB != 0)
+		RantennaTemperature.TemperatureSideB = 0;
+	RantennaTemperature.TemperatureSideB = sideBTemperature;
+
+	return RantennaTemperature;
+
 
 }
