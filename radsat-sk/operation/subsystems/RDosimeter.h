@@ -27,7 +27,7 @@ typedef enum _dosimeterBoard {
 ***************************************************************************************************/
 
 int dosimeterCollectData(void);
-uint16_t dosimeterTemperature(dosimeterBoard_t board);
+int16_t dosimeterTemperature(dosimeterBoard_t board);
 
 
 #endif /* RDOSIMETER_H_ */

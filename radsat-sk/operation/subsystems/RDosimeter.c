@@ -91,7 +91,7 @@ static uint8_t dosimeterCommandBytes[adcChannelCount] = {
 ***************************************************************************************************/
 
 static float convertCountsToVoltage(uint8_t highByte, uint8_t lowByte);
-static uint16_t convertVoltageToTemperature(float voltage);
+static int16_t convertVoltageToTemperature(float voltage);
 
 
 /***************************************************************************************************
@@ -161,7 +161,7 @@ int dosimeterCollectData(void)
  * @param board Which of the two boards to read from.
  * @return The tempurature; a float cast as a uint16_t
  */
-uint16_t dosimeterTemperature(dosimeterBoard_t board) {
+int16_t dosimeterTemperature(dosimeterBoard_t board) {
 
 	// internal buffer for receiving the I2C responses
 	uint8_t dataResponse[DOSIMETER_RESPONSE_LENGTH] = { 0 };
@@ -182,7 +182,7 @@ uint16_t dosimeterTemperature(dosimeterBoard_t board) {
 	float voltageReading = convertCountsToVoltage(dataResponse[0], dataResponse[1]);
 
 	// obtain the real temperature
-	uint16_t temperature = convertVoltageToTemperature(voltageReading);
+	int16_t temperature = convertVoltageToTemperature(voltageReading);
 
 	return temperature;
 }
@@ -228,8 +228,8 @@ static float convertCountsToVoltage(uint8_t highByte, uint8_t lowByte) {
  * @param voltage The voltage reading of the LMT87 (in mV)
  * @return The voltage (in degrees Celsius) as a whole number
  */
-static uint16_t convertVoltageToTemperature(float voltage) {
+static int16_t convertVoltageToTemperature(float voltage) {
 
-	uint16_t temperature = (uint16_t)( ( voltage * TEMPERATURE_SCALE_SLOPE ) + TEMPERATURE_SCALE_OFFSET );
+	int16_t temperature = (int16_t)( ( voltage * TEMPERATURE_SCALE_SLOPE ) + TEMPERATURE_SCALE_OFFSET );
 	return temperature;
 }
