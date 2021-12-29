@@ -18,12 +18,16 @@
 #define DOSIMETER_DELAY_MS			(MS_PER_DAY / DOSIMETER_READINGS_PER_DAY)
 
 
+/***************************************************************************************************
+                                             PUBLIC API
+***************************************************************************************************/
+
 void DosimeterCollectionTask(void* parameters) {
 
 	// ignore the input parameter
 	(void)parameters;
 
-	while(1) {
+	while (1) {
 		// collect all readings from dosimeter
 		int error = dosimeterCollectData();
 

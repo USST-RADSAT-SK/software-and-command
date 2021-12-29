@@ -17,7 +17,12 @@
  * Reference voltage for the Melanin-Dosimeter boards. Sensors return relative
  * 8-bit values. E.g. 127 out of 255 would be 50%, representing 1.65V
  */
-#define DOSIMETER_REFERENCE_VOLTAGE	((float)3.30)
+#define DOSIMETER_REFERENCE_VOLTAGE_MV	((float) 3300)
+
+/** Temperature scales slope  (m in y = mx + b) */
+#define TEMPERATURE_SCALE_SLOPE		((float) (1 / -13.6))
+/** Temperature scales offset (b in y = mx + b) */
+#define TEMPERATURE_SCALE_OFFSET	((float) 192.48)
 
 /** I2C Slave Address for Dosimeter Board One */
 #define DOSIMETER_1_I2C_SLAVE_ADDR	(0x4A)
@@ -45,13 +50,13 @@
 
 /** The eight Dosimeter board channels. */
 enum _adcChannels {
-	adcChannelZero,		// COTS 2.048V REF IC, Shielding: none
-	adcChannelOne,		// COTS 2.048V REF IC, Shielding: 50 mil
-	adcChannelTwo,		// COTS 2.048V REF IC, Shielding: 100 mil
-	adcChannelThree,	// COTS 2.048V REF IC, Shielding: 200 mil
-	adcChannelFour,		// COTS 2.048V REF IC, Shielding: 20 mil
+	adcChannelZero,		// COTS 2048mV REF IC, Shielding: none
+	adcChannelOne,		// COTS 2048mV REF IC, Shielding: 50 mil
+	adcChannelTwo,		// COTS 2048mV REF IC, Shielding: 100 mil
+	adcChannelThree,	// COTS 2048mV REF IC, Shielding: 200 mil
+	adcChannelFour,		// COTS 2048mV REF IC, Shielding: 20 mil
 	adcChannelFive,		// RADFET Experimental Dosimeter, Shielding: none
-	adcChannelSix,		// COTS 2.048V REF IC, Shielding: 300 mil
+	adcChannelSix,		// COTS 2048mV REF IC, Shielding: 300 mil
 	adcChannelSeven,	// Temperature Sensor
 	adcChannelCount,
 };
@@ -85,7 +90,8 @@ static uint8_t dosimeterCommandBytes[adcChannelCount] = {
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
 
-static float convertResult(uint8_t highByte, uint8_t lowByte);
+static float convertCountsToVoltage(uint8_t highByte, uint8_t lowByte);
+static uint16_t convertVoltageToTemperature(float voltage);
 
 
 /***************************************************************************************************
@@ -131,7 +137,12 @@ int dosimeterCollectData(void)
 			if ( error != 0 )
 				return error;
 
-			float finalVoltage = convertResult(dataResponse[0], dataResponse[1]);
+			float finalVoltage = convertCountsToVoltage(dataResponse[0], dataResponse[1]);
+
+			// if reading the temperature sensor, convert it to celsius
+			if (adcChannel == temperatureSensor) {
+				uint16_t temperature = convertVoltageToTemperature(finalVoltage);
+			}
 
 			// TODO: format data into Protobuf message
 
@@ -167,9 +178,13 @@ uint16_t dosimeterTemperature(dosimeterBoard_t board) {
 	if (error != 0)
 		return 0;
 
-	float temperature = convertResult(dataResponse[0], dataResponse[1]);
+	// obtain the voltage reading
+	float voltageReading = convertCountsToVoltage(dataResponse[0], dataResponse[1]);
 
-	return (uint16_t) temperature;
+	// obtain the real temperature
+	uint16_t temperature = convertVoltageToTemperature(voltageReading);
+
+	return temperature;
 }
 
 
@@ -177,17 +192,44 @@ uint16_t dosimeterTemperature(dosimeterBoard_t board) {
                                          PRIVATE FUNCTIONS
 ***************************************************************************************************/
 
-static float convertResult(uint8_t highByte, uint8_t lowByte) {
+/**
+ * Convert raw ADC counts (0 to 4095) to a real voltage reading (in mV)
+ *
+ * @note based off of a 3V3 reference voltage (per dosimeter board design)
+ *
+ * @param highByte High (most significant) byte of 12-bit reading
+ * @param lowByte Low (least significant) byte of 12-bit reading
+ * @return The real voltage reading of the sensor being measured (in mV)
+ */
+static float convertCountsToVoltage(uint8_t highByte, uint8_t lowByte) {
 
 	// high byte (top 4 bits of 12-bit value) must be masked & bit-shifted
 	uint8_t conversionResultHighByte = ((highByte & DOSIMETER_RESPONSE_HIGH_BYTE_MASK) << 8);
 	uint8_t conversionResultLowByte = lowByte;
 
 	// combine high and low values
-	uint16_t conversionResultTotal = conversionResultHighByte + conversionResultLowByte;
+	float conversionResultTotal = conversionResultHighByte + conversionResultLowByte;
 
-	// scale conversion result (based on reference voltage)
-	float voltageResult = DOSIMETER_REFERENCE_VOLTAGE * ( conversionResultTotal / MAX_ADC_VALUE );
+	// convert ADC counts to voltage (in mV)
+	float voltageResult = DOSIMETER_REFERENCE_VOLTAGE_MV * ( conversionResultTotal / MAX_ADC_VALUE );
 
 	return voltageResult;
+}
+
+
+/**
+ * Convert a voltage (in mV) to temperature (in Celsius).
+ *
+ * Based off the datasheet for the LMT87 (Section on Trasnfer Function).
+ * Note that this function is a linear approximation of a slightly parabolic
+ * temperature curve; nonetheless, the result should always be within 1-2
+ * degrees Celsius of the true value.
+ *
+ * @param voltage The voltage reading of the LMT87 (in mV)
+ * @return The voltage (in degrees Celsius) as a whole number
+ */
+static uint16_t convertVoltageToTemperature(float voltage) {
+
+	uint16_t temperature = (uint16_t)( ( voltage * TEMPERATURE_SCALE_SLOPE ) + TEMPERATURE_SCALE_OFFSET );
+	return temperature;
 }

@@ -8,6 +8,11 @@
 #ifndef RPAYLOADCOLLECTIONTASK_H_
 #define RPAYLOADCOLLECTIONTASK_H_
 
+/***************************************************************************************************
+                                             PUBLIC API
+***************************************************************************************************/
+
+void DosimeterCollectionTask(void* parameters);
 
 
 #endif /* RPAYLOADCOLLECTIONTASK_H_ */
