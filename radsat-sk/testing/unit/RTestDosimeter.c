@@ -9,6 +9,7 @@
 #include <assert.h>
 #include <RDosimeter.h>
 
+
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
 ***************************************************************************************************/
@@ -22,8 +23,9 @@
 static void testDosimeterTemperature(void) {
 
 	// variables for requesting both board readings
-	uint8_t boardOne = 0;
-	uint8_t boardTwo = 1;
+	// TODO: replace with real enum values once dosimeter code is merged in
+	int boardOne = 0;
+	int boardTwo = 1;
 
 	// variable to store temperature readings
 	float temperature = 0;

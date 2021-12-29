@@ -394,7 +394,6 @@
 									<listOptionValue builtIn="false" value="../testing/unit"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1971370393" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
-									<listOptionValue builtIn="false" value="__ASSEMBLY__"/>
 									<listOptionValue builtIn="false" value="sdram"/>
 									<listOptionValue builtIn="false" value="at91sam9g20"/>
 									<listOptionValue builtIn="false" value="TRACE_LEVEL=5"/>

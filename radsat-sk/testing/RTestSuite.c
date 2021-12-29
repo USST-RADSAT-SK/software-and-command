@@ -13,6 +13,11 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
+/**
+ * Run all of the unit tests
+ *
+ * @pre All necessary HAL, SSI, etc. initializations completed
+ */
 void testSuiteRunAll(void) {
 	testDosimeterAll();
 }

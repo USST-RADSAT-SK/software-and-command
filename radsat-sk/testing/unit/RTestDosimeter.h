@@ -4,10 +4,10 @@
  * @author Tyrel Kostyk
  */
 
-#ifdef TEST
-
 #ifndef RTESTDOSIMETER_H_
 #define RTESTDOSIMETER_H_
+
+#ifdef TEST
 
 
 /***************************************************************************************************
@@ -17,5 +17,5 @@
 void testDosimeterAll(void);
 
 
-#endif /* RTESTDOSIMETER_H_ */
 #endif /* TEST */
+#endif /* RTESTDOSIMETER_H_ */
