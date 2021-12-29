@@ -7,7 +7,6 @@
 #include <RDosimeter.h>
 #include <RI2c.h>
 #include <string.h>
-#include <stdint.h>
 
 
 /***************************************************************************************************
@@ -44,14 +43,7 @@
                                           PRIVATE GLOBALS
 ***************************************************************************************************/
 
-/** The two Melanin-Dosimeter boards. */
-enum _dosimeterBoards {
-	dosimeterBoardOne,
-	dosimeterBoardTwo,
-	dosimeterBoardCount,
-};
-
-/** The two Melanin-Dosimeter boards. */
+/** The eight Dosimeter board channels. */
 enum _adcChannels {
 	adcChannelZero,		// COTS 2.048V REF IC, Shielding: none
 	adcChannelOne,		// COTS 2.048V REF IC, Shielding: 50 mil
@@ -63,6 +55,9 @@ enum _adcChannels {
 	adcChannelSeven,	// Temperature Sensor
 	adcChannelCount,
 };
+
+/** The temperature ADC channel. */
+static uint8_t temperatureSensor = adcChannelSeven;
 
 /** The slave addresses of the two Melanin-Dosimeter boards. */
 static uint8_t dosimeterBoardSlaveAddr[dosimeterBoardCount] = {
@@ -87,6 +82,13 @@ static uint8_t dosimeterCommandBytes[adcChannelCount] = {
 
 
 /***************************************************************************************************
+                                       PRIVATE FUNCTION STUBS
+***************************************************************************************************/
+
+static float convertResult(uint8_t highByte, uint8_t lowByte);
+
+
+/***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
@@ -100,11 +102,16 @@ static uint8_t dosimeterCommandBytes[adcChannelCount] = {
  * @pre I2C must be initialized
  * @post If successful, sends new formatted group of readings to the Downlink Manager
  * @param void
- * @return Returns 0 on Success, anything else indicates error.
+ * @return Returns 0 on Success, anything else indicates error (e.g. from I2C).
+ * 		   In the event of error, no data will have been sent to the Downlink
+ * 		   Manager.
  */
-int requestReadingsAllChannels(void)
+int dosimeterCollectData(void)
 {
+	// internal buffer for receiving I2C responses
 	uint8_t dataResponse[DOSIMETER_RESPONSE_LENGTH] = { 0 };
+
+	// TODO: prepare a protobuf struct to populate within the nested for loops
 
 	// iterate through both melanin-dosimeter boards
 	for (uint8_t dosimeterBoard = dosimeterBoardOne; dosimeterBoard < dosimeterBoardCount; dosimeterBoard++) {
@@ -124,25 +131,63 @@ int requestReadingsAllChannels(void)
 			if ( error != 0 )
 				return error;
 
-			// extract the high (sent first) and low (sent second) data bytes from the I2C response
-			// high byte (top 4 bits of 12-bit value) must be masked & bit-shifted
-			uint8_t conversionResultHighByte = ((dataResponse[0] & DOSIMETER_RESPONSE_HIGH_BYTE_MASK) << 8);
-			uint8_t conversionResultLowByte = dataResponse[1];
+			float finalVoltage = convertResult(dataResponse[0], dataResponse[1]);
 
-			// combine high and low values
-			uint16_t conversionResultTotal = conversionResultHighByte + conversionResultLowByte;
-
-			// scale conversion result (based on reference voltage)
-			// TODO: figure out what our external ADC reference voltage is
-			float voltageResult = DOSIMETER_REFERENCE_VOLTAGE * ( conversionResultTotal / MAX_ADC_VALUE );
-
-			// TODO: format data into a Protobuf message
-
-			// TODO: send formatted messages to downlink manager
+			// TODO: format data into Protobuf message
 
 		}
 	}
 
+	// TODO: send formatted protobuf messages to downlink manager
+
 	return 0;
 }
 
+
+/**
+ * Return the temperature reading from one of the Dosimeter Boards.
+ *
+ * @param board Which of the two boards to read from.
+ * @return The tempurature; a float cast as a uint16_t
+ */
+uint16_t dosimeterTemperature(dosimeterBoard_t board) {
+
+	// internal buffer for receiving the I2C responses
+	uint8_t dataResponse[DOSIMETER_RESPONSE_LENGTH] = { 0 };
+
+	uint8_t dosimeterBoard = board;
+	uint8_t adcChannel = temperatureSensor;
+
+	// tell dosimeter to begin conversion; receive 12-bit data into our internal buffer
+	int error = i2cTalk(dosimeterBoardSlaveAddr[dosimeterBoard], DOSIMETER_COMMAND_LENGTH,
+						DOSIMETER_RESPONSE_LENGTH, &dosimeterCommandBytes[adcChannel],
+						dataResponse, DOSIMETER_I2C_DELAY);
+
+	// return 0 if an error occurs
+	if (error != 0)
+		return 0;
+
+	float temperature = convertResult(dataResponse[0], dataResponse[1]);
+
+	return (uint16_t) temperature;
+}
+
+
+/***************************************************************************************************
+                                         PRIVATE FUNCTIONS
+***************************************************************************************************/
+
+static float convertResult(uint8_t highByte, uint8_t lowByte) {
+
+	// high byte (top 4 bits of 12-bit value) must be masked & bit-shifted
+	uint8_t conversionResultHighByte = ((highByte & DOSIMETER_RESPONSE_HIGH_BYTE_MASK) << 8);
+	uint8_t conversionResultLowByte = lowByte;
+
+	// combine high and low values
+	uint16_t conversionResultTotal = conversionResultHighByte + conversionResultLowByte;
+
+	// scale conversion result (based on reference voltage)
+	float voltageResult = DOSIMETER_REFERENCE_VOLTAGE * ( conversionResultTotal / MAX_ADC_VALUE );
+
+	return voltageResult;
+}
