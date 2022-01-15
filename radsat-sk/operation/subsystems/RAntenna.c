@@ -1,25 +1,24 @@
 /**
  * @file RAntenna.c
- * @date December 28, 2021
+ * @date Jan 15, 2022
  * @author Addi Amaya (caa746)
  */
 
 #include <RAntenna.h>
 #include <satellite-subsystems/IsisAntS.h>
 #include <string.h>
-#include <hal/errors.h>
 
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
-#define ANTENNAS_DEPLOYED (0)
+
+
 
 /***************************************************************************************************
                                          PRIVATE VARIABLES
 ***************************************************************************************************/
 ISISantsI2Caddress RAntennaI2Caddress = {ANTENNA_I2C_SLAVE_ADDR_PRIMARY,ANTENNA_I2C_SLAVE_ADDR_PRIMARY};
 antennaDeploymentStatus RantennaDeploymentStatus;
-antennaTemperature RantennaTemperature;
 static int AntennaInitialized = 0;
 
 /***************************************************************************************************
@@ -33,7 +32,7 @@ static int AntennaInitialized = 0;
 int antennaInit(void) {
 
 	if (AntennaInitialized)
-		return E_IS_INITIALIZED;
+		return 0;
 
 	int error = IsisAntS_initialize(&RAntennaI2Caddress, 4);
 
@@ -65,29 +64,40 @@ int antennaDeployment(void) {
 		RantennaDeploymentStatus.DeployedsideB = 1;
 	}
 
-	return ANTENNAS_DEPLOYED;
+	return 0;
 }
 
 /**
  * Collect temperature data from the ISISpace Antenna
+ *
+ * @param side 0 for top side of antenna temperature, 1 for bottom side of the antenna temperature, will default to bottom side
  * @return 0 for success, non-zero for failure. See hal/errors.h for details.
  */
-antennaTemperature antennaGetTemperature(void) {
+int antennaGetTemperature(uint16_t side) {
+	unsigned short RAntennaTemperature = 0;
+	int error = 0;
+	switch(side) {
+		case 0:
+			error = IsisAntS_getTemperature(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,&RAntennaTemperature);
+			if (error != 0) { //error occured
+				return error;
+			}
+			break;
+		case 1:
+			error = IsisAntS_getTemperature(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,&RAntennaTemperature);
+			if (error != 0) { //error occured
+				return error;
+			}
+			break;
+		default:
+			error = IsisAntS_getTemperature(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,&RAntennaTemperature);
+			if (error != 0) { //error occured
+				return error;
+			}
+	}
 
-	unsigned short sideATemperature = 0;
-	unsigned short sideBTemperature = 0;
-
-	int errorA = IsisAntS_getTemperature(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,&sideATemperature);
-	if(errorA != 0)
-		RantennaTemperature.TemperatureSideA = 0;
-	RantennaTemperature.TemperatureSideA = sideATemperature;
-
-	int errorB = IsisAntS_getTemperature(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,&sideBTemperature);
-	if(errorB != 0)
-		RantennaTemperature.TemperatureSideB = 0;
-	RantennaTemperature.TemperatureSideB = sideBTemperature;
-
-	return RantennaTemperature;
+	//TODO: Conversion of raw temperature data to valid temperature data
+	//Problem: Don't know the type of temperature sensor and are unsure how to convert raw temperature data
 
 
 }

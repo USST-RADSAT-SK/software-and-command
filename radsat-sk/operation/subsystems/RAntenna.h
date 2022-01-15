@@ -21,10 +21,6 @@ typedef struct _antennaDeploymentStatus {
 	int DeployedsideB;
 } antennaDeploymentStatus;
 
-typedef struct _antennaTemperature {
-	int TemperatureSideA;
-	int TemperatureSideB;
-} antennaTemperature;
 
 /***************************************************************************************************
                                              PUBLIC API
@@ -32,7 +28,7 @@ typedef struct _antennaTemperature {
 
 int antennaInit(void);
 int antennaDeployment(void);
-antennaTemperature antennaGetTemperature(void);
+int antennaGetTemperature(uint16_t side);
 
 
 #endif /* RANTENNA_H_ */
