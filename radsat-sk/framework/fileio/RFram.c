@@ -1,4 +1,3 @@
-
 /**
  * @file RFram.c
  * @date May 18 2021
@@ -6,7 +5,16 @@
  */
 
 #include <RFram.h>
+#include <hal/errors.h>
 #include <hal/Storage/FRAM.h>
+
+
+/***************************************************************************************************
+                                         PRIVATE VARIABLES
+***************************************************************************************************/
+
+/** Simple int to track if the FRAM driver has been initialized */
+static int initialized = 0;
 
 
 /***************************************************************************************************
@@ -14,47 +22,63 @@
 ***************************************************************************************************/
 
 /**
- * @brief Initialize the FRAM peripheral driver.
+ * Initialize the FRAM peripheral driver.
+ * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
  */
-void framInit(void) {
-	FRAM_start();
+int framInit(void) {
+
+	// only allow initialization once
+	if (initialized)
+		return E_IS_INITIALIZED;
+
+	int error = FRAM_start();
+	return error;
 }
 
 
 /**
- * @brief Read data out of the FRAM peripheral.
+ * Read data out of the FRAM peripheral
+ *
+ * @note This is a blocking call
  * @param data The pointer to where the extracted data will be copied.
  * @param address The FRAM address to begin extracting data from.
  * @param size The number of bytes to copy out of the FRAM peripheral.
- * @return 0 for success, 1 for failure. See hal/Storage/FRAM.h for more details.
+ * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
  */
-int16_t framRead(uint8_t* data, uint32_t address, uint32_t size) {
+int framRead(uint8_t* data, uint32_t address, uint32_t size) {
 
-	uint16_t err = FRAM_read(data, address, size);
+	// FRAM driver must be initialized first
+	if (!initialized)
+		return E_NOT_INITIALIZED;
 
+<<<<<<< HEAD
 	if (err != 0) {
 		return 1;
 	}
 
 	return err;
+=======
+	int error = FRAM_read(data, address, size);
+	return error;
+>>>>>>> 230804729512bc3bf4b9a3241f6a77c75bb3872f
 }
 
 
 /**
- * @brief Write data into the FRAM peripheral.
+ * Write data into the FRAM peripheral
+ *
+ * @note This is a blocking call
  * @param data The pointer to where the data will be copied from.
  * @param address The FRAM address to begin writing data to.
  * @param size The number of bytes to copy into the FRAM peripheral.
- * @return 0 for success, 1 for failure. See hal/Storage/FRAM.h for more details.
+ * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
  */
-int16_t framWrite(uint8_t* data, uint32_t address, uint32_t size) {
+int framWrite(uint8_t* data, uint32_t address, uint32_t size) {
 
-	int16_t err = FRAM_writeAndVerify(data, address, size);
+	// FRAM driver must be initialized first
+	if (!initialized)
+		return E_NOT_INITIALIZED;
 
-	if (err != 0) {
-		return 1;
-	}
-
-	return err;
-
+	int error = FRAM_writeAndVerify(data, address, size);
+	return error;
 }

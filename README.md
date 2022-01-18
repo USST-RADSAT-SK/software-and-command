@@ -20,6 +20,7 @@ Code and Documentation for USST’s first Canadian CubeSat Project: The RADSAT-S
     6. [Parentheses in Expressions](#Parentheses-in-Expressions)
     7. [Switch Statements](#Switch-Statements)
     8. [Line Lengths](#Line-Lengths)
+    9. [Error Codes](#Error-Codes)
 6. [Code Documentation](#Code-Documentation)
     1. [Functions](#Functions)
     2. [Global Variables](#Global-Variables)
@@ -154,11 +155,17 @@ ALso note that the enumeration values are all explictly defined; this is highly 
 In functions, most variables that will be used throughout the function should be declared at the *top* of the function. Exceptions may include variable declarations within the scope of an if or for loop.
 
 #### Types
-Use of non-standard c types (char, int, long) should be avoided whenever possible. In embedded programming, it is always recommended to use explicit types. It's clearer to the user/reader, and consistent across all platforms. Unsigned types should always be used unless signedness is needed (should rarely be the case). Standard c types include:
-- uint8_t (instead of unsigned short or unsigned char)
-- uint16_t (instead of unsigned short)
-- uint32_t (instead of unsigned long)
-^ removed the "u" to use a signed version of the type when necessary.
+Use of "non-standard" c types (`char`, `int`, `long`) should be avoided whenever possible. In embedded programming, it is always recommended to use explicit types. It's clearer to the user/reader, and consistent across all platforms. However, signed types do have their uses; e.g. the HAL and SSI libraries use `int` for return types (error codes), so it's fine to use them when working directly with those libraries.
+
+Standard c types (also called fixed-width types, or explicit types) include:
+- `uint8_t` (instead of `unsigned short` or `unsigned char`)
+- `uint16_t` (instead of `unsigned int`)
+- `uint32_t` (instead of `unsigned long`)
+
+Remove the "u" prefix to use a signed version of the above types when signed values are needed.
+
+We only have 1 system to worry about with our project (the OBC), so portability isn't a _huge_ concern, but it's still good practice to use explicit types whenever reasonable and possible. IF YOU'RE UNSURE OF WHAT TO USE: just use fixed-width (standard) c types, as listed above.
+
 
 ### Files
 #### File Naming
@@ -203,7 +210,7 @@ To increase readability (especially in larger files), multi-line function separa
 ***************************************************************************************************/
 ```
 Each line ends after exactly 100 characters, and the words are centered.
-These are not strictly enforced, but are recommended. Consistency is the most important thing.
+These are not strictly enforced, but are highly recommended. Consistency is the most important thing.
 
 ### Whitespace
 #### Around Brackets
@@ -331,6 +338,26 @@ uint16_t function(uint16_t n) {
 ### Line Lengths
 Lines should aim to be 80 characters or less long, but the maximum accepted line length will be roughly 100 since no one really uses terminals anyways. Some exceptions may be made, but anything over 100 lines is starting to push the limits of readability.
 
+### Error Codes
+Functions that wish to return an "error code" (e.g. a value that represents if the function was successful in its operation) should follow the following format:
+Return type: int
+Return value: 0 for success, non-zero for failure. Reference the HAL, SSI, or other underlying files for more info if the error code does not originate in the function you're describing. An example is shown below:
+``` c
+/**
+ * @brief Write data into the FRAM peripheral.
+ * @param data The pointer to where the data will be copied from.
+ * @param address The FRAM address to begin writing data to.
+ * @param size The number of bytes to copy into the FRAM peripheral.
+ * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
+ */
+int framWrite(uint8_t* data, uint32_t address, uint32_t size) {
+
+	int error = FRAM_writeAndVerify(data, address, size);
+	return error;
+}
+```
+Note that for functions which use their return values for other purposes (e.g. returning a calculated value) or simply return `void`, this section can be ignored.
+
 
 ## Code Documentation
 Our code is documented using [doxygen](http://www.doxygen.nl/). All comments
@@ -352,13 +379,30 @@ the function is defined in.
  * @note give a notice to anyone using this function (if any; usually not)
  * @pre describe the pre condition (if any; usually not)
  * @post describe the post condition (if any; usually not)
- * @param c short description of the parameter
+ * @param input short description of the input parameter
  * @return describe the return value
  */
-uint32_t function (uint8_t c) {
+uint16_t function(uint8_t input) {
     // code
 }
 ```
+
+Another real example is shown below:
+``` c
+/**
+ * @brief Write data into the FRAM peripheral.
+ * @param data The pointer to where the data will be copied from.
+ * @param address The FRAM address to begin writing data to.
+ * @param size The number of bytes to copy into the FRAM peripheral.
+ * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
+ */
+int framWrite(uint8_t* data, uint32_t address, uint32_t size) {
+
+	int error = FRAM_writeAndVerify(data, address, size);
+	return error;
+}
+```
+
 
 ### Global Variables
 Documentation for global variables should go inside the source (.c) file that they are defined in.
