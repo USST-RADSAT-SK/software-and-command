@@ -32,8 +32,9 @@
 ***************************************************************************************************/
 
 int transceiverInit(void);
-int transceiverFrameCount(void);
-int transceiverGetFrame(uint8_t* msgBuffer);
+int transceiverFrameCount(uint16_t* numberOfFrames);
+int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage);
+int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRemaining);
 int transceiverPowerCycle(void);
 
 

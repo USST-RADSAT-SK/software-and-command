@@ -5,7 +5,6 @@
  */
 
 #include <RTransceiver.h>
-#include <RI2c.h>
 #include <satellite-subsystems/IsisTRXVU.h>
 #include <hal/errors.h>
 #include <string.h>
@@ -14,9 +13,6 @@
 /***************************************************************************************************
                                   PRIVATE DEFINITIONS AND VARIABLES
 ***************************************************************************************************/
-
-///** Size of all transceiver commands (in bytes) */
-//#define TRANSCEIVER_CMD_WRITE_SIZE	1
 
 /** Index of our Transceiver; the IsisTRXVU.h SSI module allows for multiple TRX instances */
 #define TRANSCEIVER_INDEX			0
@@ -77,42 +73,39 @@ int transceiverInit(void) {
 
 /** Gets the number of frames in the Receiver's message buffer.
  *
- * 	@return	The number of frames in the Receiver's message buffer (0 on failure or empty buffer).
+ * 	@param	sizeOfMessage The number of frames available in the receiver's buffer. Set by function.
+ * 	@return Error code; 0 for success, otherwise see hal/errors.h.
  */
-uint8_t transceiverFrameCount(void) {
+int transceiverFrameCount(uint16_t* numberOfFrames) {
 
 	// transceiver must be initialized first
 	if (!initialized)
-		return 0;
+		return E_NOT_INITIALIZED;
 
-	uint8_t numberOfFrames = 0;
-	int error = IsisTrxvu_rcGetFrameCount(TRANSCEIVER_INDEX, &numberOfFrames);
-	if (error)
-		return 0;
+	// ensure the pointer is valid
+	if (numberOfFrames == 0)
+		return E_INPUT_POINTER_NULL;
 
-	return numberOfFrames;
+	int error = IsisTrxvu_rcGetFrameCount(TRANSCEIVER_INDEX, numberOfFrames);
+	return error;
 }
 
 
-/** Gets next frame from the receiver buffer and the size of the message.
+/** Gets next frame from the receiver buffer.
  *
- *	Retreives information from the receiver message buffer, places it 
- *  in the provided buffer and returns the message size. 
- *
- *	@param	msgBuffer A 200 byte array to copy the message into. 
- *	@pre	Receiver has N messages in it's buffer.
- * 	@post	Receiver has N-1 messages in it's buffer.
- * 	@return	The size of the message in bytes (0 on failure).
+ *	@param	messageBuffer A byte array to copy the message into; must accept up to 200 bytes.
+ * 	@param	sizeOfMessage The size of the frame received (0 on failure or empty buffer). Set by function.
+ * 	@return Error code; 0 for success, otherwise see hal/errors.h.
  */
-uint8_t transceiverGetFrame(uint8_t* messageBuffer) {
+int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
 
 	// transceiver must be initialized first
 	if (!initialized)
-		return 0;
+		return E_NOT_INITIALIZED;
 
-	// ensure the pointer is pointing to a valid buffer
-	if (messageBuffer == 0)
-		return 0;
+	// ensure the pointers are valid
+	if (messageBuffer == 0 || sizeOfMessage == 0)
+		return E_INPUT_POINTER_NULL;
 
 	// create an RX Frame struct to receive the frame (and length) into
 	ISIStrxvuRxFrame frame = {
@@ -120,46 +113,34 @@ uint8_t transceiverGetFrame(uint8_t* messageBuffer) {
 	};
 
 	int error = IsisTrxvu_rcGetCommandFrame(TRANSCEIVER_INDEX, &frame);
-	if (error)
-		return 0;
 
-	uint8_t sizeOfMessage = frame.rx_length;
+	// provide the size of the message to the caller
+	*sizeOfMessage = frame.rx_length;
 
-	return sizeOfMessage;
+	return error;
 }
 
 
 /**
  * Sends a data frame to the Transmitter's buffer.
  *
- * @param message buffer that is to be transmitted; must be no longer than 235 bytes long.
- * @param messageSize the length of the message in bytes.
- * @return The number of slots left for incoming frames in the transmission buffer.
- * 		   Will return 0xFF if the frame was not added.
+ * @param message Buffer that is to be transmitted; must be no longer than 235 bytes long.
+ * @param messageSize The length of the outgoing message in bytes.
+ * @param slotsRemaining The number of remaining slots in the transmitter's buffer. Set by function.
+ * @return Error code; 0 for success, otherwise see hal/error.c
  */
-uint8_t transceiverSendFrame(uint8_t* message, uint8_t messageSize) {
-//	const trx_command_t cmd = sendFrame;
-//
-//	uint8_t* code[TRANSCEIVER_CMD_WRITE_SIZE] = cmd.code;
-//	uint8_t i2cMsgSize = TRANSCEIVER_CMD_WRITE_SIZE + messageSize;
-//
-//	// the message over i2c is the command in byte 0 followed by the message
-//	uint8_t writeData[i2cMsgSize] = { 0 };
-//	// copy in the command code into the first byte of the command to the transceiver
-//	memcpy(writeData, code, TRANSCEIVER_CMD_WRITE_SIZE);
-//	// copy in the rest of the message to be downlinked by the transceiver
-//	memcpy(&writeData[TRANSCEIVER_CMD_WRITE_SIZE], message, messageSize);
-//
-//	uint8_t readData[TRANSCEIVER_CMD_WRITE_SIZE] = {0};
-//
-//	uint8_t slotsRemaining = i2cTalk(cmd.destination, i2cMsgSize, cmd.readSize, writeData, readData, 0);
+int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRemaining) {
 
-	uint8_t slotsRemaining = 0;
-	int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, &slotsRemaining);
-	if (error)
-		return 0xFF;
+	// transceiver must be initialized first
+	if (!initialized)
+		return E_NOT_INITIALIZED;
 
-	return slotsRemaining;
+	// ensure the pointers are valid
+	if (message == 0 || slotsRemaining == 0)
+		return E_INPUT_POINTER_NULL;
+
+	int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, slotsRemaining);
+	return error;
 }
 
 
@@ -169,20 +150,17 @@ uint8_t transceiverSendFrame(uint8_t* message, uint8_t messageSize) {
  *  This is to be used only when absolutely necessary as all frames in the receiver and transmitter
  *  buffer will be lost.
  *
- * 	@post	Transceiver is power-cycled and will need to be re-initialized.
+ * 	@post	Transceiver is power-cycled and may take a moment to come back online.
  * 	@return Error code; 0 for success, otherwise see hal/errors.h.
  */
 int transceiverPowerCycle(void) {
 
 	// transceiver must be initialized first
 	if (!initialized)
-		return 0;
+		return E_NOT_INITIALIZED;
 
 	// send full hard reset command
 	int error = IsisTrxvu_hardReset(TRANSCEIVER_INDEX);
-	if (error)
-		return error;
-
 	return error;
 }
 

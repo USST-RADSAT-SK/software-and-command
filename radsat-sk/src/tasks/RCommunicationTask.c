@@ -5,7 +5,8 @@
  */
 
 #include <RTransceiver.h>
-
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 
 int passtime = 0;
 
@@ -24,9 +25,14 @@ void taskCommunication(void* parameters)
 {
 	(void)parameters;
 
+	int error = 0;
+
 	while(1) {
 
-		while(transceiverFrameCount() > 0) {
+		// continue receiving frames while they're available
+		uint16_t framesReady = 0;
+		error = transceiverFrameCount(&framesReady);
+		while(error == 0 && framesReady > 0) {
 			// let system know we've entered a pass
 			startPassMode();
 
@@ -34,10 +40,15 @@ void taskCommunication(void* parameters)
 			uint8_t message[TRANCEIVER_RX_MAX_FRAME_SIZE];
 
 			// retrieve a message
-			int sizeOfMessage = transceiverGetFrame(message);
+			uint16_t sizeOfMessage = 0;
+			error = transceiverGetFrame(message, sizeOfMessage);
+			if (error)
+				break;
 
 			// TODO: stuff...
 
+			// update frame size for loop condition
+			error = transceiverFrameCount(&framesReady);
 		}
 
 		/*
