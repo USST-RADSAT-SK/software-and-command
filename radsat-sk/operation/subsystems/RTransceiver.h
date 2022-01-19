@@ -16,10 +16,10 @@
 
 #define TRX_RECEIVER_FRAME_PREAMBLE_SIZE	(6)
 
-#define TRX_RECEIVER_MAX_MSG_SIZE	(200)
-#define TRX_TRANSMIT_MAX_MSG_SIZE	(235)
+#define TRANCEIVER_RX_MAX_FRAME_SIZE	(200)
+#define TRANCEIVER_TX_MAX_FRAME_SIZE	(235)
 
-#define TRX_RECEIVER_MAX_FRAME_SIZE	((uint16_t) TRX_RECEIVER_MAX_MSG_SIZE+TRX_RECEIVER_FRAME_PREAMBLE_SIZE)
+#define TRX_RECEIVER_MAX_FRAME_SIZE	((uint16_t) TRANCEIVER_RX_MAX_FRAME_SIZE+TRX_RECEIVER_FRAME_PREAMBLE_SIZE)
 
 /** I2C Slave Address for Transceiver Receive Port */
 #define TRANSCEIVER_RX_I2C_SLAVE_ADDR (0x60)
@@ -31,8 +31,10 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-uint8_t transceiverFrameCount(void);
-uint8_t transceiverGetFrame(uint8_t* msgBuffer);
+int transceiverInit(void);
+int transceiverFrameCount(void);
+int transceiverGetFrame(uint8_t* msgBuffer);
+int transceiverPowerCycle(void);
 
 
 #endif /* RTRANSCEIVER_H_ */

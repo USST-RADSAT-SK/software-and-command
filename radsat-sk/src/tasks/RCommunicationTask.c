@@ -31,7 +31,7 @@ void taskCommunication(void* parameters)
 			startPassMode();
 
 			// allocate a buffer
-			uint8_t message[TRX_RECEIVER_MAX_MSG_SIZE];
+			uint8_t message[TRANCEIVER_RX_MAX_FRAME_SIZE];
 
 			// retrieve a message
 			int sizeOfMessage = transceiverGetFrame(message);
