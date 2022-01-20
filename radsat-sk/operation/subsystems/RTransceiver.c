@@ -22,23 +22,21 @@ static uint8_t initialized = 0;
 
 
 /***************************************************************************************************
-                                       PRIVATE FUNCTION STUBS                                       
+                                       PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
 
-static void convertRxTelemetry(uint16_t* rawTelemetryBuffer, float* trueTelemetryBuffer);
-
-static void convertTxTelemetry(uint16_t* rawTelemetryBuffer, float* trueTelemetryBuffer);
-
-static void convertSharedTelemetry(uint16_t* rawTelemetryBuffer, float* trueTelemetryBuffer);
+static int transceiverRxUpTime(uint16_t* uptime);
+static int transceiverTxUpTime(uint16_t* uptime);
 
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
-/** Initializes the Transceiver, setting the appropriate operation settings.
+/**
+ * Initializes the Transceiver, setting the appropriate operation settings.
  *
- * 	@return Error code; 0 for success, otherwise see hal/errors.h.
+ * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
 int transceiverInit(void) {
 
@@ -71,12 +69,13 @@ int transceiverInit(void) {
 }
 
 
-/** Gets the number of frames in the Receiver's message buffer.
+/**
+ * Gets the number of frames in the Receiver's message buffer.
  *
- * 	@param	sizeOfMessage The number of frames available in the receiver's buffer. Set by function.
- * 	@return Error code; 0 for success, otherwise see hal/errors.h.
+ * @param	sizeOfMessage The number of frames available in the receiver's buffer. Set by function.
+ * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
-int transceiverFrameCount(uint16_t* numberOfFrames) {
+int transceiverRxFrameCount(uint16_t* numberOfFrames) {
 
 	// transceiver must be initialized first
 	if (!initialized)
@@ -91,11 +90,12 @@ int transceiverFrameCount(uint16_t* numberOfFrames) {
 }
 
 
-/** Gets next frame from the receiver buffer.
+/**
+ * Gets next frame from the receiver buffer.
  *
- *	@param	messageBuffer A byte array to copy the message into; must accept up to 200 bytes.
- * 	@param	sizeOfMessage The size of the frame received (0 on failure or empty buffer). Set by function.
- * 	@return Error code; 0 for success, otherwise see hal/errors.h.
+ * @param	messageBuffer A byte array to copy the message into; must accept up to 200 bytes.
+ * @param	sizeOfMessage The size of the frame received (0 on failure or empty buffer). Set by function.
+ * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
 int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
 
@@ -124,10 +124,10 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
 /**
  * Sends a data frame to the Transmitter's buffer.
  *
- * @param message Buffer that is to be transmitted; must be no longer than 235 bytes long.
- * @param messageSize The length of the outgoing message in bytes.
- * @param slotsRemaining The number of remaining slots in the transmitter's buffer. Set by function.
- * @return Error code; 0 for success, otherwise see hal/error.c
+ * @param	message Buffer that is to be transmitted; must be no longer than 235 bytes long.
+ * @param	messageSize The length of the outgoing message in bytes.
+ * @param	slotsRemaining The number of remaining slots in the transmitter's buffer. Set by function.
+ * @return	Error code; 0 for success, otherwise see hal/error.c
  */
 int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRemaining) {
 
@@ -144,14 +144,15 @@ int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRe
 }
 
 
-/** Emergency function to perform a full hardware reset of the transceiver transmitter and receiver.
+/**
+ * Emergency function to perform a full hardware reset of the transceiver transmitter and receiver.
  *
- *	Sends a command to the transceiver to perform a full hardware reset (power cycle). 
- *  This is to be used only when absolutely necessary as all frames in the receiver and transmitter
- *  buffer will be lost.
+ * Sends a command to the transceiver to perform a full hardware reset (power cycle).
+ * This is to be used only when absolutely necessary as all frames in the receiver and transmitter
+ * buffer will be lost.
  *
- * 	@post	Transceiver is power-cycled and may take a moment to come back online.
- * 	@return Error code; 0 for success, otherwise see hal/errors.h.
+ * @post	Transceiver is power-cycled and may take a moment to come back online.
+ * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
 int transceiverPowerCycle(void) {
 
@@ -166,107 +167,102 @@ int transceiverPowerCycle(void) {
 
 
 /**
- * Gets the receiver's current telemetry
+ * Gets the receiver's current telemetry.
  * 
- * @param telemetryBuffer a buffer to store 9 floats (36 bytes) to store the receiver's telemetry info
- * 		[00] Instantanious Doppler offset of the signal at the receiver port (Hz).
- * 		[01] Instantaneous signal strength of the signal at the receiver (dBm).
- * 		[02] Value of the power bus voltage (V).
- * 		[03] Value of the total supply current (mA).
- * 		[04] Value of the transmitter current (mA).
- * 		[05] Value of the receiver current (mA).
- * 		[06] Value of the power amplifier current (mA).
- * 		[07] Value of the power amplifier temperature (C).
- * 		[08] Value of the local oscillator temperature (C).
- * @return void
+ * @param	telemetry A rx_telemetry struct filled with receiver telemetry data. Set by function.
+ * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
-void transceiverRxTelemetry(float32_t* telemetryBuffer){}
+int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 
-/**
- * Gets the receiver's current up time
- * 
- * @return Receiver's up time in seconds
- */
-uint32_t transceiverRxUpTime(void){}
+	// ensure the pointer is valid
+	if (telemetry == 0)
+		return E_INPUT_POINTER_NULL;
 
-/**
- * Gets the transmitter's telemetry during its last transmission.
- * 
- * @param telemetryBuffer a buffer to store 9 floats (36 bytes) to store the transmitter's telemetry info
- * 		[00] Value of the instantaneous RF reflected power at the transmitter port (mW).
- * 			Only valid during transmission.
- * 		[01] Value of the instantaneous RF forward power at the transmitter port (mW).
- * 			Only valid during transmission.
- * 		[02] Value of the power bus voltage (V).
- * 		[03] Value of the total supply current (mA).
- * 		[04] Value of the transmitter current (mA).
- * 		[05] Value of the receiver current (mA).
- * 		[06] Value of the power amplifier current (mA).
- * 		[07] Value of the power amplifier temperature (C).
- * 		[08] Value of the local oscillator temperature (C).
- * @return void
- */
-void transcevierTxTelemetry(float32_t* telemetryBuffer){}
+	ISIStrxvuRxTelemetry rawRxTelemetry = { .fields = { 0 } };
+	ISIStrxvuTxTelemetry rawTxTelemetry = { .fields = { 0 } };
 
-/**
- * Gets the transmitter's telemetry during its last transmission.
- * 
- * @param telemetryBuffer a buffer to store 9 floats (36 bytes) to store the transmitter's telemetry info
- * 		[00] Value of the instantaneous RF reflected power at the transmitter port (mW).
- * 			Only valid during transmission.
- * 		[01] Value of the instantaneous RF forward power at the transmitter port (mW).
- * 			Only valid during transmission.
- * 		[02] Value of the power bus voltage (V).
- * 		[03] Value of the total supply current (mA).
- * 		[04] Value of the transmitter current (mA).
- * 		[05] Value of the receiver current (mA).
- * 		[06] Value of the power amplifier current (mA).
- * 		[07] Value of the power amplifier temperature (C).
- * 		[08] Value of the local oscillator temperature (C).
- * @return void
- */
-void transcevierTxTelemetryLastTransmit(float32_t* telemetryBuffer){}
+	int error = IsisTrxvu_rcGetTelemetryAll(TRANSCEIVER_INDEX, &rawRxTelemetry);
 
-/**
- * Gets the transmitter's current up time
- * 
- * @return Transmitter's up time in seconds
- */
-uint32_t transceiverTxUpTime(void) {
+	if (error)
+		return error;
 
+	error = IsisTrxvu_tcGetTelemetryAll(TRANSCEIVER_INDEX, &rawTxTelemetry);
+
+	if (error)
+		return error;
+
+	uint16_t uptime = 0;
+	error = transceiverRxUpTime(&uptime);
+	telemetry->rx.uptime = uptime;
+
+	if (error)
+		return error;
+
+	uint16_t rxFrames = 0;
+	error = transceiverRxFrameCount(&rxFrames);
+	telemetry->rx.frames = rxFrames;
+
+	if (error)
+		return error;
+
+	// convert the raw receiver values to true telemetry values
+	// TODO: should this be done here? Or by Ground Station?
+	telemetry->rx.rx_doppler = rawRxTelemetry.fields.rx_doppler * (rawRxTelemetry.fields.rx_doppler * 0.00005887);
+	telemetry->rx.rx_rssi = rawRxTelemetry.fields.rx_rssi * (rawRxTelemetry.fields.rx_rssi * 0.00005887);
+	telemetry->rx.bus_volt = rawRxTelemetry.fields.bus_volt * 0.00488;
+	telemetry->rx.vutotal_curr = rawRxTelemetry.fields.vutotal_curr * 0.16643964;
+	telemetry->rx.vutx_curr = rawRxTelemetry.fields.vutx_curr * 0.16643964;
+	telemetry->rx.vurx_curr = rawRxTelemetry.fields.vurx_curr * 0.16643964;
+	telemetry->rx.vupa_curr = rawRxTelemetry.fields.vupa_curr * 0.16643964;
+	telemetry->rx.pa_temp = rawRxTelemetry.fields.pa_temp * -0.07669 + 195.6037;
+	telemetry->rx.board_temp = rawRxTelemetry.fields.board_temp * -0.07669 + 195.6037;
+
+	// convert the raw transmitter values to true telemetry values
+	// TODO: should this be done here? Or by Ground Station?
+	telemetry->tx.tx_reflpwr = rawTxTelemetry.fields.tx_reflpwr * 13.352 - 22300;
+    telemetry->tx.tx_fwrdpwr = rawTxTelemetry.fields.tx_fwrdpwr * 0.03 - 152;
+    telemetry->tx.bus_volt = rawTxTelemetry.fields.bus_volt * 0.00488;
+	telemetry->tx.vutotal_curr = rawTxTelemetry.fields.vutotal_curr * 0.16643964;
+	telemetry->tx.vutx_curr = rawTxTelemetry.fields.vutx_curr * 0.16643964;
+	telemetry->tx.vurx_curr = rawTxTelemetry.fields.vurx_curr * 0.16643964;
+	telemetry->tx.vupa_curr = rawTxTelemetry.fields.vupa_curr * 0.16643964;
+	telemetry->tx.pa_temp = rawTxTelemetry.fields.pa_temp * -0.07669 + 195.6037;
+	telemetry->tx.board_temp = rawTxTelemetry.fields.board_temp * -0.07669 + 195.6037;
+
+	uptime = 0;
+	error = transceiverTxUpTime(&uptime);
+	telemetry->tx.uptime = uptime;
+
+	return error;
 }
 
 
 /***************************************************************************************************
-                                          PRIVATE FUNCTIONS                                          
+                                         PRIVATE FUNCTIONS
 ***************************************************************************************************/
-/**
- * Converts the telemetry representation from the receiver into 
- * the true data values.
- *
- * @param rawTelemetryBuffer buffer that contains the telemetry from the receiver.
- * @param trueTelementryBuffer a 36 byte buffer that will hold the true telemetry values.
- * @return void
- */
-static void convertRxTelemetry(uint16_t* rawTelemetryBuffer, float32_t* trueTelemetryBuffer);
 
 /**
- * Converts the telemetry representation from the transmitter into 
- * the true data values.
+ * Gets the receiver's current up time.
  *
- * @param rawTelemetryBuffer buffer that contains the telemetry from the transmitter.
- * @param trueTelementryBuffer a 36 byte buffer that will hold the true telemetry values.
- * @return void
+ * @param	uptime Receiver's up time in seconds.
+ * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
-static void convertTxTelemetry(uint16_t* rawTelemetryBuffer, float32_t* trueTelemetryBuffer);
+static int transceiverRxUpTime(uint16_t* uptime) {
+
+	int error = IsisTrxvu_rcGetUptime(TRANSCEIVER_INDEX, (unsigned int *) uptime);
+	return error;
+}
+
 
 /**
- * Converts the telemetry representation of the last 7 telemetry values
- *
- * @param rawTelemetryBuffer buffer that contains the last 7 telemetry from the 
- * 		receiver or transmitter.
- * @param trueTelementryBuffer a 24 byte buffer that will hold the true telemetry values.
- * @return void
+ * Gets the transmitter's current up time.
+ * 
+ * @param	uptime transmitter's up time in seconds.
+ * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
-static void convertSharedTelemetry(uint16_t* rawTelemetryBuffer, float32_t* trueTelemetryBuffer);
+static int transceiverTxUpTime(uint16_t* uptime) {
+
+	int error = IsisTrxvu_tcGetUptime(TRANSCEIVER_INDEX, (unsigned int *) uptime);
+	return error;
+}
 

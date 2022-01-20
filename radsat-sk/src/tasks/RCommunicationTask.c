@@ -31,7 +31,7 @@ void taskCommunication(void* parameters)
 
 		// continue receiving frames while they're available
 		uint16_t framesReady = 0;
-		error = transceiverFrameCount(&framesReady);
+		error = transceiverRxFrameCount(&framesReady);
 		while(error == 0 && framesReady > 0) {
 			// let system know we've entered a pass
 			startPassMode();
@@ -41,14 +41,14 @@ void taskCommunication(void* parameters)
 
 			// retrieve a message
 			uint16_t sizeOfMessage = 0;
-			error = transceiverGetFrame(message, sizeOfMessage);
+			error = transceiverGetFrame(message, &sizeOfMessage);
 			if (error)
 				break;
 
 			// TODO: stuff...
 
 			// update frame size for loop condition
-			error = transceiverFrameCount(&framesReady);
+			error = transceiverRxFrameCount(&framesReady);
 		}
 
 		/*
