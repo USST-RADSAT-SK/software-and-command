@@ -36,9 +36,9 @@ static int initialized = 0;
  */
 int i2cInit(void) {
 
-	// only allow initialization once
+	// only allow initialization once (exit gracefully)
 	if (initialized)
-		return E_IS_INITIALIZED;
+		return 0;
 
 	int error = I2C_start(I2C_BUS_SPEED_HZ, I2C_TRANSFER_TIMEOUT);
 
