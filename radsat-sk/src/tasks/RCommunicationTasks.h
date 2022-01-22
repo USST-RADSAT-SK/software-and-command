@@ -16,12 +16,12 @@
 
 typedef struct _telecommand_data_t {
 	uint8_t transmit;		// 0 = idle (awaiting message); 1 = message processed (send response)
-	uint8_t response;		// 0 = NACK; 1 = ACK
+	uint8_t response;		// 0 = ACK; 1 = NACK
 } telecommand_data_t;
 
 typedef struct _fileTransfer_data_t {
 	uint8_t transmit;		// 0 = idle (awaiting response); 1 = response received (send message)
-	uint8_t response;		// 0 = NACK (re-send last message); 1 = ACK (send new message)
+	uint8_t response;		// 0 = ACK (send new message); 1 = NACK (re-send last message)
 } fileTransfer_data_t;
 
 typedef struct _communications_t {

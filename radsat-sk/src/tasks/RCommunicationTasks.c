@@ -16,7 +16,7 @@
 static int passtime = 0;
 static xTimerHandle passTimer;
 
-static communications_t comms_data;
+static communications_t commsData = { .fields = { 0 } };
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
@@ -32,13 +32,41 @@ static void vCallbackFunction( xTimerHandle timer );
 void receiverTask(void* parameters)
 {
 	(void)parameters;
-	resetPassMode(comms_data); // Set to non-transmitting mode when initialized
 
-	int error = 0;
+	uint16_t rxFrameCount = 0;
+	uint16_t* rxMessage[TRANCEIVER_RX_MAX_FRAME_SIZE];
 
 	while(1) {
 
+		int err = transceiverRxFrameCount(&rxFrameCount);
 
+		if (rxFrameCount) {
+			commsData.mode = 1;	// If there are frames in the rx buffer enter telecommand mode
+			startPassMode();		// Start pass timer
+		}
+
+		while (commsData.mode) {
+			if (commsData.mode == 1 && !commsData.telecommand.transmit) {			// Telecommand
+				transceiverGetFrame(rxMessage, TRANCEIVER_RX_MAX_FRAME_SIZE);	// Might need to change later to get the size of the incoming message first
+
+				// TODO: Pass Message to downlink manager and receive and ACK/NACK response and whether end of transmission
+				// 			(0 = ACK; 1= NACK)
+				int response = 0;
+				int endOfTrans = 1;
+
+				commsData.telecommand.response = response;		// Load response
+
+				if (endOfTrans) {								// Change mode if need be
+					commsData.mode = 2;
+				}
+
+				commsData.telecommand.transmit = 1;			// Approve transmit
+			}
+			else if (commsData.mode == 2) {	// File Transfer
+
+			}
+			vTaskDelay(1);
+		}
 		vTaskDelay(1);
 	}
 }
@@ -47,10 +75,17 @@ void transmitterTask(void* parameters)
 {
 	(void)parameters;
 
-	int error = 0;
-
 	while(1) {
 
+		while (commsData.mode) {
+			if (commsData.mode == 1) {			// Telecommand
+
+			}
+			else if (commsData.mode == 2) {	// File Transfer
+
+			}
+			vTaskDelay(1);
+		}
 		vTaskDelay(1);
 	}
 }
@@ -81,7 +116,7 @@ static void resetPassData(communications_t comms) {
  * 				to xTimerCreate()
  */
 static void vCallbackFunction( xTimerHandle timer ) {
-	resetPassData(comms_data);
+	resetPassData(commsData);
 }
 
 /**
