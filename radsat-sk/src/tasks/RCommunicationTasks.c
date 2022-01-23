@@ -16,7 +16,7 @@
 static int passtime = 0;
 static xTimerHandle passTimer;
 
-static communications_t commsData = { .fields = { 0 } };
+static communications_t commsData;
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
@@ -35,6 +35,7 @@ void receiverTask(void* parameters)
 
 	uint16_t rxFrameCount = 0;
 	uint16_t* rxMessage[TRANCEIVER_RX_MAX_FRAME_SIZE];
+	resetPassData(commsData);
 
 	while(1) {
 
@@ -56,14 +57,22 @@ void receiverTask(void* parameters)
 
 				commsData.telecommand.response = response;		// Load response
 
-				if (endOfTrans) {								// Change mode if need be
+				if (endOfTrans) {								// Change mode if received an end-of-transmission signal
 					commsData.mode = 2;
 				}
 
 				commsData.telecommand.transmit = 1;			// Approve transmit
 			}
-			else if (commsData.mode == 2) {	// File Transfer
+			else if (commsData.mode == 2 && !commsData.fileTransfer.transmit) {	// File Transfer
+				transceiverGetFrame(rxMessage, TRANCEIVER_RX_MAX_FRAME_SIZE);	// Might need to change later to get the size of the incoming message first
 
+				// TODO: Pass Message to downlink manager and receive whether or not the ground station sent an ACK or NACK response
+				// 			(0 = ACK; 1= NACK)
+				int response = 0;
+
+				commsData.telecommand.response = response;		// Load response
+
+				commsData.telecommand.transmit = 1;			// Approve transmit
 			}
 			vTaskDelay(1);
 		}
@@ -74,15 +83,45 @@ void receiverTask(void* parameters)
 void transmitterTask(void* parameters)
 {
 	(void)parameters;
+	uint8_t txSlotsRemaining = 0;
+	uint8_t* message[TRANCEIVER_TX_MAX_FRAME_SIZE];
+	uint8_t messageSize = TRANCEIVER_TX_MAX_FRAME_SIZE;
 
 	while(1) {
 
 		while (commsData.mode) {
-			if (commsData.mode == 1) {			// Telecommand
+			if (commsData.mode == 1 && commsData.telecommand.transmit) {	// Telecommand
+				uint8_t* response = {commsData.telecommand.response};	// Grab the ACK/NACK from the downlink manager
+				uint8_t txSlotsRemaining = 0;
+
+				transceiverSendFrame(response, 1, &txSlotsRemaining); // Send the ACK/NACK
+
+				commsData.telecommand.transmit = 0;		// Mark the message as sent
 
 			}
-			else if (commsData.mode == 2) {	// File Transfer
+			else if (commsData.mode == 2 && commsData.telecommand.transmit) {
+				// When transitioning from telecommand to file transfer, need to
+				// send end-of-transmission ACK/NACK before sending files
+				uint8_t* response = {commsData.telecommand.response};	// Grab the ACK/NACK from the downlink manager
 
+				transceiverSendFrame(response, 1, &txSlotsRemaining); // Send the ACK/NACK
+
+				commsData.telecommand.transmit = 0;		// Mark the message as sent
+			}
+			else if (commsData.mode == 2 && commsData.fileTransfer.transmit) {	// File Transfer
+				if (txSlotsRemaining > 0) {	// Make sure we don't overflow the tx buffer
+					if (commsData.fileTransfer.response){	// Received a NACK from ground station, so re-send msg
+						transceiverSendFrame(message, messageSize, &txSlotsRemaining); // Send the ACK/NACK
+
+						commsData.telecommand.transmit = 0;		// Mark the message as sent
+					}
+					else {
+						// TODO: Get new message and size from downlink manager and send it
+						transceiverSendFrame(message, messageSize, &txSlotsRemaining); // Send the ACK/NACK
+
+						commsData.telecommand.transmit = 0;		// Mark the message as sent
+					}
+				}
 			}
 			vTaskDelay(1);
 		}
