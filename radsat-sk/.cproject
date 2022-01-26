@@ -84,6 +84,7 @@
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
 									<listOptionValue builtIn="false" value="../operation/crypt/tiny-aes"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>
@@ -98,7 +99,7 @@
 									<listOptionValue builtIn="false" value="'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)'"/>
 									<listOptionValue builtIn="false" value="'BASE_REVISION_HASH=$(REVHASH)'"/>
 								</option>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.534234401" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std" value="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.gnu99" valueType="enumerated"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.534234401" name="Language standard" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.gnu99" valueType="enumerated"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.821686405" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.413877822" name="Cross ARM C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler"/>
@@ -229,6 +230,7 @@
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
 									<listOptionValue builtIn="false" value="../operation/crypt/tiny-aes"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>

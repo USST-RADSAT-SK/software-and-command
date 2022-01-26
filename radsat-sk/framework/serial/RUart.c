@@ -48,15 +48,15 @@ static int initialized[UART_BUS_COUNT] = {0};
  */
 int uartInit(UARTbus bus) {
 
-	// only allow initialization once
-	if (initialized[bus] != 0)
-		return E_IS_INITIALIZED;
+	// only allow initialization once (exit gracefully)
+	if (initialized[bus])
+		return 0;
 
 	// select appropriate pre-made configuration
 	UARTconfig config = {0};
-	if (bus == CAMERA_UART_BUS)
+	if (bus == UART_CAMERA_BUS)
 		config = cameraConfig;
-	else if (bus == DEBUG_UART_BUS)
+	else if (bus == UART_DEBUG_BUS)
 		config = debugConfig;
 	else
 		return -1;
