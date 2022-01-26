@@ -159,7 +159,7 @@ int dosimeterCollectData(void)
  * Return the temperature reading from one of the Dosimeter Boards.
  *
  * @param board Which of the two boards to read from.
- * @return The tempurature; a float cast as a uint16_t
+ * @return The temperature; a float cast as a uint16_t
  */
 int16_t dosimeterTemperature(dosimeterBoard_t board) {
 
