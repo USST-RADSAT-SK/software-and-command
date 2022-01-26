@@ -27,12 +27,17 @@ void DosimeterCollectionTask(void* parameters) {
 	// ignore the input parameter
 	(void)parameters;
 
+	int error = 0;
+
 	while (1) {
+
+		// TODO: check flags (once they exist) to prevent running this task during communication mode
+
 		// collect all readings from dosimeter
-		int error = dosimeterCollectData();
+		error = dosimeterCollectData();
 
 		// if an error was detected, try again once (if it fails again, no data will be taken this time)
-		if (error != 0)
+		if (error)
 			dosimeterCollectData();
 
 		// delay
