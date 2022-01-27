@@ -14,26 +14,47 @@ syntax = "proto3";
 // top level File Transfer message object
 message TelecommandMessage {
 	oneof message {
-		CeaseTransmission ceaseTransmission	= 1;
-		UpdatePassTime updatePassTime		= 2;
+		BeginPass beginPass						= 1;
+		BeginFileTransfer beginFileTransfer		= 2;
+		CeaseTransmission ceaseTransmission		= 3;
+		ResumeTransmission ResumeTransmission	= 4;
+		UpdatePassTime updatePassTime			= 5;
+		Reset reset								= 6;
 	}
 }
 
-
-message TelecommandResponse {
-	int32 response = 1;		// the value of the response (ACK, NAK, CAN, etc.)
+// Inform OBC that it is within the Pass range; Subsequent Telecommands will follow 
+message BeginPass {
+	int32 passLength = 1;
 }
 
-
-message TelecommandBegin {
+// Inform OBC that there are no more telecommands; Ground Station is ready to receive Files (telemetry, images, etc.)
+message BeginFileTransfer {
 }
 
-
-// message telling the Satellite to cease downlink transmissions immediately
+// Inform the OBC that it is to cease all downlink transmissions immediately (no ACK will follow this message)
 message CeaseTransmission {
+	int32 duration = 1;
 }
 
+// Inform the OBC that it can end its previous halting of all downlink transmissions
+message ResumeTransmission {
+}
 
+// Update the OBC's local time on its Real-Time Clock
 message UpdatePassTime {
 	int32 unixTime = 1;
+}
+
+// Instruct the OBC to reset a certain component via Software Reset (hard=0) or Power-Cycle (hard=1)
+message Reset {
+	enum device_t {
+		obc				= 0;
+		transmitter		= 1;
+		receiver		= 2;
+		antennaSideA	= 3;
+		antennaSideB	= 4;
+	}
+	device_t device	= 1;
+	int32 hard 		= 2;
 }
