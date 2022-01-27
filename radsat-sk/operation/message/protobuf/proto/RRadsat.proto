@@ -1,8 +1,8 @@
 /* file: fileTransfer.proto
  * date: January 25 2021
  *
- * This proto file includes the raw definitions (using proto3 syntax) of messages
- * that are to be compiled into C structs using the protoc library.
+ * This proto file includes the raw definitions (using proto3 syntax) of
+ * messages that are to be compiled into C structs using the protoc library.
  *
  * This proto defines top-level messages, that include (or are used by) the
  * topic-specific messages. For example, radsatMessage is the single top-level

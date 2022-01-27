@@ -1,12 +1,12 @@
 /* file: fileTransfer.proto
  * date: January 18 2021
  *
- * This proto file includes the raw definitions (using proto3 syntax) of messages
- * that are to be compiled into C structs using the protoc library.
+ * This proto file includes the raw definitions (using proto3 syntax) of
+ * messages that are to be compiled into C structs using the protoc library.
  *
- * The messages defined in this file will be primarily used for file transfers,
- * which mainly focuses on the transmission of any large data objects (images,
- * logs, etc.) from the RADSAT-SK Satellite to the Ground Station on Earth.
+ * The messages defined in this file will be used for file transfers, which
+ * focuses on the downlinked transmission of all data objects (images, telemetry
+ * data, etc.) from the RADSAT-SK Satellite to the Ground Station on Earth.
  */
 
 syntax = "proto3";
@@ -14,24 +14,107 @@ syntax = "proto3";
 // top level File Transfer message object
 message FileTransferMessage {
 	oneof message {
-		FileTransferResponse fileTransferResponse	= 1;
-		FileTransferPacket fileTransferPacket		= 2;
+		ObcTelemetry obcTelemetry					= 1;
+		TransceiverTelemetry transceiverTelemetry	= 2;
+		CameraTelemetry cameraTelemetry				= 3;
+		EpsTelemetry epsTelemetry					= 4;
+		BatteryTelemetry batteryTelemetry			= 5;
+		AntennaTelemetry antennaTelemetry			= 6;
+		DosimeterData dosimeterData					= 7;
+		ImagePacket imagePacket						= 8;
 	}
 }
 
-
-// basic file transfer response message
-message FileTransferResponse {
-	int32 packetType = 1;	// the ID of the type of packet that is being responded to (image, log, etc.)
-	int32 packetNumber = 2;	// the specific packet number that is being responded to
-	int32 response = 3;		// the value of the response (ACK, NAK, CAN, etc.)
+// Information about the state of the OBC
+message ObcTelemetry {
+	int32 mode				= 1;	///< Mode of operation at time of recording
+	int32 uptime			= 2;	///< Uptime (in ticks) since last reset (of any kind)
+	int32 rtcTime			= 3;	///< RTC Time (in unix time; seconds since Unix Epoch)
+	int32 rtcTemperature	= 4;	///< 10bit Temperature recorded by OBC's RTC
 }
 
-
-// basic file transfer packet
-message FileTransferPacket {
-	int32 packetType = 1;	// the ID of the type of packet that is being sent (image, log, etc.)
-	int32 packetNumber = 2;	// the specific packet number that is being sent
-	bytes data = 3;			// the raw date bytes being transmitted
+// Telemetry for the Transmitter (not part of the FileTransferMessage - used within TransceiverTelemetry)
+message transmitterTelemetry {
+	float tx_reflpwr	= 1; 	///< Tx Telemetry reflected power.
+	float tx_fwrdpwr	= 2; 	///< Tx Telemetry forward power.
+	float bus_volt		= 3; 	///< Tx Telemetry bus voltage.
+	float vutotal_curr	= 4; 	///< Tx Telemetry total current.
+	float vutx_curr		= 5; 	///< Tx Telemetry transmitter current.
+	float vurx_curr		= 6; 	///< Tx Telemetry receiver current.
+	float vupa_curr		= 7; 	///< Tx Telemetry power amplifier current.
+	float pa_temp		= 8; 	///< Tx Telemetry power amplifier temperature.
+	float board_temp	= 9; 	///< Tx Telemetry board temperature.
+	int32 uptime		= 10;	///< Tx Uptime in Seconds.
 }
 
+// Telemetry for the Receiver (not part of the FileTransferMessage - used within TransceiverTelemetry)
+message receiverTelemetry {
+	float rx_doppler	= 1; 	///< Rx Telemetry receiver doppler.
+	float rx_rssi		= 2; 	///< Rx Telemetry rssi measurement.
+	float bus_volt		= 3; 	///< Rx Telemetry bus voltage.
+	float vutotal_curr	= 4; 	///< Tx Telemetry total current.
+	float vutx_curr		= 5; 	///< Tx Telemetry transmitter current.
+	float vurx_curr		= 6; 	///< Tx Telemetry receiver current.
+	float vupa_curr		= 7; 	///< Tx Telemetry power amplifier current.
+	float pa_temp		= 8; 	///< Rx Telemetry power amplifier temperature
+	float board_temp	= 9; 	///< Rx Telemetry board temperature.
+	int32 uptime		= 10;	///< Rx Uptime in Seconds.
+	int32 frames		= 11;	///< Rx Frames currently in Receive Buffer.
+}
+
+// Information about the state of the Transceiver
+message TransceiverTelemetry {
+	transmitterTelemetry transmitter	= 1;	///< Transmitter Telemetry
+	receiverTelemetry receiver 			= 2;	///< Receiver Telemetry
+}
+
+// Information about the state of the Camera
+message CameraTelemetry {
+	int32 upTime	= 1;	///< Local uptime (since last startup) in seconds
+}
+
+// Information about the state of the Electrical Power Supply
+message EpsTelemetry {
+
+}
+
+// Information about the state of the Battery
+message BatteryTelemetry {
+
+}
+
+// Information about the state of the Antenna
+message AntennaTelemetry {
+
+}
+
+// Payload Data for a single Dosimeter board
+message DosimeterBoardData {
+	int32 voltageChannelZero	= 1;	///< COTS 2048mV REF IC, Shielding: none
+	int32 voltageChannelOne		= 2;	///< COTS 2048mV REF IC, Shielding: 50 mil
+	int32 voltageChannelTwo		= 3;	///< COTS 2048mV REF IC, Shielding: 100 mil
+	int32 voltageChannelThree	= 4;	///< COTS 2048mV REF IC, Shielding: 200 mil
+	int32 voltageChannelFour	= 5;	///< COTS 2048mV REF IC, Shielding: 20 mil
+	int32 voltageChannelFive	= 6;	///< RADFET Experimental Dosimeter, Shielding: none
+	int32 voltageChannelSix		= 7;	///< COTS 2048mV REF IC, Shielding: 300 mil
+	int32 voltageChannelSeven	= 8;	///< Temperature Sensor
+}
+
+// Dosimeter Payload Data (both boards)
+message DosimeterData {
+	DosimeterBoardData boardOne	= 1;	///< Payload Data from the first Dosimeter Board ("bottom" of the Satellite, beneath OBC)
+	DosimeterBoardData boardTwo	= 2;	///< Payload Data from the second Dosimeter Board ("top" of the Satellite, beneath Antenna)
+}
+
+// Image Packet
+message ImagePacket {
+	int32 id			= 1;	///< ID of the image
+	enum image_type_t {
+		fullResolution		= 0;	///< 1024 x 1024 = 1MB
+		halfResolution		= 1;	///< 512  x 512  = 256kB
+		quarterResolution	= 2;	///< 256  x 256  = 64kB
+		thumbnail			= 3;	///< 64   x 64   = 4kB
+	}
+	image_type_t type	= 2;	///< Size of the image
+	bytes data			= 3;	///< The raw image data
+}

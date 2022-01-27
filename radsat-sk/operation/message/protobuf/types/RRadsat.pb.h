@@ -48,7 +48,7 @@ extern const pb_msgdesc_t RadsatMessage_msg;
 #define RadsatMessage_fields &RadsatMessage_msg
 
 /* Maximum encoded size of messages (where known) */
-#define RadsatMessage_size                       231
+#define RadsatMessage_size                       222
 
 #ifdef __cplusplus
 } /* extern "C" */

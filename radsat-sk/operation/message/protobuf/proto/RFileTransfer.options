@@ -3,5 +3,5 @@
 // force all unions to be anonymous (to shorten the length of name chains)
 *.*								anonymous_oneof:1
 
-// max size of outgoing data packet is 235 bytes (200 + allowing room for overhead)
-FileTransferPacket.data         max_size:200
+// max size of outgoing data packet is 235 bytes (allowing room for overhead)
+ImagePacket.data         max_size:200

@@ -1,12 +1,11 @@
 /* file: telecommands.proto
  * date: January 18 2021
  *
- * This proto file includes the raw definitions (using proto3 syntax) of messages
- * that are to be compiled into C structs using the protoc library.
+ * This proto file includes the raw definitions (using proto3 syntax) of
+ * messages that are to be compiled into C structs using the protoc library.
  *
- * The messages defined in this file will be primarily used for sending and
- * responding to telecommands, which mainly consist of commands that the Ground
- * Station on Earth will send to the RADSAT-SK Satellite.
+ * The messages defined in this file will be used for sending telecommands to
+ * the RADSAT-SK Satellite from the Ground Station on Earth.
  */
 
 syntax = "proto3";
