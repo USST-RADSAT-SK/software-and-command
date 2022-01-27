@@ -8,6 +8,9 @@
 
 #include <RCamera.h>
 #include <RUart.h>
+#include <hal/errors.h>
+#include <string.h>
+
 
 /***************************************************************************************************
                                             DEFINITIONS
@@ -39,13 +42,23 @@
 
 #define telemetryid3            ((uint8_t) 0x83)
 
+/** Invalid input parameters to the Camera module. */
+#define ERROR_INVALID_PARAM		(-36)
+
+static const uint8_t ackResponse[TELEMETRY_ACK_SIZE] = { 0x1F, 0x7F, 0x00, 0x1F, 0xFF };
 
 
+/***************************************************************************************************
+                                       PRIVATE FUNCTION STUBS
+***************************************************************************************************/
+
+static int confirmPreviousTelecommand(void);
 
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
+
 int sendCameraCaptureImageTc(tc_t slot) {
 	// build  camera capture telecommand
 	uint8_t commandBuffer[CAPTURE_IMAGE_TC_SIZE];
@@ -70,7 +83,7 @@ int sendCameraCaptureImageTc(tc_t slot) {
 	commandBuffer[6] = 0x1F;
 	commandBuffer[7] = 0xFF;
 
-	int error = uartTransmit(CAMERA_UART_BUS, commandBuffer, CAPTURE_IMAGE_TC_SIZE);
+	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, CAPTURE_IMAGE_TC_SIZE);
 
 	tc_t = commandBuffer;
 	return tc_t;
@@ -78,7 +91,7 @@ int sendCameraCaptureImageTc(tc_t slot) {
 
 
 
-int requestTelemetry(telemetry_t slot) {
+static int confirmPreviousTelecommand(void) {
 	//Requesting telemetry
 
 	uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
@@ -95,21 +108,18 @@ int requestTelemetry(telemetry_t slot) {
 	telemetryBuffer[4] = endidentifier2;
 
 
-	int uartTransmit(CAMERA_UART_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
-	uint8_t acknowledgeBuffer[TELEMETRY_ACK_SIZE];
+	if (error)
+		return error;
 
-	int uartReceive(CAMERA_UART_BUS, acknowledgeBuffer, TELEMETRY_ACK_SIZE);
+	uint8_t acknowledgeBuffer[TELEMETRY_ACK_SIZE] = { 0 };
 
+	error = uartReceive(UART_CAMERA_BUS, acknowledgeBuffer, TELEMETRY_ACK_SIZE);
 
-	if  (acknowledgeBuffer == 0x1F7F001FFF)
-		printf("no error");
+	if (memcmp(acknowledgeBuffer, ackResponse, sizeof(acknowledgeBuffer)))
+		return ERROR_INVALID_PARAM;
 
-	 else if (acknowledgeBuffer==0x1F7F011FFF)
-		printf("invalid TC id");
-
-	 else if  (acknowledgeBuffer ==0x1F7F02FFF)
-		printf("invalid parameters");
 	return 0;
 
 }

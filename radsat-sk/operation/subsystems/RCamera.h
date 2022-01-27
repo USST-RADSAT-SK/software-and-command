@@ -26,6 +26,5 @@ typedef enum _camera_image_slots {
 
 int cameraCaptureImage(camera_slot_t slot);
 int sendCameraCaptureImageTc(tc_t slot);
-int requestTelemetry(telemetry_t slot);
 
 #endif /* RCAMERA_H_ */
