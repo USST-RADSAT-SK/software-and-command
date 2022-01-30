@@ -19,18 +19,21 @@
                                             DEFINITIONS
 ***************************************************************************************************/
 
+/** Co-ordinates tasks during the telecommand phase */
 typedef struct _telecommand_state_t {
 	uint8_t transmitReady;		// 0 = idle (awaiting message); 1 = message processed (send response)
 	uint8_t responseToSend;		// 0 = ACK; 1 = NACK
 } telecommand_state_t;
 
 
+/** Co-ordinates tasks during the file transfer phase */
 typedef struct _fileTransfer_state_t {
 	uint8_t transmitReady;		// 0 = idle (awaiting response); 1 = response received (send message)
 	uint8_t responseReceived;		// 0 = ACK (send new message); 1 = NACK (re-send last message)
 } fileTransfer_state_t;
 
 
+/** Wrapper structure for communications co-ordination */
 typedef struct _communications_state_t {
 	uint8_t mode;			// 0 = idle (not in passtime); 1 = telecommand mode; 2 = file transfer mode
 	telecommand_state_t telecommand;
@@ -38,12 +41,14 @@ typedef struct _communications_state_t {
 } communications_state_t;
 
 
+/** Abstraction of the ACK/NACK return types */
 enum responseTypes{
 	responseACK = 0,
 	responseNACK = 1
 };
 
 
+/** Abstraction of the communication modes */
 enum commsModeTypes{
 	commsIdleMode = 0,
 	commsTelecommandMode = 1,
@@ -51,7 +56,9 @@ enum commsModeTypes{
 };
 
 
+/** Instantiate the timer for pass time */
 static xTimerHandle passTimer;
+/** Instantiate the communication co-orditation structure */
 static communications_state_t commsState = { 0 };
 
 /***************************************************************************************************
