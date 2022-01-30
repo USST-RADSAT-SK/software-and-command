@@ -1,7 +1,7 @@
 /**
  * @file RCommunicationTask.c
- * @date December 23, 2021
- * @author Tyrel Kostyk
+ * @date January 30, 2021
+ * @author Tyrel Kostyk (tck290) and Matthew Buglass (mab839)
  */
 
 #include <RTransceiver.h>
@@ -84,7 +84,7 @@ void receiverTask(void* parameters) {
 	while(1) {
 		// Reset and get the number of frames in the receive buffer
 		rxFrameCount = 0;
-		int receiverErr = transceiverRxFrameCount(&rxFrameCount);
+		int rxFrameCountErr = transceiverRxFrameCount(&rxFrameCount);
 
 		if (rxFrameCount > 0) {
 			// If there are frames in the rx buffer, begin transmission and enter
@@ -102,7 +102,7 @@ void receiverTask(void* parameters) {
 				// Reset the message size tracker and buffer to read from the receiver buffer
 				rxMessageSize = 0;
 				memset(&rxMessage, 0, sizeof(rxMessage));
-				transceiverGetFrame(&rxMessage, &rxMessageSize);
+				int rxGetFrameErr = transceiverGetFrame(&rxMessage, &rxMessageSize);
 
 				// TODO: Pass Message to command manager and receive and ACK/NACK response
 				//  and whether end of transmission
@@ -127,7 +127,7 @@ void receiverTask(void* parameters) {
 				// Reset the message size and buffer to read from the receiver buffer
 				rxMessageSize = 0;
 				memset(&rxMessage, 0, sizeof(rxMessage));
-				transceiverGetFrame(&rxMessage, &rxMessageSize);
+				int rxGetFrameErr = transceiverGetFrame(&rxMessage, &rxMessageSize);
 
 
 				// TODO: Pass Message to command manager and get back whether it
@@ -170,7 +170,7 @@ void transmitterTask(void* parameters) {
 
 				// Send the ACK/NACK response to the transmitter and
 				// Mark the message as sent
-				int tranmitterErr = transceiverSendFrame(&response, 1,
+				int txSendFrameErr = transceiverSendFrame(&response, 1,
 						&txSlotsRemaining);
 				commsState.telecommand.transmitReady = 0;
 
@@ -182,7 +182,7 @@ void transmitterTask(void* parameters) {
 					// Received a NACK from ground station, so re-send the last message
 				if (commsState.fileTransfer.responseReceived == responseNACK){
 					// Re-send the last message and mark it as sent for the receiver task
-					int tranmitterErr = transceiverSendFrame(&message, messageSize,
+					int txSendFrameErr = transceiverSendFrame(&message, messageSize,
 							&txSlotsRemaining);
 					commsState.telecommand.transmitReady = 0;
 				}
@@ -191,7 +191,7 @@ void transmitterTask(void* parameters) {
 					// TODO: Get new message and size from downlink manager and send it
 
 					// Send the message and mark it as sent for the receiver task
-					int tranmitterErr = transceiverSendFrame(&message, messageSize,
+					int txSendFrameErr = transceiverSendFrame(&message, messageSize,
 							&txSlotsRemaining);
 					commsState.telecommand.transmitReady = 0;
 				}
