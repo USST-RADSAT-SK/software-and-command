@@ -104,7 +104,7 @@ void receiverTask(void* parameters) {
 				// Load whether to send an ACK or NACK
 				commsState.telecommand.responseToSend = response;
 
-				// Change mode if received an end-of-transmission signal
+				// Change to file transfer mode if we received an end-of-transmission signal
 				if (endOfTrans == 1) {
 					commsState.mode = commsFileTransferMode;
 				}
@@ -155,10 +155,8 @@ void transmitterTask(void* parameters) {
 			//		to file transfer mode. Originally they were seperate
 			//		but had duplicated code.
 			if (commsState.telecommand.transmitReady) {
-				// Get the response from the communications state structure and reset
-				// the counter for the transmition slots remaining
+				// Get the response from the communications state structure
 				uint8_t response = commsState.telecommand.responseToSend;
-				uint8_t txSlotsRemaining = 0;
 
 				// Send the ACK/NACK response to the transmitter and
 				// Mark the message as sent
@@ -167,22 +165,24 @@ void transmitterTask(void* parameters) {
 
 				// TODO: Error check adding the message to the transmitter buffer
 			}
-			// If we are in file transfer mode and we are approved for a transmit
+			// If we are in file transfer mode and we are approved to transmit a message
 			else if (commsState.mode == commsFileTransferMode && commsState.fileTransfer.transmitReady) {	// File Transfer
-				if (txSlotsRemaining > 0) {	// Make sure we don't overflow the tx buffer
-					if (commsState.fileTransfer.responseReceived == responseNACK){	// Received a NACK from ground station, so re-send msg
-						transceiverSendFrame(&message, messageSize, &txSlotsRemaining); // Send the ACK/NACK
+					// Received a NACK from ground station, so re-send the last message
+				if (commsState.fileTransfer.responseReceived == responseNACK){
+					// Re-send the last message and mark it as sent for the receiver task
+					int tranmitterErr = transceiverSendFrame(&message, messageSize, &txSlotsRemaining);
+					commsState.telecommand.transmitReady = 0;
+				}
+				// If we received and ACK, load a new message from the downlink manager and send it
+				else {
+					// TODO: Get new message and size from downlink manager and send it
 
-						commsState.telecommand.transmitReady = 0;		// Mark the message as sent
-					}
-					else {
-						// TODO: Get new message and size from downlink manager and send it
-						transceiverSendFrame(&message, messageSize, &txSlotsRemaining); // Send the ACK/NACK
-
-						commsState.telecommand.transmitReady = 0;		// Mark the message as sent
-					}
+					// Send the message and mark it as sent for the receiver task
+					int tranmitterErr = transceiverSendFrame(&message, messageSize, &txSlotsRemaining);
+					commsState.telecommand.transmitReady = 0;
 				}
 			}
+			// Pause to allow Receiver Task to run
 			vTaskDelay(1);
 		}
 		vTaskDelay(1);
