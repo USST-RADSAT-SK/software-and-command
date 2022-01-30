@@ -88,8 +88,10 @@ void receiverTask(void* parameters) {
 
 		// Perform transmition operations while in telecommand or file transfer mode
 		while (commsState.mode > 0) {
-			// If we are in telecommand mode and we have sent our ACK/NACK from the previous message
-			if (commsState.mode == commsTelecommandMode && !commsState.telecommand.transmitReady) {
+			// If we are in telecommand mode and we have sent our ACK/NACK from the
+			// previous message
+			if (commsState.mode == commsTelecommandMode &&
+					!commsState.telecommand.transmitReady) {
 				// Reset the message size tracker and buffer to read from the receiver buffer
 				rxMessageSize = 0;
 				memset(&rxMessage, 0, sizeof(rxMessage));
@@ -113,7 +115,8 @@ void receiverTask(void* parameters) {
 				commsState.telecommand.transmitReady = 1;
 			}
 			// If we are in file transfer mode and we have sent our ACK/NACK from the previous message
-			else if (commsState.mode == commsFileTransferMode && !commsState.fileTransfer.transmitReady) {
+			else if (commsState.mode == commsFileTransferMode &&
+					!commsState.fileTransfer.transmitReady) {
 				// Reset the message size and buffer to read from the receiver buffer
 				rxMessageSize = 0;
 				memset(&rxMessage, 0, sizeof(rxMessage));
@@ -160,17 +163,20 @@ void transmitterTask(void* parameters) {
 
 				// Send the ACK/NACK response to the transmitter and
 				// Mark the message as sent
-				int tranmitterErr = transceiverSendFrame(&response, 1, &txSlotsRemaining);
+				int tranmitterErr = transceiverSendFrame(&response, 1,
+						&txSlotsRemaining);
 				commsState.telecommand.transmitReady = 0;
 
 				// TODO: Error check adding the message to the transmitter buffer
 			}
 			// If we are in file transfer mode and we are approved to transmit a message
-			else if (commsState.mode == commsFileTransferMode && commsState.fileTransfer.transmitReady) {	// File Transfer
+			else if (commsState.mode == commsFileTransferMode &&
+					commsState.fileTransfer.transmitReady) {
 					// Received a NACK from ground station, so re-send the last message
 				if (commsState.fileTransfer.responseReceived == responseNACK){
 					// Re-send the last message and mark it as sent for the receiver task
-					int tranmitterErr = transceiverSendFrame(&message, messageSize, &txSlotsRemaining);
+					int tranmitterErr = transceiverSendFrame(&message, messageSize,
+							&txSlotsRemaining);
 					commsState.telecommand.transmitReady = 0;
 				}
 				// If we received and ACK, load a new message from the downlink manager and send it
@@ -178,7 +184,8 @@ void transmitterTask(void* parameters) {
 					// TODO: Get new message and size from downlink manager and send it
 
 					// Send the message and mark it as sent for the receiver task
-					int tranmitterErr = transceiverSendFrame(&message, messageSize, &txSlotsRemaining);
+					int tranmitterErr = transceiverSendFrame(&message, messageSize,
+							&txSlotsRemaining);
 					commsState.telecommand.transmitReady = 0;
 				}
 			}
@@ -197,7 +204,8 @@ void transmitterTask(void* parameters) {
 /**
  * Reset the structure for coordinating down and uplinking
  *
- * @param comms A communications_t struct that holds the data for coordination communications.
+ * @param comms A communications_t struct that holds the data for
+ * 				coordination communications.
  */
 static void resetPassData(communications_state_t* comms) {
 	comms->mode = 0;
@@ -209,26 +217,29 @@ static void resetPassData(communications_state_t* comms) {
 
 
 /**
- * Callback function for the pass timer that resets structs to a neutral state in preparation for the next pass
+ * Callback function for the pass timer that resets structs to a
+ * neutral state in preparation for the next pass
  *
- * @param timer A handle for a timer. However this is implicitly called and is passed without parameters
- * 				to xTimerCreate()
+ * @param timer A handle for a timer. However this is implicitly called and
+ * 			is passed without parametersto xTimerCreate()
  */
 static void passTimeoutCallback(xTimerHandle timer) {
 	resetPassData(&commsState);
 }
 
+
 /**
  * Starts a timer for the pass timeout
  */
 static void startPassMode(void) {
+	// If the timer was not created yet, create it
 	if (passTimer == NULL) {
-		// If the timer was not created yet, create it
-		passTimer = xTimerCreate("passTimer", MAX_PASS_LENGTH, pdFALSE, PASS_TIMER_ID, passTimeoutCallback);
+		passTimer = xTimerCreate("passTimer", MAX_PASS_LENGTH, pdFALSE, PASS_TIMER_ID,
+				passTimeoutCallback);
 		xTimerStart(passTimer, 0);
 	}
+	// Otherwise restart it
 	else {
-		// Otherwise restart it
 		xTimerReset(passTimer, 0);
 	}
 }
