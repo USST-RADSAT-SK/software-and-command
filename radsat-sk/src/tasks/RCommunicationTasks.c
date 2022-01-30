@@ -148,8 +148,13 @@ void transmitterTask(void* parameters) {
 	while(1) {
 		// Perform transmition operations while in telecommand or file transfer mode
 		while (commsState.mode) {
-			// If we are in telecommand mode and we are approved for a transmit
-			if ((commsState.mode == commsTelecommandMode || commsState.mode == commsFileTransferMode) && commsState.telecommand.transmitReady) {
+			// If we have and ACK/NACK to send back to the ground station
+			//		There is not check for mode, because we can have an
+			//		ACK/NACK to send to the ground station during
+			//		normal telecommand operation or if we have just switched
+			//		to file transfer mode. Originally they were seperate
+			//		but had duplicated code.
+			if (commsState.telecommand.transmitReady) {
 				// Get the response from the communications state structure and reset
 				// the counter for the transmition slots remaining
 				uint8_t response = commsState.telecommand.responseToSend;
@@ -159,17 +164,6 @@ void transmitterTask(void* parameters) {
 				// Mark the message as sent
 				int tranmitterErr = transceiverSendFrame(&response, 1, &txSlotsRemaining);
 				commsState.telecommand.transmitReady = 0;
-
-				// TODO: Error check adding the message to the transmitter buffer
-			}
-			// If we are in file transfer mode but we still need to send an ACK/NACK from the telecommand mode
-			else if (commsState.mode == commsFileTransferMode && commsState.telecommand.transmitReady) {
-				uint8_t response = commsState.telecommand.responseToSend;
-				uint8_t txSlotsRemaining = 0;
-
-				transceiverSendFrame(response, 1, &txSlotsRemaining); // Send the ACK/NACK
-
-				commsState.telecommand.transmitReady = 0;		// Mark the message as sent
 
 				// TODO: Error check adding the message to the transmitter buffer
 			}
