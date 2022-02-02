@@ -18,6 +18,8 @@
 #include <at91/commons.h>
 #include <stdlib.h>
 
+#include <satellite-subsystems/IsisTRXVU.h>
+
 #define ENABLE_MAIN_TRACES 1
 #if ENABLE_MAIN_TRACES
 	#define MAIN_TRACE_INFO			TRACE_INFO
@@ -70,7 +72,7 @@ int main(void)
 
 	// The actual watchdog has already started, this only initializes the watchdog-kick interface.
 	WDT_start();
-
+	int res = IsisTrxvu_tcClearBeacon((unsigned char)8);
 	LED_wave(1);
 	LED_waveReverse(1);
 	LED_wave(1);

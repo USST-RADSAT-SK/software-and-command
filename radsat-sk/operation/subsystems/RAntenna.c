@@ -17,9 +17,14 @@
 /***************************************************************************************************
                                          PRIVATE VARIABLES
 ***************************************************************************************************/
+
+/** Struct for defining Antenna Systems I2C Addresses */
 ISISantsI2Caddress RAntennaI2Caddress = {ANTENNA_I2C_SLAVE_ADDR_PRIMARY,ANTENNA_I2C_SLAVE_ADDR_PRIMARY};
+
+/** */
 antennaDeploymentStatus RantennaDeploymentStatus;
-static int AntennaInitialized = 0;
+/** */
+static int antennaInitialized = 0;
 
 /***************************************************************************************************
                                              PUBLIC API
