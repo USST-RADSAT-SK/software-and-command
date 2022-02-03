@@ -15,7 +15,7 @@
 ***************************************************************************************************/
 
 /** Index of our Transceiver; the IsisTRXVU.h SSI module allows for multiple TRX instances */
-#define TRANSCEIVER_INDEX			0
+#define TRANSCEIVER_INDEX	0
 
 /** Track whether the Transceiver has been initialized yet */
 static uint8_t initialized = 0;
@@ -72,7 +72,7 @@ int transceiverInit(void) {
 /**
  * Gets the number of frames in the Receiver's message buffer.
  *
- * @param	sizeOfMessage The number of frames available in the receiver's buffer. Set by function.
+ * @param	numberOfFrames The number of frames available in the receiver's buffer. Set by function.
  * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
 int transceiverRxFrameCount(uint16_t* numberOfFrames) {
