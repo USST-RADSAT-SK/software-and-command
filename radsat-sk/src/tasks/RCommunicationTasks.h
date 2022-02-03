@@ -7,5 +7,18 @@
 #ifndef RCOMMUNICATIONTASKS_H_
 #define RCOMMUNICATIONTASKS_H_
 
+#include <stdint.h>
+
+
+/***************************************************************************************************
+											 PUBLIC API
+***************************************************************************************************/
+
+void CommunicationsRxTask(void* parameters);
+void CommunicationsTxTask(void* parameters);
+
+void communicationsEndPassMode(void);
+uint8_t communicationsPassModeActive(void);
+
 
 #endif /* RCOMMUNICATIONTASKS_H_ */

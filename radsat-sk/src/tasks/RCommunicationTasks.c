@@ -14,10 +14,12 @@
 
 
 /***************************************************************************************************
-                                            DEFINITIONS
+                                   DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
 
-#define MAX_PASS_LENGTH	((portTickType)(4*60*1000)) // 4 minutes in ms
+/** Maximum possible duration of a pass. */
+#define MAX_PASS_LENGTH	((portTickType)(15*60*1000)) // 15 minutes (in ms)
+
 
 /** Abstraction of the ACK/NACK states */
 typedef enum _responseState_t {
@@ -68,19 +70,20 @@ static xTimerHandle passTimer;
 /** Instantiate the communication co-orditation structure */
 static communications_state_t commsState = { 0 };
 
+
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
 
-static void resetPassData(communications_state_t* comms);
 static void startPassMode(void);
-static void resetCommunicationState( xTimerHandle timer );
+static void resetCommunicationState(xTimerHandle timer);
+
 
 /***************************************************************************************************
 											 PUBLIC API
 ***************************************************************************************************/
 
-void receiverTask(void* parameters) {
+void CommunicationsRxTask(void* parameters) {
 	(void)parameters;
 
 	// Instantiate receiver message handling variables
@@ -154,7 +157,7 @@ void receiverTask(void* parameters) {
 }
 
 
-void transmitterTask(void* parameters) {
+void CommunicationsTxTask(void* parameters) {
 	(void)parameters;
 
 	// Instantiate transmitter message handling variables
@@ -177,8 +180,7 @@ void transmitterTask(void* parameters) {
 
 				// Send the ACK/NACK response to the transmitter and
 				// Mark the message as sent
-				int txSendFrameErr = transceiverSendFrame(&response, 1,
-						&txSlotsRemaining);
+				int txSendFrameErr = transceiverSendFrame(&response, 1, &txSlotsRemaining);
 				commsState.telecommand.transmitReady = 0;
 
 				// TODO: Error check adding the message to the transmitter buffer
@@ -189,8 +191,9 @@ void transmitterTask(void* parameters) {
 					// Received a NACK from ground station, so re-send the last message
 				if (commsState.fileTransfer.responseReceived == responseNACK){
 					// Re-send the last message and mark it as sent for the receiver task
-					int txSendFrameErr = transceiverSendFrame(&message, messageSize,
-							&txSlotsRemaining);
+					int txSendFrameErr = transceiverSendFrame(&message,
+															  messageSize,
+															  &txSlotsRemaining);
 					commsState.telecommand.transmitReady = 0;
 				}
 				// If we received and ACK, load a new message from the downlink manager and send it
@@ -198,8 +201,9 @@ void transmitterTask(void* parameters) {
 					// TODO: Get new message and size from downlink manager and send it
 
 					// Send the message and mark it as sent for the receiver task
-					int txSendFrameErr = transceiverSendFrame(&message, messageSize,
-							&txSlotsRemaining);
+					int txSendFrameErr = transceiverSendFrame(&message,
+															  messageSize,
+															  &txSlotsRemaining);
 					commsState.telecommand.transmitReady = responseStateIdle;
 				}
 			}
@@ -211,51 +215,65 @@ void transmitterTask(void* parameters) {
 }
 
 
+/**
+ * Reset the structure for coordinating downlinking and uplinking.
+ *
+ * Signals the end of a pass. Use with caution.
+ *
+ * @param comms A locally global struct that holds the data for maintaining comms state.
+ */
+void communicationsEndPassMode(void) {
+	memset(&commsState, 0, sizeof(communications_state_t));
+}
+
+
+/**
+ * Indicate if the Satellite is currently in a communications mode.
+ *
+ * @returns 1 (true) if Satellite is uplinking or downlinking; 0 (false) otherwise.
+ */
+uint8_t communicationsPassModeActive(void) {
+	return (commsState.mode > commsModeIdle);
+}
+
+
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
 ***************************************************************************************************/
 
 /**
- * Reset the structure for coordinating down and uplinking
- *
- * @param comms A communications_t struct that holds the data for
- * 				coordination communications.
- */
-static void resetPassData(communications_state_t* comms) {
-	memset(comms, 0, sizeof(communications_state_t));
-}
-
-
-/**
- * Callback function for the pass timer that resets structs to a
- * neutral state in preparation for the next pass
- *
- * @param timer A handle for a timer. However this is implicitly called and
- * 			is passed without parametersto xTimerCreate()
- */
-static void resetCommunicationState(xTimerHandle xTimer) {
-	(void)xTimer;
-	resetPassData(&commsState);
-}
-
-
-/**
- * Starts a timer for the pass timeout
+ * Starts a timer for the max-length pass timeout.
  */
 static void startPassMode(void) {
-	// If the timer was not created yet, create it
+
+	// if the timer was not created yet, create it
 	if (passTimer == NULL) {
+		// create the timer; connect it to the callback
 		passTimer = xTimerCreate((const signed char *)"passTimer",
 								 MAX_PASS_LENGTH,
 								 pdFALSE,
 								 NULL,
 								 resetCommunicationState);
+
+		// start the timer immediately
 		xTimerStart(passTimer, 0);
 	}
-	// Otherwise restart it
+
+	// otherwise restart it
 	else {
 		xTimerReset(passTimer, 0);
 	}
+}
+
+
+/**
+ * Callback function for the pass timer that resets comms to a neutral state.
+ *
+ * @param timer A handle for a timer.
+ */
+static void resetCommunicationState(xTimerHandle xTimer) {
+	(void)xTimer;
+	communicationsEndPassMode();
 }
 
 
