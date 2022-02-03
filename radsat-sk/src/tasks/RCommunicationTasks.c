@@ -5,12 +5,13 @@
  */
 
 #include <RTransceiver.h>
+#include <RCommunicationTasks.h>
+
+#include <string.h>
+
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/timers.h>
-#include <RCommunicationTasks.h>
-#include <float.h>
-#include <string.h>
 
 
 /***************************************************************************************************
@@ -68,7 +69,7 @@ typedef struct _communications_state_t {
 /** Instantiate the timer for pass time */
 static xTimerHandle passTimer;
 /** Instantiate the communication co-orditation structure */
-static communications_state_t commsState = { 0 };
+static communications_state_t communicationsState = { 0 };
 
 
 /***************************************************************************************************
@@ -99,16 +100,16 @@ void CommunicationsRxTask(void* parameters) {
 		if (rxFrameCount > 0) {
 			// If there are frames in the rx buffer, begin transmission and enter
 			// telecommand mode and start a pass timer
-			commsState.mode = commsModeTelecommand;
+			communicationsState.mode = commsModeTelecommand;
 			startPassMode();
 		}
 
 		// Perform transmition operations while in telecommand or file transfer mode
-		while (commsState.mode > commsModeIdle) {
+		while (communicationsState.mode > commsModeIdle) {
 			// If we are in telecommand mode and we have sent our ACK/NACK from the
 			// previous message
-			if (commsState.mode == commsModeTelecommand &&
-					!commsState.telecommand.transmitReady) {
+			if (communicationsState.mode == commsModeTelecommand &&
+					!communicationsState.telecommand.transmitReady) {
 				// Reset the message size tracker and buffer to read from the receiver buffer
 				rxMessageSize = 0;
 				memset(&rxMessage, 0, sizeof(rxMessage));
@@ -121,19 +122,19 @@ void CommunicationsRxTask(void* parameters) {
 				int endOfTrans = 1;
 
 				// Load whether to send an ACK or NACK
-				commsState.telecommand.responseToSend = response;
+				communicationsState.telecommand.responseToSend = response;
 
 				// Change to file transfer mode if we received an end-of-transmission signal
 				if (endOfTrans == 1) {
-					commsState.mode = commsModeFileTransfer;
+					communicationsState.mode = commsModeFileTransfer;
 				}
 
 				// Approve transmit to send the ACK or NACK response
-				commsState.telecommand.transmitReady = responseStateReady;
+				communicationsState.telecommand.transmitReady = responseStateReady;
 			}
 			// If we are in file transfer mode and we have sent our ACK/NACK from the previous message
-			else if (commsState.mode == commsModeFileTransfer &&
-					!commsState.fileTransfer.transmitReady) {
+			else if (communicationsState.mode == commsModeFileTransfer &&
+					!communicationsState.fileTransfer.transmitReady) {
 				// Reset the message size and buffer to read from the receiver buffer
 				rxMessageSize = 0;
 				memset(&rxMessage, 0, sizeof(rxMessage));
@@ -146,8 +147,8 @@ void CommunicationsRxTask(void* parameters) {
 				int response = responseACK;
 
 				// Load whether we received and ACK or NACK and approve a transmit
-				commsState.telecommand.responseToSend = response;
-				commsState.telecommand.transmitReady = responseStateReady;
+				communicationsState.telecommand.responseToSend = response;
+				communicationsState.telecommand.transmitReady = responseStateReady;
 			}
 			// Pause to allow Transmitter Task to run
 			vTaskDelay(1);
@@ -167,34 +168,34 @@ void CommunicationsTxTask(void* parameters) {
 
 	while(1) {
 		// Perform transmition operations while in telecommand or file transfer mode
-		while (commsState.mode) {
+		while (communicationsState.mode) {
 			// If we have and ACK/NACK to send back to the ground station
 			//		There is not check for mode, because we can have an
 			//		ACK/NACK to send to the ground station during
 			//		normal telecommand operation or if we have just switched
 			//		to file transfer mode. Originally they were seperate
 			//		but had duplicated code.
-			if (commsState.telecommand.transmitReady) {
+			if (communicationsState.telecommand.transmitReady) {
 				// Get the response from the communications state structure
-				uint8_t response = commsState.telecommand.responseToSend;
+				uint8_t response = communicationsState.telecommand.responseToSend;
 
 				// Send the ACK/NACK response to the transmitter and
 				// Mark the message as sent
 				int txSendFrameErr = transceiverSendFrame(&response, 1, &txSlotsRemaining);
-				commsState.telecommand.transmitReady = 0;
+				communicationsState.telecommand.transmitReady = 0;
 
 				// TODO: Error check adding the message to the transmitter buffer
 			}
 			// If we are in file transfer mode and we are approved to transmit a message
-			else if (commsState.mode == commsModeFileTransfer &&
-					commsState.fileTransfer.transmitReady) {
+			else if (communicationsState.mode == commsModeFileTransfer &&
+					communicationsState.fileTransfer.transmitReady) {
 					// Received a NACK from ground station, so re-send the last message
-				if (commsState.fileTransfer.responseReceived == responseNACK){
+				if (communicationsState.fileTransfer.responseReceived == responseNACK){
 					// Re-send the last message and mark it as sent for the receiver task
 					int txSendFrameErr = transceiverSendFrame(&message,
 															  messageSize,
 															  &txSlotsRemaining);
-					commsState.telecommand.transmitReady = 0;
+					communicationsState.telecommand.transmitReady = 0;
 				}
 				// If we received and ACK, load a new message from the downlink manager and send it
 				else {
@@ -204,7 +205,7 @@ void CommunicationsTxTask(void* parameters) {
 					int txSendFrameErr = transceiverSendFrame(&message,
 															  messageSize,
 															  &txSlotsRemaining);
-					commsState.telecommand.transmitReady = responseStateIdle;
+					communicationsState.telecommand.transmitReady = responseStateIdle;
 				}
 			}
 			// Pause to allow Receiver Task to run
@@ -223,7 +224,7 @@ void CommunicationsTxTask(void* parameters) {
  * @param comms A locally global struct that holds the data for maintaining comms state.
  */
 void communicationsEndPassMode(void) {
-	memset(&commsState, 0, sizeof(communications_state_t));
+	memset(&communicationsState, 0, sizeof(communications_state_t));
 }
 
 
@@ -233,7 +234,7 @@ void communicationsEndPassMode(void) {
  * @returns 1 (true) if Satellite is uplinking or downlinking; 0 (false) otherwise.
  */
 uint8_t communicationsPassModeActive(void) {
-	return (commsState.mode > commsModeIdle);
+	return (communicationsState.mode > commsModeIdle);
 }
 
 
