@@ -107,28 +107,31 @@ void CommunicationsRxTask(void* parameters) {
 	uint8_t rxMessage[TRANCEIVER_RX_MAX_FRAME_SIZE] = { 0 };	// input buffer for received frames
 
 	while (1) {
+
 		// get the number of frames currently in the receive buffer
 		rxFrameCount = 0;
 		error = transceiverRxFrameCount(&rxFrameCount);
 
-		// enter telecommand (and pass) mode, and start a pass timer
+		// handle frames accordingly
 		if (rxFrameCount > 0) {
-			communicationsState.mode = commsModeTelecommand;
-			startPassMode();
-		}
 
-		// continue receive operations for duration of pass mode
-		while (communicationsState.mode > commsModeIdle) {
+			// obtain new frame from the transceiver
+			rxMessageSize = 0;
+			memset(rxMessage, 0, sizeof(rxMessage));
+			error = transceiverGetFrame(rxMessage, &rxMessageSize);
+
+			// transition out of idle mode and into pass mode
+			if (communicationsState.mode == commsModeIdle)
+			{
+				// enter telecommand (and pass) mode, and start a pass timer
+				communicationsState.mode = commsModeTelecommand;
+				startPassMode();
+			}
 
 			// telecommand mode, awaiting the next telecommand from the Ground Station
 			if (communicationsState.mode == commsModeTelecommand
-			&& !communicationsState.telecommand.transmitReady) {
-
-				// obtain new frame from the transceiver
-				rxMessageSize = 0;
-				memset(rxMessage, 0, sizeof(rxMessage));
-				error = transceiverGetFrame(rxMessage, &rxMessageSize);
-
+				 && !communicationsState.telecommand.transmitReady)
+			{
 				// TODO: forward message to command centre and determine ACK/NACK response to send
 				// TODO: determine if this message was signalling the end of telecommand mode
 				response_t response = responseACK;
@@ -162,8 +165,6 @@ void CommunicationsRxTask(void* parameters) {
 				communicationsState.fileTransfer.responseReceived = response;
 				communicationsState.fileTransfer.transmitReady = responseStateReady;
 			}
-
-			vTaskDelay(1);
 		}
 
 		vTaskDelay(1);
