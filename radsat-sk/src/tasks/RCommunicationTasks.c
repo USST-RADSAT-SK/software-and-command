@@ -123,12 +123,13 @@ void CommunicationsRxTask(void* parameters) {
 			// telecommand mode, awaiting the next telecommand from the Ground Station
 			if (communicationsState.mode == commsModeTelecommand
 			&& !communicationsState.telecommand.transmitReady) {
+
 				// obtain new frame from the transceiver
 				rxMessageSize = 0;
 				memset(rxMessage, 0, sizeof(rxMessage));
 				error = transceiverGetFrame(rxMessage, &rxMessageSize);
 
-				// TODO: forward message to command centre and receive and ACK/NACK response
+				// TODO: forward message to command centre and determine ACK/NACK response to send
 				// TODO: determine if this message was signalling the end of telecommand mode
 				response_t response = responseACK;
 				int endOfTelecommandMode = 1;
@@ -148,20 +149,18 @@ void CommunicationsRxTask(void* parameters) {
 			else if (communicationsState.mode == commsModeFileTransfer
 			     && !communicationsState.fileTransfer.transmitReady)
 			{
-				// Reset the message size and buffer to read from the receiver buffer
+
+				// obtain new frame from the transceiver
 				rxMessageSize = 0;
 				memset(rxMessage, 0, sizeof(rxMessage));
 				error = transceiverGetFrame(rxMessage, &rxMessageSize);
 
+				// TODO: forward message to command centre and extract the received ACK/NACK response
+				response_t response = responseACK;
 
-				// TODO: Pass Message to command manager and get back whether it
-				//  was an ACK or NACK from the ground station
-				// 			(0 = ACK; 1= NACK)
-				int response = responseACK;
-
-				// Load whether we received and ACK or NACK and approve a transmit
-				communicationsState.telecommand.responseToSend = response;
-				communicationsState.telecommand.transmitReady = responseStateReady;
+				// prepare to send subsequent (or resend previous) file transfer frame
+				communicationsState.fileTransfer.responseReceived = response;
+				communicationsState.fileTransfer.transmitReady = responseStateReady;
 			}
 
 			vTaskDelay(1);
