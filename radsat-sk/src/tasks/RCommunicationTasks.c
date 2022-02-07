@@ -23,7 +23,7 @@
 
 
 /** Abstraction of the ACK/NACK states */
-typedef enum _responseState_t {
+typedef enum _response_state_t {
 	responseStateIdle	= 0,	// Awaiting response from Ground Station
 	responseStateReady	= 1,	// Ready to transmit to Ground Station
 } response_state_t;
@@ -84,61 +84,74 @@ static void resetCommunicationState(xTimerHandle timer);
 											 PUBLIC API
 ***************************************************************************************************/
 
+/**
+ * Receive and process frames received by the Transceiver's receiver buffer (when available).
+ *
+ * Constantly checks for the existence of received frames within the Transceiver; if they exist,
+ * this task will retrieve and process them. If they are telecommands, they are immediately sent off
+ * to another module for further processing. If the received message is an ACK/NACK, this task
+ * updates the proper flags (local and private to this module) to continue communication operations
+ * as guided by our protocol (single ACK-NACK responses per message).
+ *
+ * @todo	More advanced error handling?
+ *
+ * @note	This is a high priority task, and must never be disabled for extented periods of time.
+ * @param	parameters Unused.
+ */
 void CommunicationsRxTask(void* parameters) {
 	(void)parameters;
 
-	// Instantiate receiver message handling variables
-	uint16_t rxFrameCount = 0;
-	uint8_t rxMessage[TRANCEIVER_RX_MAX_FRAME_SIZE] = { 0 };
-	uint16_t rxMessageSize = 0;
+	int error = 0;				// error detection
+	uint16_t rxFrameCount = 0;	// number of frames currently in the receiver's buffer
+	uint16_t rxMessageSize = 0;	// size (in bytes) of a received frame
+	uint8_t rxMessage[TRANCEIVER_RX_MAX_FRAME_SIZE] = { 0 };	// input buffer for received frames
 
-	while(1) {
-		// Reset and get the number of frames in the receive buffer
+	while (1) {
+		// get the number of frames currently in the receive buffer
 		rxFrameCount = 0;
-		int rxFrameCountErr = transceiverRxFrameCount(&rxFrameCount);
+		error = transceiverRxFrameCount(&rxFrameCount);
 
+		// enter telecommand (and pass) mode, and start a pass timer
 		if (rxFrameCount > 0) {
-			// If there are frames in the rx buffer, begin transmission and enter
-			// telecommand mode and start a pass timer
 			communicationsState.mode = commsModeTelecommand;
 			startPassMode();
 		}
 
-		// Perform transmition operations while in telecommand or file transfer mode
+		// continue receive operations for duration of pass mode
 		while (communicationsState.mode > commsModeIdle) {
-			// If we are in telecommand mode and we have sent our ACK/NACK from the
-			// previous message
-			if (communicationsState.mode == commsModeTelecommand &&
-					!communicationsState.telecommand.transmitReady) {
-				// Reset the message size tracker and buffer to read from the receiver buffer
+
+			// telecommand mode, awaiting the next telecommand from the Ground Station
+			if (communicationsState.mode == commsModeTelecommand
+			&& !communicationsState.telecommand.transmitReady) {
+				// obtain new frame from the transceiver
 				rxMessageSize = 0;
-				memset(&rxMessage, 0, sizeof(rxMessage));
-				int rxGetFrameErr = transceiverGetFrame(&rxMessage, &rxMessageSize);
+				memset(rxMessage, 0, sizeof(rxMessage));
+				error = transceiverGetFrame(rxMessage, &rxMessageSize);
 
-				// TODO: Pass Message to command manager and receive and ACK/NACK response
-				//  and whether end of transmission
-				// 			(0 = ACK; 1= NACK)
-				int response = responseACK;
-				int endOfTrans = 1;
+				// TODO: forward message to command centre and receive and ACK/NACK response
+				// TODO: determine if this message was signalling the end of telecommand mode
+				response_t response = responseACK;
+				int endOfTelecommandMode = 1;
 
-				// Load whether to send an ACK or NACK
+				// load ACK/NACK response to send down to Ground Station
 				communicationsState.telecommand.responseToSend = response;
 
-				// Change to file transfer mode if we received an end-of-transmission signal
-				if (endOfTrans == 1) {
+				// prepare for file transfer mode
+				if (endOfTelecommandMode)
 					communicationsState.mode = commsModeFileTransfer;
-				}
 
-				// Approve transmit to send the ACK or NACK response
+				// prepare to send ACK/NACK response
 				communicationsState.telecommand.transmitReady = responseStateReady;
 			}
-			// If we are in file transfer mode and we have sent our ACK/NACK from the previous message
-			else if (communicationsState.mode == commsModeFileTransfer &&
-					!communicationsState.fileTransfer.transmitReady) {
+
+			// file transfer mode, awaiting ACK/NACK from the Ground Station
+			else if (communicationsState.mode == commsModeFileTransfer
+			     && !communicationsState.fileTransfer.transmitReady)
+			{
 				// Reset the message size and buffer to read from the receiver buffer
 				rxMessageSize = 0;
-				memset(&rxMessage, 0, sizeof(rxMessage));
-				int rxGetFrameErr = transceiverGetFrame(&rxMessage, &rxMessageSize);
+				memset(rxMessage, 0, sizeof(rxMessage));
+				error = transceiverGetFrame(rxMessage, &rxMessageSize);
 
 
 				// TODO: Pass Message to command manager and get back whether it
@@ -150,21 +163,37 @@ void CommunicationsRxTask(void* parameters) {
 				communicationsState.telecommand.responseToSend = response;
 				communicationsState.telecommand.transmitReady = responseStateReady;
 			}
-			// Pause to allow Transmitter Task to run
+
 			vTaskDelay(1);
 		}
+
 		vTaskDelay(1);
 	}
 }
 
 
+/**
+ * Transmits outgoing frames to the Transceiver's transmitter buffer.
+ *
+ * When NOT in a pass mode, this task does nothing. When in a pass and in the telecommand mode
+ * (i.e. receiving telecommands), this task is responsible for transmitting the appropriate ACKs
+ * (or NACKs) and updating the flags (that are local and private to this module). When in a pass
+ * and in the File Transfer mode, this task is responsible for transmitting frames that are ready
+ * for downlink transmission. Preperation of downlink messages is done by another module prior to
+ * the pass duration.
+ *
+ * @todo	More advanced error handling?
+ *
+ * @note	This is a high priority task.
+ * @param	parameters Unused.
+ */
 void CommunicationsTxTask(void* parameters) {
 	(void)parameters;
 
-	// Instantiate transmitter message handling variables
-	uint8_t txSlotsRemaining = 0;
-	uint8_t message[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };
-	uint8_t messageSize = 0;
+	int error = 0;					// error detection
+	uint8_t txSlotsRemaining = 0;	// number of frames currently in the transmitter's buffer
+	uint8_t txMessageSize = 0;		// size (in bytes) of an outgoing frame
+	uint8_t txMessage[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };	// output buffer for messages to be transmitted
 
 	while(1) {
 		// Perform transmition operations while in telecommand or file transfer mode
@@ -181,7 +210,7 @@ void CommunicationsTxTask(void* parameters) {
 
 				// Send the ACK/NACK response to the transmitter and
 				// Mark the message as sent
-				int txSendFrameErr = transceiverSendFrame(&response, 1, &txSlotsRemaining);
+				error = transceiverSendFrame(&response, 1, &txSlotsRemaining);
 				communicationsState.telecommand.transmitReady = 0;
 
 				// TODO: Error check adding the message to the transmitter buffer
@@ -192,9 +221,7 @@ void CommunicationsTxTask(void* parameters) {
 					// Received a NACK from ground station, so re-send the last message
 				if (communicationsState.fileTransfer.responseReceived == responseNACK){
 					// Re-send the last message and mark it as sent for the receiver task
-					int txSendFrameErr = transceiverSendFrame(&message,
-															  messageSize,
-															  &txSlotsRemaining);
+					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
 					communicationsState.telecommand.transmitReady = 0;
 				}
 				// If we received and ACK, load a new message from the downlink manager and send it
@@ -202,9 +229,7 @@ void CommunicationsTxTask(void* parameters) {
 					// TODO: Get new message and size from downlink manager and send it
 
 					// Send the message and mark it as sent for the receiver task
-					int txSendFrameErr = transceiverSendFrame(&message,
-															  messageSize,
-															  &txSlotsRemaining);
+					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
 					communicationsState.telecommand.transmitReady = responseStateIdle;
 				}
 			}
