@@ -37,11 +37,11 @@ typedef enum _response_t {
 
 
 /** Abstraction of the communication modes */
-typedef enum _comms_mode_t {
+typedef enum _comm_mode_t {
 	commsModeIdle			= 0,	// Not in a pass
 	commsModeTelecommand	= 1,	// Receiving Telecommands from Ground Station
 	commsModeFileTransfer	= 2,	// Transmitting data to the Ground Station
-} comms_mode_t;
+} comm_mode_t;
 
 
 /** Co-ordinates tasks during the telecommand phase */
@@ -59,17 +59,17 @@ typedef struct _fileTransfer_state_t {
 
 
 /** Wrapper structure for communications co-ordination */
-typedef struct _communications_state_t {
+typedef struct _communication_state_t {
 	uint8_t mode;						// The current state of the Communications Tasks
 	telecommand_state_t telecommand;	// The state during the Telecommand mode
 	fileTransfer_state_t fileTransfer;	// The state during the File Transfer mode
-} communications_state_t;
+} communication_state_t;
 
 
 /** Instantiate the timer for pass time */
 static xTimerHandle passTimer;
 /** Instantiate the communication co-orditation structure */
-static communications_state_t state = { 0 };
+static communication_state_t state = { 0 };
 
 
 /***************************************************************************************************
@@ -98,7 +98,7 @@ static void resetCommunicationState(xTimerHandle timer);
  * @note	This is a high priority task, and must never be disabled for extented periods of time.
  * @param	parameters Unused.
  */
-void CommunicationsRxTask(void* parameters) {
+void communicationRxTask(void* parameters) {
 	(void)parameters;
 
 	int error = 0;				// error detection
@@ -176,7 +176,7 @@ void CommunicationsRxTask(void* parameters) {
  * @note	This is a high priority task.
  * @param	parameters Unused.
  */
-void CommunicationsTxTask(void* parameters) {
+void communicationTxTask(void* parameters) {
 	(void)parameters;
 
 	int error = 0;					// error detection
@@ -237,8 +237,8 @@ void CommunicationsTxTask(void* parameters) {
  *
  * @param comms A locally global struct that holds the data for maintaining comms state.
  */
-void communicationsEndPassMode(void) {
-	memset(&state, 0, sizeof(communications_state_t));
+void communicationEndPassMode(void) {
+	memset(&state, 0, sizeof(communication_state_t));
 }
 
 
@@ -247,7 +247,7 @@ void communicationsEndPassMode(void) {
  *
  * @returns 1 (true) if Satellite is uplinking or downlinking; 0 (false) otherwise.
  */
-uint8_t communicationsPassModeActive(void) {
+uint8_t communicationPassModeActive(void) {
 	return (state.mode > commsModeIdle);
 }
 
@@ -291,6 +291,6 @@ static void startPassMode(void) {
  */
 static void resetCommunicationState(xTimerHandle xTimer) {
 	(void)xTimer;
-	communicationsEndPassMode();
+	communicationEndPassMode();
 }
 

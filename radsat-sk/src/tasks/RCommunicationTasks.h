@@ -14,11 +14,11 @@
 											 PUBLIC API
 ***************************************************************************************************/
 
-void CommunicationsRxTask(void* parameters);
-void CommunicationsTxTask(void* parameters);
+void communicationRxTask(void* parameters);
+void communicationTxTask(void* parameters);
 
-void communicationsEndPassMode(void);
-uint8_t communicationsPassModeActive(void);
+void communicationEndPassMode(void);
+uint8_t communicationPassModeActive(void);
 
 
 #endif /* RCOMMUNICATIONTASKS_H_ */
