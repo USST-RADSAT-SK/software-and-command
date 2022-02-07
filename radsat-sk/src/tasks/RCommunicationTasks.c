@@ -69,7 +69,7 @@ typedef struct _communications_state_t {
 /** Instantiate the timer for pass time */
 static xTimerHandle passTimer;
 /** Instantiate the communication co-orditation structure */
-static communications_state_t communicationsState = { 0 };
+static communications_state_t state = { 0 };
 
 
 /***************************************************************************************************
@@ -121,49 +121,38 @@ void CommunicationsRxTask(void* parameters) {
 			error = transceiverGetFrame(rxMessage, &rxMessageSize);
 
 			// transition out of idle mode and into pass mode
-			if (communicationsState.mode == commsModeIdle)
-			{
+			if (state.mode == commsModeIdle) {
+
 				// enter telecommand (and pass) mode, and start a pass timer
-				communicationsState.mode = commsModeTelecommand;
 				startPassMode();
 			}
 
 			// telecommand mode, awaiting the next telecommand from the Ground Station
-			if (communicationsState.mode == commsModeTelecommand
-				 && !communicationsState.telecommand.transmitReady)
-			{
+			if (state.mode == commsModeTelecommand && !state.telecommand.transmitReady) {
+
 				// TODO: forward message to command centre and determine ACK/NACK response to send
 				// TODO: determine if this message was signalling the end of telecommand mode
 				response_t response = responseACK;
 				int endOfTelecommandMode = 1;
 
-				// load ACK/NACK response to send down to Ground Station
-				communicationsState.telecommand.responseToSend = response;
-
-				// prepare for file transfer mode
+				// prepare for file transfer mode (if necessary)
 				if (endOfTelecommandMode)
-					communicationsState.mode = commsModeFileTransfer;
+					state.mode = commsModeFileTransfer;
 
 				// prepare to send ACK/NACK response
-				communicationsState.telecommand.transmitReady = responseStateReady;
+				state.telecommand.responseToSend = response;
+				state.telecommand.transmitReady = responseStateReady;
 			}
 
 			// file transfer mode, awaiting ACK/NACK from the Ground Station
-			else if (communicationsState.mode == commsModeFileTransfer
-			     && !communicationsState.fileTransfer.transmitReady)
-			{
-
-				// obtain new frame from the transceiver
-				rxMessageSize = 0;
-				memset(rxMessage, 0, sizeof(rxMessage));
-				error = transceiverGetFrame(rxMessage, &rxMessageSize);
+			else if (state.mode == commsModeFileTransfer && !state.fileTransfer.transmitReady) {
 
 				// TODO: forward message to command centre and extract the received ACK/NACK response
 				response_t response = responseACK;
 
 				// prepare to send subsequent (or resend previous) file transfer frame
-				communicationsState.fileTransfer.responseReceived = response;
-				communicationsState.fileTransfer.transmitReady = responseStateReady;
+				state.fileTransfer.responseReceived = response;
+				state.fileTransfer.transmitReady = responseStateReady;
 			}
 		}
 
@@ -197,32 +186,32 @@ void CommunicationsTxTask(void* parameters) {
 
 	while(1) {
 		// Perform transmition operations while in telecommand or file transfer mode
-		while (communicationsState.mode) {
+		while (state.mode) {
 			// If we have and ACK/NACK to send back to the ground station
 			//		There is not check for mode, because we can have an
 			//		ACK/NACK to send to the ground station during
 			//		normal telecommand operation or if we have just switched
 			//		to file transfer mode. Originally they were seperate
 			//		but had duplicated code.
-			if (communicationsState.telecommand.transmitReady) {
+			if (state.telecommand.transmitReady) {
 				// Get the response from the communications state structure
-				uint8_t response = communicationsState.telecommand.responseToSend;
+				uint8_t response = state.telecommand.responseToSend;
 
 				// Send the ACK/NACK response to the transmitter and
 				// Mark the message as sent
 				error = transceiverSendFrame(&response, 1, &txSlotsRemaining);
-				communicationsState.telecommand.transmitReady = 0;
+				state.telecommand.transmitReady = 0;
 
 				// TODO: Error check adding the message to the transmitter buffer
 			}
 			// If we are in file transfer mode and we are approved to transmit a message
-			else if (communicationsState.mode == commsModeFileTransfer &&
-					communicationsState.fileTransfer.transmitReady) {
+			else if (state.mode == commsModeFileTransfer &&
+					state.fileTransfer.transmitReady) {
 					// Received a NACK from ground station, so re-send the last message
-				if (communicationsState.fileTransfer.responseReceived == responseNACK){
+				if (state.fileTransfer.responseReceived == responseNACK){
 					// Re-send the last message and mark it as sent for the receiver task
 					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
-					communicationsState.telecommand.transmitReady = 0;
+					state.telecommand.transmitReady = 0;
 				}
 				// If we received and ACK, load a new message from the downlink manager and send it
 				else {
@@ -230,7 +219,7 @@ void CommunicationsTxTask(void* parameters) {
 
 					// Send the message and mark it as sent for the receiver task
 					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
-					communicationsState.telecommand.transmitReady = responseStateIdle;
+					state.telecommand.transmitReady = responseStateIdle;
 				}
 			}
 			// Pause to allow Receiver Task to run
@@ -249,7 +238,7 @@ void CommunicationsTxTask(void* parameters) {
  * @param comms A locally global struct that holds the data for maintaining comms state.
  */
 void communicationsEndPassMode(void) {
-	memset(&communicationsState, 0, sizeof(communications_state_t));
+	memset(&state, 0, sizeof(communications_state_t));
 }
 
 
@@ -259,7 +248,7 @@ void communicationsEndPassMode(void) {
  * @returns 1 (true) if Satellite is uplinking or downlinking; 0 (false) otherwise.
  */
 uint8_t communicationsPassModeActive(void) {
-	return (communicationsState.mode > commsModeIdle);
+	return (state.mode > commsModeIdle);
 }
 
 
@@ -271,6 +260,9 @@ uint8_t communicationsPassModeActive(void) {
  * Starts a timer for the max-length pass timeout.
  */
 static void startPassMode(void) {
+
+	// set the mode (telecommand communications are first)
+	state.mode = commsModeTelecommand;
 
 	// if the timer was not created yet, create it
 	if (passTimer == NULL) {
@@ -285,7 +277,7 @@ static void startPassMode(void) {
 		xTimerStart(passTimer, 0);
 	}
 
-	// otherwise restart it
+	// otherwise simply restart it
 	else {
 		xTimerReset(passTimer, 0);
 	}
@@ -301,7 +293,4 @@ static void resetCommunicationState(xTimerHandle xTimer) {
 	(void)xTimer;
 	communicationsEndPassMode();
 }
-
-
-
 
