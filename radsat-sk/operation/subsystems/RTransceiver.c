@@ -134,7 +134,7 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
  *
  * @param	message Buffer that is to be transmitted; must be no longer than 235 bytes long.
  * @param	messageSize The length of the outgoing message in bytes.
- * @param	slotsRemaining The number of remaining slots in the transmitter's buffer. Set by function.
+ * @param	slotsRemaining Remaining slots in the transmitter's buffer. Set by function. Optional; set NULL to skip.
  * @return	Error code; 0 for success, otherwise see hal/error.c
  */
 int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRemaining) {
@@ -143,8 +143,8 @@ int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRe
 	if (!initialized)
 		return E_NOT_INITIALIZED;
 
-	// ensure the pointers are valid
-	if (message == 0 || slotsRemaining == 0)
+	// ensure the pointer is valid (slotsRemaining is optional)
+	if (message == 0)
 		return E_INPUT_POINTER_NULL;
 
 	int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, slotsRemaining);

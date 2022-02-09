@@ -21,13 +21,17 @@
 /** Maximum possible duration of a pass is 15 minutes; value set in ms. */
 #define MAX_PASS_MODE_DURATION	((portTickType)(15*60*1000))
 
-
 /** Typical duration of quiet mode is 15 minutes; value set in ms. */
-#define QUIET_MODE_DURATION	((portTickType)(15*60*1000))
-
+#define QUIET_MODE_DURATION		((portTickType)(15*60*1000))
 
 /** Maximum amount of consecutive NACKs before transmission is aborted. */
-#define NACK_ERROR_LIMIT	((uint8_t)5)
+#define NACK_ERROR_LIMIT		((uint8_t)5)
+
+/**
+ * Delay duration (in ms) when the transmitter's buffer is full.
+ * Transmission speed: 9600 bps = 1 byte per ms; This delays long enough to transmit 1 full frame.
+ */
+#define TRANSMITTER_LONG_DELAY	((uint8_t)TRANCEIVER_TX_MAX_FRAME_SIZE)
 
 
 /** Abstraction of the reponse states */
@@ -207,9 +211,9 @@ void communicationRxTask(void* parameters) {
 void communicationTxTask(void* parameters) {
 	(void)parameters;
 
-	int error = 0;					// error detection
-	uint8_t txSlotsRemaining = 0;	// number of frames currently in the transmitter's buffer
-	uint8_t txMessageSize = 0;		// size (in bytes) of an outgoing frame
+	int error = 0;												// error detection
+	uint8_t txSlotsRemaining = TRANCEIVER_TX_MAX_FRAME_COUNT;	// number of frames currently in the transmitter's buffer
+	uint8_t txMessageSize = 0;									// size (in bytes) of an outgoing frame
 	uint8_t txMessage[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };	// output buffer for messages to be transmitted
 
 	while (1) {
@@ -274,7 +278,11 @@ void communicationTxTask(void* parameters) {
 			}
 		}
 
-		vTaskDelay(1);
+		// increase Task delay time when the Transmitter's buffer is full to give it time to transmit
+		if (txSlotsRemaining > 0)
+			vTaskDelay(1);
+		else
+			vTaskDelay(TRANSMITTER_LONG_DELAY);
 	}
 }
 

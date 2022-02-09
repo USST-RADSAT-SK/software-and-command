@@ -15,10 +15,15 @@
                                             DEFINITIONS
 ***************************************************************************************************/
 
-/** Max sizes (in bytes) of uplink frames (from OBC perspective; no AX.25 headers) */
+/** Max sizes (in bytes) of uplink frames (from OBC perspective; no AX.25 headers). */
 #define TRANCEIVER_RX_MAX_FRAME_SIZE	(200)
-/** Max sizes (in bytes) of downlink frames (from OBC perspective; no AX.25 headers) */
+/** Max sizes (in bytes) of downlink frames (from OBC perspective; no AX.25 headers). */
 #define TRANCEIVER_TX_MAX_FRAME_SIZE	(235)
+
+/** Max number of frames that the receiver can hold. */
+#define TRANCEIVER_RX_MAX_FRAME_COUNT	(40)
+/** Max number of frames that the transmitter can hold. */
+#define TRANCEIVER_TX_MAX_FRAME_COUNT	(40)
 
 /** I2C Slave Address for Transceiver Receive Port */
 #define TRANSCEIVER_RX_I2C_SLAVE_ADDR (0x60)
