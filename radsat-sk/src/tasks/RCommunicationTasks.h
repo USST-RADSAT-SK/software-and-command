@@ -17,7 +17,9 @@
 void communicationRxTask(void* parameters);
 void communicationTxTask(void* parameters);
 
-void communicationEndPassMode(void);
+void communicationCeaseTransmission(void);
+void communicationResumeTransmission(void);
+
 uint8_t communicationPassModeActive(void);
 
 

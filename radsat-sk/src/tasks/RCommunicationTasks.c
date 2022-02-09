@@ -18,8 +18,12 @@
                                    DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
 
-/** Maximum possible duration of a pass. */
-#define MAX_PASS_LENGTH	((portTickType)(15*60*1000)) // 15 minutes (in ms)
+/** Maximum possible duration of a pass is 15 minutes; value set in ms. */
+#define MAX_PASS_MODE_DURATION	((portTickType)(15*60*1000))
+
+
+/** Typical duration of quiet mode is 15 minutes; value set in ms. */
+#define QUIET_MODE_DURATION	((portTickType)(15*60*1000))
 
 
 /** Abstraction of the reponse states */
@@ -38,8 +42,9 @@ typedef enum _response_t {
 
 /** Abstraction of the communication modes */
 typedef enum _comm_mode_t {
+	commModeQuiet			= -1,	///> Prevent downlink transmissions and automatic state changes
 	commModeIdle			= 0,	///> Not in a pass
-	commModeTelecommand	= 1,	///> Receiving Telecommands from Ground Station
+	commModeTelecommand		= 1,	///> Receiving Telecommands from Ground Station
 	commModeFileTransfer	= 2,	///> Transmitting data to the Ground Station
 } comm_mode_t;
 
@@ -53,22 +58,27 @@ typedef struct _telecommand_state_t {
 
 /** Co-ordinates tasks during the file transfer phase */
 typedef struct _fileTransfer_state_t {
-	uint8_t transmitReady;		///> Whether the Satellite is ready to transmit another Frame (telemetry, etc.)
-	uint8_t responseReceived;	///> What response was received (ACK, NACK, etc.) regarding the previous message
+	response_state_t transmitReady;		///> Whether the Satellite is ready to transmit another Frame (telemetry, etc.)
+	response_t responseReceived;		///> What response was received (ACK, NACK, etc.) regarding the previous message
+	uint8_t transmissionErrors;			///> Error counter for recording consecutive NACKs
 } fileTransfer_state_t;
 
 
 /** Wrapper structure for communications co-ordination */
 typedef struct _communication_state_t {
-	uint8_t mode;						///> The current state of the Communications Tasks
+	comm_mode_t mode;					///> The current state of the Communications Tasks
 	telecommand_state_t telecommand;	///> The state during the Telecommand mode
 	fileTransfer_state_t fileTransfer;	///> The state during the File Transfer mode
 } communication_state_t;
 
 
-/** Instantiate the timer for pass time */
+/** Timer for pass mode */
 static xTimerHandle passTimer;
-/** Instantiate the communication co-orditation structure */
+
+/** Timer for quiet mode */
+static xTimerHandle quietTimer;
+
+/** Communication co-orditation structure */
 static communication_state_t state = { 0 };
 
 
@@ -77,7 +87,13 @@ static communication_state_t state = { 0 };
 ***************************************************************************************************/
 
 static void startPassMode(void);
-static void resetCommunicationState(xTimerHandle timer);
+static void endPassMode(void);
+static void endPassModeCallback(xTimerHandle timer);
+
+static void startQuietMode(void);
+static void endQuietModeCallback(xTimerHandle timer);
+
+static void resetState(void);
 
 
 /***************************************************************************************************
@@ -96,6 +112,9 @@ static void resetCommunicationState(xTimerHandle timer);
  * @todo	More advanced error handling?
  *
  * @note	This is a high priority task, and must never be disabled for extented periods of time.
+ * @note	When an operational error occurs (e.g. a call to the transceiver module failed), this
+ * 			Task will simply ignore the operation and try again next time. Lower level modules
+ * 			(e.g. the Transceiver) are responsible for reporting those errors to the system.
  * @param	parameters Unused.
  */
 void communicationRxTask(void* parameters) {
@@ -112,47 +131,49 @@ void communicationRxTask(void* parameters) {
 		rxFrameCount = 0;
 		error = transceiverRxFrameCount(&rxFrameCount);
 
-		// handle frames accordingly
-		if (rxFrameCount > 0) {
+		// obtain frames when present
+		if (rxFrameCount > 0 && !error) {
 
 			// obtain new frame from the transceiver
 			rxMessageSize = 0;
 			memset(rxMessage, 0, sizeof(rxMessage));
 			error = transceiverGetFrame(rxMessage, &rxMessageSize);
 
-			// transition out of idle mode and into pass mode
-			if (state.mode == commModeIdle) {
+			// handle valid frames once obtained
+			if (rxMessageSize > 0 && !error) {
 
-				// enter telecommand (and pass) mode, and start a pass timer
-				startPassMode();
-			}
+				// transition out of idle mode and into pass mode (if not already done)
+				if (state.mode == commModeIdle)
+					startPassMode();
 
-			// telecommand mode, awaiting the next telecommand from the Ground Station
-			if (state.mode == commModeTelecommand && !state.telecommand.transmitReady) {
+				// telecommand (or quiet) mode, awaiting the next telecommand from the Ground Station
+				if ((state.mode == commModeTelecommand || state.mode == commModeQuiet)
+				&& (!state.telecommand.transmitReady))
+				{
+					// TODO: forward message to command centre and determine ACK/NACK response to send
+					// TODO: determine if this message was signalling the end of telecommand mode
+					response_t response = responseACK;
+					int endOfTelecommandMode = 1;
 
-				// TODO: forward message to command centre and determine ACK/NACK response to send
-				// TODO: determine if this message was signalling the end of telecommand mode
-				response_t response = responseACK;
-				int endOfTelecommandMode = 1;
+					// prepare for file transfer mode (if necessary)
+					if (endOfTelecommandMode)
+						state.mode = commModeFileTransfer;
 
-				// prepare for file transfer mode (if necessary)
-				if (endOfTelecommandMode)
-					state.mode = commModeFileTransfer;
+					// prepare to send ACK/NACK response
+					state.telecommand.responseToSend = response;
+					state.telecommand.transmitReady = responseStateReady;
+				}
 
-				// prepare to send ACK/NACK response
-				state.telecommand.responseToSend = response;
-				state.telecommand.transmitReady = responseStateReady;
-			}
+				// file transfer mode, awaiting ACK/NACK from the Ground Station
+				else if (state.mode == commModeFileTransfer && !state.fileTransfer.transmitReady)
+				{
+					// TODO: forward message to command centre and extract the received ACK/NACK response
+					response_t response = responseACK;
 
-			// file transfer mode, awaiting ACK/NACK from the Ground Station
-			else if (state.mode == commModeFileTransfer && !state.fileTransfer.transmitReady) {
-
-				// TODO: forward message to command centre and extract the received ACK/NACK response
-				response_t response = responseACK;
-
-				// prepare to send subsequent (or resend previous) file transfer frame
-				state.fileTransfer.responseReceived = response;
-				state.fileTransfer.transmitReady = responseStateReady;
+					// prepare to send subsequent (or resend previous) file transfer frame
+					state.fileTransfer.responseReceived = response;
+					state.fileTransfer.transmitReady = responseStateReady;
+				}
 			}
 		}
 
@@ -174,6 +195,9 @@ void communicationRxTask(void* parameters) {
  * @todo	More advanced error handling?
  *
  * @note	This is a high priority task.
+ * @note	When an operational error occurs (e.g. a call to the transceiver module failed), this
+ * 			Task will simply ignore the operation and try again next time. Lower level modules
+ * 			(e.g. the Transceiver) are responsible for reporting these errors to the system.
  * @param	parameters Unused.
  */
 void communicationTxTask(void* parameters) {
@@ -189,7 +213,7 @@ void communicationTxTask(void* parameters) {
 		// pass mode is active
 		if (communicationPassModeActive()) {
 
-			// telecommand mode (or leaving it), ready to send ACK/NACK to the Ground Station
+			// ready to send ACK/NACK to the Ground Station
 			if (state.telecommand.transmitReady) {
 
 				// TODO: serialize the ACK/NACK response to be sent
@@ -227,24 +251,45 @@ void communicationTxTask(void* parameters) {
 
 
 /**
- * Reset the structure for coordinating downlinking and uplinking.
- *
- * Signals the end of a pass. Use with caution.
- *
- * @param comms A locally global struct that holds the data for maintaining comms state.
- */
-void communicationEndPassMode(void) {
-	memset(&state, 0, sizeof(communication_state_t));
-}
-
-
-/**
  * Indicate if the Satellite is currently in a communications mode.
  *
  * @returns 1 (true) if Satellite is uplinking or downlinking; 0 (false) otherwise.
  */
 uint8_t communicationPassModeActive(void) {
 	return (state.mode > commModeIdle);
+}
+
+
+/**
+ * Forcefully puts the communication Tasks into quiet mode, without an automatic way out.
+ *
+ * Should only be put here via Telecommand from Ground Station. Only way out is through a
+ * subsequent telecommand from the Ground Station (see @sa communicationResumeTransmission).
+ */
+void communicationCeaseTransmission(void) {
+
+	// reset the local communication state
+	resetState();
+
+	// cancel any communication mode timers that may be running
+	xTimerStop(passTimer, 0);
+	xTimerStop(quietTimer, 0);
+
+	// enter quiet mode
+	state.mode = commModeQuiet;
+}
+
+
+/**
+ * Forcefully puts the communication Tasks back into idle mode, ready to continue normal operations.
+ *
+ * Should only be called via Telecommand from the Ground Station, following a previous Telecommand
+ * that had the Satellite cease transmissions (see @sa communicationCeaseTransmission).
+ */
+void communicationResumeTransmission(void) {
+
+	// reset the local communication state
+	resetState();
 }
 
 
@@ -257,17 +302,20 @@ uint8_t communicationPassModeActive(void) {
  */
 static void startPassMode(void) {
 
-	// set the mode (telecommand communications are first)
+	// reset any previous communication state, to ensure a fresh start
+	resetState();
+
+	// set the mode (telecommand communications are first during a pass)
 	state.mode = commModeTelecommand;
 
 	// if the timer was not created yet, create it
 	if (passTimer == NULL) {
 		// create the timer; connect it to the callback
 		passTimer = xTimerCreate((const signed char *)"passTimer",
-								 MAX_PASS_LENGTH,
+								 MAX_PASS_MODE_DURATION,
 								 pdFALSE,
 								 NULL,
-								 resetCommunicationState);
+								 endPassModeCallback);
 
 		// start the timer immediately
 		xTimerStart(passTimer, 0);
@@ -281,12 +329,74 @@ static void startPassMode(void) {
 
 
 /**
- * Callback function for the pass timer that resets comms to a neutral state.
+ * End the pass mode by resetting local variables and temporarily entering quiet mode.
+ *
+ * Signals the end of a pass, temporarily disabling all transmissions. Use with caution.
+ */
+void endPassMode(void) {
+
+	// reset the local communication state
+	resetState();
+
+	// enter quiet mode (with a timer to exit it)
+	startQuietMode();
+}
+
+
+/**
+ * Callback function for the pass timer that ends the pass mode.
  *
  * @param timer A handle for a timer.
  */
-static void resetCommunicationState(xTimerHandle xTimer) {
+static void endPassModeCallback(xTimerHandle xTimer) {
 	(void)xTimer;
-	communicationEndPassMode();
+	endPassMode();
+}
+
+
+/**
+ * Starts a timer for the max-length pass timeout.
+ */
+static void startQuietMode(void) {
+
+	// enter quiet mode
+	state.mode = commModeQuiet;
+
+	// if the timer was not created yet, create it
+	if (quietTimer == NULL) {
+		// create the timer; connect it to the callback
+		quietTimer = xTimerCreate((const signed char *)"quietTimer",
+								 QUIET_MODE_DURATION,
+								 pdFALSE,
+								 NULL,
+								 endQuietModeCallback);
+
+		// start the timer immediately
+		xTimerStart(quietTimer, 0);
+	}
+
+	// otherwise simply restart it
+	else {
+		xTimerReset(quietTimer, 0);
+	}
+}
+
+
+/**
+ * Callback function for the quiet timer that resets comms to a neutral state.
+ *
+ * @param timer A handle for a timer.
+ */
+static void endQuietModeCallback(xTimerHandle xTimer) {
+	(void)xTimer;
+	resetState();
+}
+
+
+/**
+ * Reset the structure for coordinating downlinking and uplinking.
+ */
+static void resetState(void) {
+	memset(&state, 0, sizeof(communication_state_t));
 }
 
