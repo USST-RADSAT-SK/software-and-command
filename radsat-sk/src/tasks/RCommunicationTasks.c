@@ -65,18 +65,18 @@ typedef struct _telecommand_state_t {
 
 
 /** Co-ordinates tasks during the file transfer phase */
-typedef struct _fileTransfer_state_t {
+typedef struct _file_transfer_state_t {
 	response_state_t transmitReady;		///> Whether the Satellite is ready to transmit another Frame (telemetry, etc.)
 	response_t responseReceived;		///> What response was received (ACK, NACK, etc.) regarding the previous message
 	uint8_t transmissionErrors;			///> Error counter for recording consecutive NACKs
-} fileTransfer_state_t;
+} file_transfer_state_t;
 
 
 /** Wrapper structure for communications co-ordination */
 typedef struct _communication_state_t {
 	comm_mode_t mode;					///> The current state of the Communications Tasks
 	telecommand_state_t telecommand;	///> The state during the Telecommand mode
-	fileTransfer_state_t fileTransfer;	///> The state during the File Transfer mode
+	file_transfer_state_t fileTransfer;	///> The state during the File Transfer mode
 } communication_state_t;
 
 
