@@ -290,6 +290,9 @@ void communicationResumeTransmission(void) {
 
 	// reset the local communication state
 	resetState();
+
+	// start a pass mode (clearly are in one if we received this command)
+	startPassMode();
 }
 
 
