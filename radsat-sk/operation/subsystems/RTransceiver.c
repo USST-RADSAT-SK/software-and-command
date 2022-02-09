@@ -66,6 +66,8 @@ int transceiverInit(void) {
 	if (!error)
 		initialized = 1;
 
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }
 
@@ -87,6 +89,9 @@ int transceiverRxFrameCount(uint16_t* numberOfFrames) {
 		return E_INPUT_POINTER_NULL;
 
 	int error = IsisTrxvu_rcGetFrameCount(TRANSCEIVER_INDEX, numberOfFrames);
+
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }
 
@@ -118,6 +123,8 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
 	// provide the size of the message to the caller
 	*sizeOfMessage = frame.rx_length;
 
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }
 
@@ -141,6 +148,9 @@ int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRe
 		return E_INPUT_POINTER_NULL;
 
 	int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, slotsRemaining);
+
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }
 
@@ -163,6 +173,9 @@ int transceiverPowerCycle(void) {
 
 	// send full hard reset command
 	int error = IsisTrxvu_hardReset(TRANSCEIVER_INDEX);
+
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }
 
@@ -184,11 +197,13 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 
 	int error = IsisTrxvu_rcGetTelemetryAll(TRANSCEIVER_INDEX, &rawRxTelemetry);
 
+	// TODO: record errors (if present) to System Manager
 	if (error)
 		return error;
 
 	error = IsisTrxvu_tcGetTelemetryAll(TRANSCEIVER_INDEX, &rawTxTelemetry);
 
+	// TODO: record errors (if present) to System Manager
 	if (error)
 		return error;
 
@@ -251,6 +266,9 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 static int transceiverRxUpTime(uint16_t* uptime) {
 
 	int error = IsisTrxvu_rcGetUptime(TRANSCEIVER_INDEX, (unsigned int *) uptime);
+
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }
 
@@ -264,6 +282,9 @@ static int transceiverRxUpTime(uint16_t* uptime) {
 static int transceiverTxUpTime(uint16_t* uptime) {
 
 	int error = IsisTrxvu_tcGetUptime(TRANSCEIVER_INDEX, (unsigned int *) uptime);
+
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }
 
