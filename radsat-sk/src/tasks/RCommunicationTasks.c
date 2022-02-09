@@ -22,47 +22,47 @@
 #define MAX_PASS_LENGTH	((portTickType)(15*60*1000)) // 15 minutes (in ms)
 
 
-/** Abstraction of the ACK/NACK states */
+/** Abstraction of the reponse states */
 typedef enum _response_state_t {
-	responseStateIdle	= 0,	// Awaiting response from Ground Station
-	responseStateReady	= 1,	// Ready to transmit to Ground Station
+	responseStateIdle	= 0,	///> Awaiting response from Ground Station
+	responseStateReady	= 1,	///> Ready to transmit to Ground Station
 } response_state_t;
 
 
 /** Abstraction of the ACK/NACK return types */
 typedef enum _response_t {
-	responseACK		= 0,	// Acknowledge (the message was received properly)
-	responseNACK	= 1,	// Negative Acknowledge (the message was NOT received properly)
+	responseACK		= 0,	///> Acknowledge (the message was received properly)
+	responseNACK	= 1,	///> Negative Acknowledge (the message was NOT received properly)
 } response_t;
 
 
 /** Abstraction of the communication modes */
 typedef enum _comm_mode_t {
-	commsModeIdle			= 0,	// Not in a pass
-	commsModeTelecommand	= 1,	// Receiving Telecommands from Ground Station
-	commsModeFileTransfer	= 2,	// Transmitting data to the Ground Station
+	commModeIdle			= 0,	///> Not in a pass
+	commModeTelecommand	= 1,	///> Receiving Telecommands from Ground Station
+	commModeFileTransfer	= 2,	///> Transmitting data to the Ground Station
 } comm_mode_t;
 
 
 /** Co-ordinates tasks during the telecommand phase */
 typedef struct _telecommand_state_t {
-	response_state_t transmitReady;	// Whether the Satellite is ready to transmit a response (ACK, NACK, etc.)
-	response_t responseToSend;		// What response to send, when ready
+	response_state_t transmitReady;	///> Whether the Satellite is ready to transmit a response (ACK, NACK, etc.)
+	response_t responseToSend;		///> What response to send, when ready
 } telecommand_state_t;
 
 
 /** Co-ordinates tasks during the file transfer phase */
 typedef struct _fileTransfer_state_t {
-	uint8_t transmitReady;		// Whether the Satellite is ready to transmit another Frame (telemetry, etc.)
-	uint8_t responseReceived;	// What response was received (ACK, NACK, etc.) regarding the previous message
+	uint8_t transmitReady;		///> Whether the Satellite is ready to transmit another Frame (telemetry, etc.)
+	uint8_t responseReceived;	///> What response was received (ACK, NACK, etc.) regarding the previous message
 } fileTransfer_state_t;
 
 
 /** Wrapper structure for communications co-ordination */
 typedef struct _communication_state_t {
-	uint8_t mode;						// The current state of the Communications Tasks
-	telecommand_state_t telecommand;	// The state during the Telecommand mode
-	fileTransfer_state_t fileTransfer;	// The state during the File Transfer mode
+	uint8_t mode;						///> The current state of the Communications Tasks
+	telecommand_state_t telecommand;	///> The state during the Telecommand mode
+	fileTransfer_state_t fileTransfer;	///> The state during the File Transfer mode
 } communication_state_t;
 
 
@@ -121,14 +121,14 @@ void communicationRxTask(void* parameters) {
 			error = transceiverGetFrame(rxMessage, &rxMessageSize);
 
 			// transition out of idle mode and into pass mode
-			if (state.mode == commsModeIdle) {
+			if (state.mode == commModeIdle) {
 
 				// enter telecommand (and pass) mode, and start a pass timer
 				startPassMode();
 			}
 
 			// telecommand mode, awaiting the next telecommand from the Ground Station
-			if (state.mode == commsModeTelecommand && !state.telecommand.transmitReady) {
+			if (state.mode == commModeTelecommand && !state.telecommand.transmitReady) {
 
 				// TODO: forward message to command centre and determine ACK/NACK response to send
 				// TODO: determine if this message was signalling the end of telecommand mode
@@ -137,7 +137,7 @@ void communicationRxTask(void* parameters) {
 
 				// prepare for file transfer mode (if necessary)
 				if (endOfTelecommandMode)
-					state.mode = commsModeFileTransfer;
+					state.mode = commModeFileTransfer;
 
 				// prepare to send ACK/NACK response
 				state.telecommand.responseToSend = response;
@@ -145,7 +145,7 @@ void communicationRxTask(void* parameters) {
 			}
 
 			// file transfer mode, awaiting ACK/NACK from the Ground Station
-			else if (state.mode == commsModeFileTransfer && !state.fileTransfer.transmitReady) {
+			else if (state.mode == commModeFileTransfer && !state.fileTransfer.transmitReady) {
 
 				// TODO: forward message to command centre and extract the received ACK/NACK response
 				response_t response = responseACK;
@@ -202,7 +202,7 @@ void communicationTxTask(void* parameters) {
 			}
 
 			// file transfer mode, ready to transmit a message
-			else if (state.mode == commsModeFileTransfer && state.fileTransfer.transmitReady) {
+			else if (state.mode == commModeFileTransfer && state.fileTransfer.transmitReady) {
 
 				// NACK received from ground Station; re-send the previous message
 				if (state.fileTransfer.responseReceived == responseNACK) {
@@ -244,7 +244,7 @@ void communicationEndPassMode(void) {
  * @returns 1 (true) if Satellite is uplinking or downlinking; 0 (false) otherwise.
  */
 uint8_t communicationPassModeActive(void) {
-	return (state.mode > commsModeIdle);
+	return (state.mode > commModeIdle);
 }
 
 
@@ -258,7 +258,7 @@ uint8_t communicationPassModeActive(void) {
 static void startPassMode(void) {
 
 	// set the mode (telecommand communications are first)
-	state.mode = commsModeTelecommand;
+	state.mode = commModeTelecommand;
 
 	// if the timer was not created yet, create it
 	if (passTimer == NULL) {
