@@ -26,6 +26,10 @@
 #define QUIET_MODE_DURATION	((portTickType)(15*60*1000))
 
 
+/** Maximum amount of consecutive NACKs before transmission is aborted. */
+#define NACK_ERROR_LIMIT	((uint8_t)5)
+
+
 /** Abstraction of the reponse states */
 typedef enum _response_state_t {
 	responseStateIdle	= 0,	///> Awaiting response from Ground Station
@@ -222,25 +226,50 @@ void communicationTxTask(void* parameters) {
 
 				// send the message
 				error = transceiverSendFrame(&response, responseSize, &txSlotsRemaining);
-				state.telecommand.transmitReady = responseStateIdle;
+
+				// prepare to receive next message
+				if (!error)
+					state.telecommand.transmitReady = responseStateIdle;
 			}
 
 			// file transfer mode, ready to transmit a message
 			else if (state.mode == commModeFileTransfer && state.fileTransfer.transmitReady) {
 
-				// NACK received from ground Station; re-send the previous message
-				if (state.fileTransfer.responseReceived == responseNACK) {
-					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
-					state.telecommand.transmitReady = responseStateIdle;
-				}
-
 				// ACK received from ground Station; obtain next message and send it
-				else {
+				if (state.fileTransfer.responseReceived == responseACK) {
+
+					// clear transmission error counter
+					state.fileTransfer.transmissionErrors = 0;
+
 					// TODO: obtain new message and size from downlink manager
 
 					// send the message
 					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
-					state.telecommand.transmitReady = responseStateIdle;
+
+					// prepare to receive ACK/NACK
+					if (!error)
+						state.telecommand.transmitReady = responseStateIdle;
+					// force NACK in order to resend the packet
+					else
+						state.fileTransfer.responseReceived = responseNACK;
+				}
+
+				// NACK received from ground Station; re-send the previous message
+				else {
+
+					// record the NACK
+					state.fileTransfer.transmissionErrors++;
+
+					// abort transmission if the error limit is exceeded
+					if (state.fileTransfer.transmissionErrors > NACK_ERROR_LIMIT)
+						endPassMode();
+
+					// resend the message
+					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
+
+					// prepare to receive ACK/NACK
+					if (!error)
+						state.telecommand.transmitReady = responseStateIdle;
 				}
 			}
 		}
@@ -402,4 +431,3 @@ static void endQuietModeCallback(xTimerHandle xTimer) {
 static void resetState(void) {
 	memset(&state, 0, sizeof(communication_state_t));
 }
-
