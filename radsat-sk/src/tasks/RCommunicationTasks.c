@@ -117,8 +117,6 @@ static void resetState(void);
  * updates the proper flags (local and private to this module) to continue communication operations
  * as guided by our protocol (single ACK-NACK responses per message).
  *
- * @todo	More advanced error handling?
- *
  * @note	This is a high priority task, and must never be disabled for extented periods of time.
  * @note	When an operational error occurs (e.g. a call to the transceiver module failed), this
  * 			Task will simply ignore the operation and try again next time. Lower level modules
@@ -200,8 +198,6 @@ void communicationRxTask(void* parameters) {
  * for downlink transmission. Preperation of downlink messages is done by another module prior to
  * the pass duration.
  *
- * @todo	More advanced error handling?
- *
  * @note	This is a high priority task.
  * @note	When an operational error occurs (e.g. a call to the transceiver module failed), this
  * 			Task will simply ignore the operation and try again next time. Lower level modules
@@ -212,7 +208,7 @@ void communicationTxTask(void* parameters) {
 	(void)parameters;
 
 	int error = 0;												// error detection
-	uint8_t txSlotsRemaining = TRANCEIVER_TX_MAX_FRAME_COUNT;	// number of frames currently in the transmitter's buffer
+	uint8_t txSlotsRemaining = TRANCEIVER_TX_MAX_FRAME_COUNT;	// number of open frame slots in the transmitter's buffer
 	uint8_t txMessageSize = 0;									// size (in bytes) of an outgoing frame
 	uint8_t txMessage[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };	// output buffer for messages to be transmitted
 
