@@ -220,12 +220,15 @@ void communicationTxTask(void* parameters) {
 			// ready to send ACK/NACK to the Ground Station
 			if (state.telecommand.transmitReady) {
 
-				// TODO: serialize the ACK/NACK response to be sent
-				uint8_t response = state.telecommand.responseToSend;
-				uint8_t responseSize = sizeof(response);
+				// serialize the ACK/NACK response to be sent
+				// TODO: use real functions
+//				if (state.telecommand.responseToSend == responseACK)
+//					downlinkSerializedAck(txMessage, &txMessageSize);
+//				else
+//					downlinkSerializedNack(txMessage, &txMessageSize);
 
 				// send the message
-				error = transceiverSendFrame(&response, responseSize, &txSlotsRemaining);
+				error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
 
 				// prepare to receive next message
 				if (!error)
@@ -242,6 +245,7 @@ void communicationTxTask(void* parameters) {
 					state.fileTransfer.transmissionErrors = 0;
 
 					// TODO: obtain new message and size from downlink manager
+//					downlinkNextFrame(txMessage, &txMessageSize);
 
 					// send the message
 					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
