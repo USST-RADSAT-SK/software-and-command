@@ -1,12 +1,11 @@
 /**
- * @file RXorCipher.h
+ * @file RKey.h
  * @date February 9, 2022
  * @author Tyrel Kostyk (tck290)
  */
 
-
-#ifndef RXORCIPHER_H_
-#define RXORCIPHER_H_
+#ifndef RKEY_H_
+#define RKEY_H_
 
 #include <stdint.h>
 
@@ -15,7 +14,7 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-int xorDecrypt(uint8_t* buffer, uint8_t size);
+uint8_t privateKey(void);
 
 
-#endif /* RXORCIPHER_H_ */
+#endif /* RKEY_H_ */
