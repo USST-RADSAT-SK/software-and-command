@@ -4,8 +4,9 @@
 #ifndef PB_RRADSAT_PB_H_INCLUDED
 #define PB_RRADSAT_PB_H_INCLUDED
 #include <pb.h>
-#include <RFileTransfer.pb.h>
+#include <RProtocol.pb.h>
 #include <RTelecommands.pb.h>
+#include <RFileTransfer.pb.h>
 
 #if PB_PROTO_HEADER_VERSION != 40
 #error Regenerate this file with the current version of nanopb generator.
@@ -15,6 +16,7 @@
 typedef struct _RadsatMessage {
     pb_size_t which_topic;
     union {
+        ProtocolMessage protocolMessage;
         FileTransferMessage fileTransferMessage;
         TelecommandMessage telecommandMessage;
     };
@@ -26,19 +28,22 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define RadsatMessage_init_default               {0, {FileTransferMessage_init_default}}
-#define RadsatMessage_init_zero                  {0, {FileTransferMessage_init_zero}}
+#define RadsatMessage_init_default               {0, {ProtocolMessage_init_default}}
+#define RadsatMessage_init_zero                  {0, {ProtocolMessage_init_zero}}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define RadsatMessage_fileTransferMessage_tag    4
-#define RadsatMessage_telecommandMessage_tag     5
+#define RadsatMessage_protocolMessage_tag        1
+#define RadsatMessage_fileTransferMessage_tag    2
+#define RadsatMessage_telecommandMessage_tag     3
 
 /* Struct field encoding specification for nanopb */
 #define RadsatMessage_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (topic,fileTransferMessage,fileTransferMessage),   4) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (topic,telecommandMessage,telecommandMessage),   5)
+X(a, STATIC,   ONEOF,    MESSAGE,  (topic,protocolMessage,protocolMessage),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (topic,fileTransferMessage,fileTransferMessage),   2) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (topic,telecommandMessage,telecommandMessage),   3)
 #define RadsatMessage_CALLBACK NULL
 #define RadsatMessage_DEFAULT NULL
+#define RadsatMessage_topic_protocolMessage_MSGTYPE ProtocolMessage
 #define RadsatMessage_topic_fileTransferMessage_MSGTYPE FileTransferMessage
 #define RadsatMessage_topic_telecommandMessage_MSGTYPE TelecommandMessage
 

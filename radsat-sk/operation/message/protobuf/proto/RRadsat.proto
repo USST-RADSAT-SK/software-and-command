@@ -12,13 +12,15 @@
 
 syntax = "proto3";
 
-import "proto/RFileTransfer.proto";
+import "proto/RProtocol.proto";
 import "proto/RTelecommands.proto";
+import "proto/RFileTransfer.proto";
 
 // top level RADSAT message object
 message RadsatMessage {
 	oneof topic {
-		FileTransferMessage fileTransferMessage = 4;
-		TelecommandMessage telecommandMessage	= 5;
+		ProtocolMessage protocolMessage 		= 1;
+		FileTransferMessage fileTransferMessage = 2;
+		TelecommandMessage telecommandMessage	= 3;
 	}
 }
