@@ -5,7 +5,6 @@
  */
 
 #include <RProtobuf.h>
-#include <assert.h>
 
 
 /***************************************************************************************************
@@ -13,10 +12,10 @@
 ***************************************************************************************************/
 
 /**
- * Encode a raw protobuf message with NanoPB into a buffer, and encode the header as well.
+ * Encode (serialize) a raw protobuf message with NanoPB into a buffer.
  *
- * @param rawMessage The raw (unencoded) RadSat struct message to encode.
- * @param outgoingBuffer The buffer that will hold the encoded message & header.
+ * @param rawMessage The raw (non-serialized) RadsatMessage struct to encode.
+ * @param outgoingBuffer The buffer that will hold the encoded message.
  * @return The size of the encoded message; 0 if encoding failed.
  */
 uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer) {
@@ -38,11 +37,11 @@ uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer) {
 
 
 /**
- * Decode an encoded protobuf message, and confirm that the contents match the header.
+ * Decode an encoded protobuf message.
  *
- * @param incomingBuffer The buffer containing the encoded message/header.
+ * @param incomingBuffer The buffer containing the encoded message (no header).
  * @param decodedMessage The message that will be populated with the decoded message.
- * @return true if the message is decoded successfully, false otherwise.
+ * @return true (1) if the message is decoded successfully, false (0) otherwise.
  */
 uint8_t protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage) {
 
@@ -54,5 +53,7 @@ uint8_t protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage) {
 	pb_istream_t stream = pb_istream_from_buffer((uint8_t*)incomingBuffer, PROTO_MAX_ENCODED_SIZE);
 
 	// encode the message into the byte array
-	return pb_decode(&stream, RadsatMessage_fields, decodedMessage);
+	uint8_t success = pb_decode(&stream, RadsatMessage_fields, decodedMessage);
+
+	return success;
 }
