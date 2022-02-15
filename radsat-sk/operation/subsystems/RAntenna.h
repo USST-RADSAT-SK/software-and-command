@@ -13,13 +13,20 @@
                                             DEFINITIONS
 ***************************************************************************************************/
 
-/** I2C slave address for antenna receive port */
+/** I2C slave address for antenna receive port, primary */
 #define ANTENNA_I2C_SLAVE_ADDR_PRIMARY (0x31)
 
-/** Status of the deployment per side of the antenna*/
+/** I2C slave address for antenna receive port, primary */
+#define ANTENNA_I2C_SLAVE_ADDR_REDUNANT (0x32)
+
+/** Antenna Deployment status */
 typedef struct _antennaDeploymentStatus {
-	int DeployedsideA;
-	int DeployedsideB;
+	int DeployedAntennaOne;
+	int DeployedAntennaTwo;
+	int DeployedAntennaThree;
+	int DeployedAntennaFour;
+	int SideAArmed;
+	int SideBArmed;
 } antennaDeploymentStatus;
 
 

@@ -15,12 +15,8 @@
 /** number of attached Antennas in the system */
 #define ANTENNAS_ON_BOARD 4
 
-/** Struct for defining Antenna Systems I2C Addresses.
- *
- *	Note: Configured as a single bus which means that the primary (0x31) and redundant (0x32)
- *			write to the exact same bus. To avoid confusion, primary is used for both I2C addresses
- *			to emphasize the idea of the single bus.  */
-ISISantsI2Caddress RAntennaI2Caddress = {ANTENNA_I2C_SLAVE_ADDR_PRIMARY,ANTENNA_I2C_SLAVE_ADDR_PRIMARY};
+/** Struct for defining Antenna Systems I2C Addresses. Configured as a single bus, both address write to same location */
+ISISantsI2Caddress RAntennaI2Caddress = {ANTENNA_I2C_SLAVE_ADDR_PRIMARY,ANTENNA_I2C_SLAVE_ADDR_REDUNANT};
 
 /** Struct that holds the current deployment status of the antenna*/
 antennaDeploymentStatus RantennaDeploymentStatus;
@@ -40,12 +36,31 @@ ISISantsArmStatus RDisarmed = isisants_disarm;
 /** Track whether the antenna has been initialized yet */
 static int antennaInitialized = 0;
 
+/** Track whether Antenna One has be been deployed */
+static int antennaOneDeployed = 0;
+
+/** Track whether Antenna Two has be been deployed */
+static int antennaTwoDeployed = 0;
+
+/** Track whether Antenna Three has be been deployed */
+static int antennaThreeDeployed = 0;
+
+/** Track whether Antenna Four has be been deployed */
+static int antennaFourDeployed = 0;
+
+/** Track whether Antenna A Side is Armed*/
+static int antennaASideArmed = 0;
+
+/** Track whether Antenna B Side is Armed*/
+static int antennaBSideArmed = 0;
+
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
 /**
  * Initializes the ISISpace Antenna driver
+ *
  * @return 0 for success, non-zero for failure. See hal/errors.h for details.
  */
 int antennaInit(void) {
@@ -72,10 +87,16 @@ int antennaInit(void) {
  */
 int antennaDeploymentAttempt(void) {
 
+	//Get Current Status of the Antenna
+
 	//Arm A Side Antenna system
 	IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISASide,RArmed);
 
-	//deploying A side
+	//Check if A side was armed, if not, try again
+
+	//Must be armed, and at least one of the A side antennas are not deployed
+
+	//deploy A side Attempt
 	if (RantennaDeploymentStatus.DeployedsideA == 0) {
 		int error = IsisAntS_autoDeployment(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,60);
 		if(error != 0)
@@ -83,11 +104,17 @@ int antennaDeploymentAttempt(void) {
 		RantennaDeploymentStatus.DeployedsideA = 1;
 	}
 
+	//Check to see if Antennas were deployed, if not attempts again
+
 	//Disarm A Side Antenna System
 	IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISASide,RDisarmed);
 
+	//Check if A Side if Disarmed, if not, attempt again
+
 	//Arm B Side Antenna System
 	IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISBSide,RArmed);
+
+	//Check if B Side is armed, if not, attempt again
 
 	//deploying B side
 	if (RantennaDeploymentStatus.DeployedsideB == 0) {
@@ -97,8 +124,12 @@ int antennaDeploymentAttempt(void) {
 		RantennaDeploymentStatus.DeployedsideB = 1;
 	}
 
+	//Check to see if Atnennas were deployed, if not, attempt again
+
 	//Disarm B Side Antenna System
 	IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISBSide,RDisarmed)
+
+	//Check to see if B side is disarmed, if not, attempt again
 
 
 	return 0;
