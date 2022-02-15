@@ -9,21 +9,35 @@
 #include <string.h>
 
 /***************************************************************************************************
-                                            DEFINITIONS
+                                  PRIVATE DEFINITIONS AND VARIABLES
 ***************************************************************************************************/
 
+/** number of attached Antennas in the system */
+#define ANTENNAS_ON_BOARD 4
 
-
-/***************************************************************************************************
-                                         PRIVATE VARIABLES
-***************************************************************************************************/
-
-/** Struct for defining Antenna Systems I2C Addresses */
+/** Struct for defining Antenna Systems I2C Addresses.
+ *
+ *	Note: Configured as a single bus which means that the primary (0x31) and redundant (0x32)
+ *			write to the exact same bus. To avoid confusion, primary is used for both I2C addresses
+ *			to emphasize the idea of the single bus.  */
 ISISantsI2Caddress RAntennaI2Caddress = {ANTENNA_I2C_SLAVE_ADDR_PRIMARY,ANTENNA_I2C_SLAVE_ADDR_PRIMARY};
 
-/** */
+/** Struct that holds the current deployment status of the antenna*/
 antennaDeploymentStatus RantennaDeploymentStatus;
-/** */
+
+/** Side A of the Antenna system*/
+ISISantsSide RISISASide = isisants_sideA;
+
+/** Side B of the Antenna system*/
+ISISantsSide RISISBSide = isisants_sideB;
+
+/** Armed Status for the antenna system*/
+ISISantsArmStatus RArmed = isisants_arm;
+
+/** Disarmed status for the antenna system*/
+ISISantsArmStatus RDisarmed = isisants_disarm;
+
+/** Track whether the antenna has been initialized yet */
 static int antennaInitialized = 0;
 
 /***************************************************************************************************
@@ -36,22 +50,30 @@ static int antennaInitialized = 0;
  */
 int antennaInit(void) {
 
-	if (AntennaInitialized)
+	// only allow initialization once (return without error if already initialized)
+	if (antennaInitialized)
 		return 0;
 
-	int error = IsisAntS_initialize(&RAntennaI2Caddress, 4);
+	int error = IsisAntS_initialize(&RAntennaI2Caddress, ANTENNAS_ON_BOARD);
 
-	if (error == 0)
-		AntennaInitialized = 1;
+	// update flag if successfully initialized
+	if (!error)
+		antennaInitialized = 1;
+
+	// TODO: record errors (if present) to System Manager
 
 	return error;
 }
 
 /**
- * Activate the auto-deployment mechanism on ISISpace Antenna System
+ * Activate the auto-deployment mechanism on ISISpace Antenna System which will attempt to sequentially
+ * deploy all anntennas present on the system without intervention. Has a built in timer per antenna deployment
  * @return 0 for success, non-zero for failure. See hal/errors.h for details.
  */
-int antennaDeployment(void) {
+int antennaDeploymentAttempt(void) {
+
+	//Arm A Side Antenna system
+	IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISASide,RArmed);
 
 	//deploying A side
 	if (RantennaDeploymentStatus.DeployedsideA == 0) {
@@ -61,6 +83,12 @@ int antennaDeployment(void) {
 		RantennaDeploymentStatus.DeployedsideA = 1;
 	}
 
+	//Disarm A Side Antenna System
+	IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISASide,RDisarmed);
+
+	//Arm B Side Antenna System
+	IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISBSide,RArmed);
+
 	//deploying B side
 	if (RantennaDeploymentStatus.DeployedsideB == 0) {
 		int error = IsisAntS_autoDeployment(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,60);
@@ -69,40 +97,17 @@ int antennaDeployment(void) {
 		RantennaDeploymentStatus.DeployedsideB = 1;
 	}
 
+	//Disarm B Side Antenna System
+	IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISBSide,RDisarmed)
+
+
 	return 0;
 }
 
 /**
- * Collect temperature data from the ISISpace Antenna
+ * Collect all telemetry from the ISISpace Antenna which includes temperatures, uptime, and antenna status
  *
  * @param side 0 for top side of antenna temperature, 1 for bottom side of the antenna temperature, will default to bottom side
  * @return 0 for success, non-zero for failure. See hal/errors.h for details.
  */
-int antennaGetTemperature(uint16_t side) {
-	unsigned short RAntennaTemperature = 0;
-	int error = 0;
-	switch(side) {
-		case 0:
-			error = IsisAntS_getTemperature(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,&RAntennaTemperature);
-			if (error != 0) { //error occured
-				return error;
-			}
-			break;
-		case 1:
-			error = IsisAntS_getTemperature(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,&RAntennaTemperature);
-			if (error != 0) { //error occured
-				return error;
-			}
-			break;
-		default:
-			error = IsisAntS_getTemperature(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,&RAntennaTemperature);
-			if (error != 0) { //error occured
-				return error;
-			}
-	}
-
-	//TODO: Conversion of raw temperature data to valid temperature data
-	//Problem: Don't know the type of temperature sensor and are unsure how to convert raw temperature data
-
-
-}
+int atennaGetAllTelemetry()
