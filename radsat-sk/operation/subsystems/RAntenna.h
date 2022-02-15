@@ -1,7 +1,7 @@
 /**
  * @file RAntenna.h
  * @date December 12, 2021
- * @author Tyrel Kostyk (tck290)
+ * @author Addi Amaya (caa746)
  */
 
 #ifndef RANTENNA_H_
@@ -58,7 +58,7 @@ typedef struct _antenna_telemetry_t {
 
 int antennaInit(void);
 int antennaDeploymentAttempt(void)
-int antennaGetTemperature(uint16_t side);
+int antennaTelemetry(antenna_telemetry_t* telemetry);
 
 
 #endif /* RANTENNA_H_ */
