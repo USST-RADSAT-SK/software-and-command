@@ -34,14 +34,22 @@ typedef struct _antennaDeploymentStatus {
 	int DeployedAntennaTwo;
 	int DeployedAntennaThree;
 	int DeployedAntennaFour;
-	int AntennaArmedASide;
-	int AntennaArmedBSide;
+	int AntennaArmed;
 } antennaDeploymentStatus;
+
+/** Struct that holds telemetry for one side of the Antenna */
+typedef struct _antenna_telemetry_side {
+	antennaDeploymentStatus deployStatus;	///< Antenna Deployment status.
+	float board_temp; 					 	///< Antenna board temperature.
+	uint32_t uptime;						///< Antenna Uptime in Seconds.
+} antenna_telemetry_side;
 
 /** Struct that holds all telemetry for the Antenna */
 typedef struct _antenna_telemetry_t {
-
+	antenna_telemetry_side sideA;	///< Antenna Telemetry for side A.
+	antenna_telemetry_side sideB;   ///< Antenna Telemetry for side B.
 } antenna_telemetry_t;
+
 
 
 /***************************************************************************************************
