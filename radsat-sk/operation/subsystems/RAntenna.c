@@ -12,14 +12,11 @@
                                   PRIVATE DEFINITIONS AND VARIABLES
 ***************************************************************************************************/
 
-/** number of attached Antennas in the system */
-#define ANTENNAS_ON_BOARD 4
-
 /** Struct for defining Antenna Systems I2C Addresses. Configured as a single bus, both address write to same location */
 ISISantsI2Caddress RAntennaI2Caddress = {ANTENNA_I2C_SLAVE_ADDR_PRIMARY,ANTENNA_I2C_SLAVE_ADDR_REDUNANT};
 
 /** Struct that holds the current deployment status of the antenna*/
-antennaDeploymentStatus RantennaDeploymentStatus;
+antennaDeploymentStatus RAntennaStatus;
 
 /** Side A of the Antenna system*/
 ISISantsSide RISISASide = isisants_sideA;
@@ -36,23 +33,9 @@ ISISantsArmStatus RDisarmed = isisants_disarm;
 /** Track whether the antenna has been initialized yet */
 static int antennaInitialized = 0;
 
-/** Track whether Antenna One has be been deployed */
-static int antennaOneDeployed = 0;
+/** Track Number of times the antenna attempted to deploy*/
+static int antennaDeploymentAttempts = 0;
 
-/** Track whether Antenna Two has be been deployed */
-static int antennaTwoDeployed = 0;
-
-/** Track whether Antenna Three has be been deployed */
-static int antennaThreeDeployed = 0;
-
-/** Track whether Antenna Four has be been deployed */
-static int antennaFourDeployed = 0;
-
-/** Track whether Antenna A Side is Armed*/
-static int antennaASideArmed = 0;
-
-/** Track whether Antenna B Side is Armed*/
-static int antennaBSideArmed = 0;
 
 /***************************************************************************************************
                                              PUBLIC API
@@ -87,49 +70,102 @@ int antennaInit(void) {
  */
 int antennaDeploymentAttempt(void) {
 
-	//Get Current Status of the Antenna
+	//Initialize the union for status
+	ISISantsStatus RISISantsStatus = { .fields = { 0 } };
 
-	//Arm A Side Antenna system
-	IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISASide,RArmed);
+	//Get status of the antenna
+	IsisAntS_getStatusData(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,&RISISantsStatus);
 
-	//Check if A side was armed, if not, try again
+	//A Side deployment Attempt
+	while ( antennaDeploymentAttempts < MAX_DEPLOYMENT_ATTEMPTS ) {
 
-	//Must be armed, and at least one of the A side antennas are not deployed
+		//Get status of the antenna
+		IsisAntS_getStatusData(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,&RISISantsStatus);
 
-	//deploy A side Attempt
-	if (RantennaDeploymentStatus.DeployedsideA == 0) {
-		int error = IsisAntS_autoDeployment(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,60);
-		if(error != 0)
-			return error;
-		RantennaDeploymentStatus.DeployedsideA = 1;
+		//update the antenna status struct
+		RAntennaStatus.DeployedAntennaOne = RISISantsStatus.fields.ant1Undeployed;
+		RAntennaStatus.DeployedAntennaTwo = RISISantsStatus.fields.ant2Undeployed;
+		RAntennaStatus.DeployedAntennaThree = RISISantsStatus.fields.ant3Undeployed;
+		RAntennaStatus.DeployedAntennaFour = RISISantsStatus.fields.ant4Undeployed;
+		RAntennaStatus.AntennaArmedASide = RISISantsStatus.fields.armed;
+
+
+		//if one antenna is not deployed, repeat attempt
+		if (!RAntennaStatus.DeployedAntennaOne || !RAntennaStatus.DeployedAntennaTwo || !RAntennaStatus.DeployedAntennaThree || !RAntennaStatus.DeployedAntennaFour) {
+
+			//Arm A Side Antenna system
+			IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISASide,RArmed);
+
+			//updated armed status
+			IsisAntS_getStatusData(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,&RISISantsStatus);
+			RAntennaStatus.AntennaArmedASide = RISISantsStatus.fields.armed;
+
+			//must be armed before deployment can occur
+			if (RAntennaStatus.AntennaArmedASide) {
+
+				//Start automatic deployment
+				int error = IsisAntS_autoDeployment(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,MAX_DEPLOYMENT_TIMEOUT);
+				if(error != 0) {
+
+					// TODO: record errors (if present) to System Manager
+					return error;
+				}
+
+				//disarm A Side Antenna system
+				IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISASide,RDisarmed);
+			}
+
+		}
+
+		antennaDeploymentAttempts += 1;
 	}
 
-	//Check to see if Antennas were deployed, if not attempts again
+	//reset attempt counter
+	antennaDeploymentAttempts = 0;
 
-	//Disarm A Side Antenna System
-	IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISASide,RDisarmed);
+	//B Side deployment Attempt
+	while ( antennaDeploymentAttempts < MAX_DEPLOYMENT_ATTEMPTS ) {
 
-	//Check if A Side if Disarmed, if not, attempt again
+		//Get status of the antenna
+		IsisAntS_getStatusData(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,&RISISantsStatus);
 
-	//Arm B Side Antenna System
-	IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISBSide,RArmed);
+		//update the antenna status struct
+		RAntennaStatus.DeployedAntennaOne = RISISantsStatus.fields.ant1Undeployed;
+		RAntennaStatus.DeployedAntennaTwo = RISISantsStatus.fields.ant2Undeployed;
+		RAntennaStatus.DeployedAntennaThree = RISISantsStatus.fields.ant3Undeployed;
+		RAntennaStatus.DeployedAntennaFour = RISISantsStatus.fields.ant4Undeployed;
+		RAntennaStatus.AntennaArmedBSide = RISISantsStatus.fields.armed;
 
-	//Check if B Side is armed, if not, attempt again
 
-	//deploying B side
-	if (RantennaDeploymentStatus.DeployedsideB == 0) {
-		int error = IsisAntS_autoDeployment(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,60);
-		if(error != 0)
-			return error;
-		RantennaDeploymentStatus.DeployedsideB = 1;
+		//if one antenna is not deployed, repeat attempt
+		if (!RAntennaStatus.DeployedAntennaOne || !RAntennaStatus.DeployedAntennaTwo || !RAntennaStatus.DeployedAntennaThree || !RAntennaStatus.DeployedAntennaFour) {
+
+			//Arm B Side Antenna system
+			IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISBSide,RArmed);
+
+			//updated armed status
+			IsisAntS_getStatusData(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,&RISISantsStatus);
+			RAntennaStatus.AntennaArmedBSide = RISISantsStatus.fields.armed;
+
+			//must be armed before deployment can occur
+			if (RAntennaStatus.AntennaArmedBSide) {
+
+				//Start automatic deployment
+				int error = IsisAntS_autoDeployment(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,MAX_DEPLOYMENT_TIMEOUT);
+				if(error != 0) {
+
+					// TODO: record errors (if present) to System Manager
+					return error;
+				}
+
+				//disarm A Side Antenna system
+				IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISBSide,RDisarmed);
+			}
+
+		}
+
+		antennaDeploymentAttempts += 1;
 	}
-
-	//Check to see if Atnennas were deployed, if not, attempt again
-
-	//Disarm B Side Antenna System
-	IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,RISISBSide,RDisarmed)
-
-	//Check to see if B side is disarmed, if not, attempt again
 
 
 	return 0;
@@ -141,4 +177,6 @@ int antennaDeploymentAttempt(void) {
  * @param side 0 for top side of antenna temperature, 1 for bottom side of the antenna temperature, will default to bottom side
  * @return 0 for success, non-zero for failure. See hal/errors.h for details.
  */
-int atennaGetAllTelemetry()
+int antennaTelemetry(antenna_telemetry_t* telemetry) {
+
+}

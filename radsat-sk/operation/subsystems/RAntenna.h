@@ -19,15 +19,29 @@
 /** I2C slave address for antenna receive port, primary */
 #define ANTENNA_I2C_SLAVE_ADDR_REDUNANT (0x32)
 
-/** Antenna Deployment status */
+/** number of attached Antennas in the system */
+#define ANTENNAS_ON_BOARD 4
+
+/** Number of Attempts allowed for deployment */
+#define MAX_DEPLOYMENT_ATTEMPTS 5
+
+/** Max Time allowed for a deployment for an Antenna in seconds */
+#define MAX_DEPLOYMENT_TIMEOUT 60
+
+/** Antenna Deployment status Struct */
 typedef struct _antennaDeploymentStatus {
 	int DeployedAntennaOne;
 	int DeployedAntennaTwo;
 	int DeployedAntennaThree;
 	int DeployedAntennaFour;
-	int SideAArmed;
-	int SideBArmed;
+	int AntennaArmedASide;
+	int AntennaArmedBSide;
 } antennaDeploymentStatus;
+
+/** Struct that holds all telemetry for the Antenna */
+typedef struct _antenna_telemetry_t {
+
+} antenna_telemetry_t;
 
 
 /***************************************************************************************************
@@ -35,7 +49,7 @@ typedef struct _antennaDeploymentStatus {
 ***************************************************************************************************/
 
 int antennaInit(void);
-int antennaDeployment(void);
+int antennaDeploymentAttempt(void)
 int antennaGetTemperature(uint16_t side);
 
 
