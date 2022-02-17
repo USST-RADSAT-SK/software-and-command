@@ -192,6 +192,7 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 	if (telemetry == 0)
 		return E_INPUT_POINTER_NULL;
 
+	// ISISpace structs to store receiver and transmitter telemetry
 	ISIStrxvuRxTelemetry rawRxTelemetry = { .fields = { 0 } };
 	ISIStrxvuTxTelemetry rawTxTelemetry = { .fields = { 0 } };
 
@@ -222,28 +223,28 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 		return error;
 
 	// convert the raw receiver values to true telemetry values
-	// TODO: should this be done here? Or by Ground Station?
-	telemetry->rx.rx_doppler = rawRxTelemetry.fields.rx_doppler * (rawRxTelemetry.fields.rx_doppler * 0.00005887);
-	telemetry->rx.rx_rssi = rawRxTelemetry.fields.rx_rssi * (rawRxTelemetry.fields.rx_rssi * 0.00005887);
+	// TODO: confirm that the MCU can accurately perform these calculations
+	telemetry->rx.rx_doppler = (rawRxTelemetry.fields.rx_doppler * 13.352) - 223000;
+	telemetry->rx.rx_rssi = (rawRxTelemetry.fields.rx_rssi * 0.03) - 152;
 	telemetry->rx.bus_volt = rawRxTelemetry.fields.bus_volt * 0.00488;
 	telemetry->rx.vutotal_curr = rawRxTelemetry.fields.vutotal_curr * 0.16643964;
 	telemetry->rx.vutx_curr = rawRxTelemetry.fields.vutx_curr * 0.16643964;
 	telemetry->rx.vurx_curr = rawRxTelemetry.fields.vurx_curr * 0.16643964;
 	telemetry->rx.vupa_curr = rawRxTelemetry.fields.vupa_curr * 0.16643964;
-	telemetry->rx.pa_temp = rawRxTelemetry.fields.pa_temp * -0.07669 + 195.6037;
-	telemetry->rx.board_temp = rawRxTelemetry.fields.board_temp * -0.07669 + 195.6037;
+	telemetry->rx.pa_temp = (rawRxTelemetry.fields.pa_temp * -0.07669) + 195.6037;
+	telemetry->rx.board_temp = (rawRxTelemetry.fields.board_temp * -0.07669) + 195.6037;
 
 	// convert the raw transmitter values to true telemetry values
-	// TODO: should this be done here? Or by Ground Station?
-	telemetry->tx.tx_reflpwr = rawTxTelemetry.fields.tx_reflpwr * 13.352 - 22300;
-    telemetry->tx.tx_fwrdpwr = rawTxTelemetry.fields.tx_fwrdpwr * 0.03 - 152;
+	// TODO: confirm that the MCU can accurately perform these calculations
+	telemetry->tx.tx_reflpwr = rawTxTelemetry.fields.tx_reflpwr * rawTxTelemetry.fields.tx_reflpwr * 0.0005887;
+    telemetry->tx.tx_fwrdpwr = rawTxTelemetry.fields.tx_fwrdpwr * rawTxTelemetry.fields.tx_fwrdpwr * 0.0005887;
     telemetry->tx.bus_volt = rawTxTelemetry.fields.bus_volt * 0.00488;
 	telemetry->tx.vutotal_curr = rawTxTelemetry.fields.vutotal_curr * 0.16643964;
 	telemetry->tx.vutx_curr = rawTxTelemetry.fields.vutx_curr * 0.16643964;
 	telemetry->tx.vurx_curr = rawTxTelemetry.fields.vurx_curr * 0.16643964;
 	telemetry->tx.vupa_curr = rawTxTelemetry.fields.vupa_curr * 0.16643964;
-	telemetry->tx.pa_temp = rawTxTelemetry.fields.pa_temp * -0.07669 + 195.6037;
-	telemetry->tx.board_temp = rawTxTelemetry.fields.board_temp * -0.07669 + 195.6037;
+	telemetry->tx.pa_temp = (rawTxTelemetry.fields.pa_temp * -0.07669) + 195.6037;
+	telemetry->tx.board_temp = (rawTxTelemetry.fields.board_temp * -0.07669) + 195.6037;
 
 	uptime = 0;
 	error = transceiverTxUpTime(&uptime);
