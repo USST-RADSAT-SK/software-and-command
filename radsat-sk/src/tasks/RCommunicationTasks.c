@@ -34,7 +34,7 @@
 #define TRANSMITTER_LONG_DELAY	((uint8_t)TRANCEIVER_TX_MAX_FRAME_SIZE)
 
 
-/** Abstraction of the reponse states */
+/** Abstraction of the response states */
 typedef enum _response_state_t {
 	responseStateIdle	= 0,	///> Awaiting response from Ground Station
 	responseStateReady	= 1,	///> Ready to transmit to Ground Station
