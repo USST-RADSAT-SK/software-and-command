@@ -5,6 +5,7 @@
  */
 
 #include <RTransceiver.h>
+#include <RI2c.h>
 #include <satellite-subsystems/IsisTRXVU.h>
 #include <hal/errors.h>
 #include <string.h>
@@ -16,6 +17,10 @@
 
 /** Index of our Transceiver; the IsisTRXVU.h SSI module allows for multiple TRX instances */
 #define TRANSCEIVER_INDEX	0
+
+#define TRX_WDOG_RESET_CMD_CODE	0xCC
+#define TRX_WDOG_RESET_CMD_SIZE	1
+
 
 /** Track whether the Transceiver has been initialized yet */
 static uint8_t initialized = 0;
@@ -249,6 +254,29 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 	uptime = 0;
 	error = transceiverTxUpTime(&uptime);
 	telemetry->tx.uptime = uptime;
+
+	return error;
+}
+
+
+int transceiverResetWatchDogs(void) {
+
+	int error = 0;
+
+	// create buffer to hold reset command code
+	uint8_t writeData[TRX_WDOG_RESET_CMD_SIZE] = { TRX_WDOG_RESET_CMD_CODE };
+
+	// transmit WDOG Reset to receiver module
+	error = i2cTransmit(TRANSCEIVER_RX_I2C_SLAVE_ADDR, writeData, sizeof(writeData));
+
+	if (error != 0)
+		return error;
+
+	// transmit WDOG Reset to transmitter module
+	error = i2cTransmit(TRANSCEIVER_TX_I2C_SLAVE_ADDR, writeData, sizeof(writeData));
+
+	if (error != 0)
+		return error;
 
 	return error;
 }
