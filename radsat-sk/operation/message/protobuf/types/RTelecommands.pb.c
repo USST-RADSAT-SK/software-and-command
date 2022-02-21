@@ -21,7 +21,7 @@ PB_BIND(CeaseTransmission, CeaseTransmission, AUTO)
 PB_BIND(ResumeTransmission, ResumeTransmission, AUTO)
 
 
-PB_BIND(UpdatePassTime, UpdatePassTime, AUTO)
+PB_BIND(UpdateTime, UpdateTime, AUTO)
 
 
 PB_BIND(Reset, Reset, AUTO)

@@ -29,7 +29,7 @@ uint8_t protocolGenerate(uint16_t messageTag, uint8_t* wrappedMessage) {
 	RadsatMessage rawMessage = { 0 };
 
 	// populate the simple protocol message
-	rawMessage.which_topic = RadsatMessage_protocolMessage_tag;
+	rawMessage.which_service = RadsatMessage_protocolMessage_tag;
 	rawMessage.protocolMessage.which_message = messageTag;
 
 	// prepare the message
@@ -64,7 +64,7 @@ uint8_t protocolHandle(uint8_t* wrappedMessage, uint8_t size) {
 		return 0;
 
 	// exit if this message is not a telecommand message
-	if (rawMessage.which_topic != RadsatMessage_protocolMessage_tag)
+	if (rawMessage.which_service != RadsatMessage_protocolMessage_tag)
 		return 0;
 
 	// obtain and return the response

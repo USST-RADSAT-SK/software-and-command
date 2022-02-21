@@ -17,7 +17,7 @@ message TelecommandMessage {
 		BeginFileTransfer beginFileTransfer		= 2;
 		CeaseTransmission ceaseTransmission		= 3;
 		ResumeTransmission ResumeTransmission	= 4;
-		UpdatePassTime updatePassTime			= 5;
+		UpdateTime updateTime					= 5;
 		Reset reset								= 6;
 	}
 }
@@ -41,7 +41,7 @@ message ResumeTransmission {
 }
 
 // Update the OBC's local time on its Real-Time Clock
-message UpdatePassTime {
+message UpdateTime {
 	int32 unixTime = 1;
 }
 

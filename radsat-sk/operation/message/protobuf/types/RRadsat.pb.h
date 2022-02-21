@@ -14,7 +14,7 @@
 
 /* Struct definitions */
 typedef struct _RadsatMessage {
-    pb_size_t which_topic;
+    pb_size_t which_service;
     union {
         ProtocolMessage protocolMessage;
         FileTransferMessage fileTransferMessage;
@@ -38,14 +38,14 @@ extern "C" {
 
 /* Struct field encoding specification for nanopb */
 #define RadsatMessage_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (topic,protocolMessage,protocolMessage),   1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (topic,fileTransferMessage,fileTransferMessage),   2) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (topic,telecommandMessage,telecommandMessage),   3)
+X(a, STATIC,   ONEOF,    MESSAGE,  (service,protocolMessage,protocolMessage),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (service,fileTransferMessage,fileTransferMessage),   2) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (service,telecommandMessage,telecommandMessage),   3)
 #define RadsatMessage_CALLBACK NULL
 #define RadsatMessage_DEFAULT NULL
-#define RadsatMessage_topic_protocolMessage_MSGTYPE ProtocolMessage
-#define RadsatMessage_topic_fileTransferMessage_MSGTYPE FileTransferMessage
-#define RadsatMessage_topic_telecommandMessage_MSGTYPE TelecommandMessage
+#define RadsatMessage_service_protocolMessage_MSGTYPE ProtocolMessage
+#define RadsatMessage_service_fileTransferMessage_MSGTYPE FileTransferMessage
+#define RadsatMessage_service_telecommandMessage_MSGTYPE TelecommandMessage
 
 extern const pb_msgdesc_t RadsatMessage_msg;
 

@@ -29,7 +29,7 @@ uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
 		return 0;
 
 	// exit if this message is not a telecommand message
-	if (rawMessage.which_topic != RadsatMessage_telecommandMessage_tag)
+	if (rawMessage.which_service != RadsatMessage_telecommandMessage_tag)
 		return 0;
 
 	// obtain the specific telecommand
@@ -38,32 +38,39 @@ uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
 	// execute the telecommands
 	switch (telecommand) {
 
-		// TODO: implement functionality
+		// indicates that a communication link has been established
 		case (TelecommandMessage_beginPass_tag):
+			// do nothing; this reception of this telecommand already begins the pass mode
 			break;
 
-		// TODO: implement functionality
+		// indicates that a telecommands are done; ready for file transfers
 		case (TelecommandMessage_beginFileTransfer_tag):
+			// do nothing; higher level tasks will handle
 			break;
 
-		// TODO: implement functionality
+		// indicates that all downlink activities shall be ceased
 		case (TelecommandMessage_ceaseTransmission_tag):
+			// do nothing; higher level tasks will handle
 			break;
 
-		// TODO: implement functionality
+		// indicates that downlink activities may be resumed
 		case (TelecommandMessage_ResumeTransmission_tag):
+			// do nothing; higher level tasks will handle
 			break;
 
-		// TODO: implement functionality
-		case (TelecommandMessage_updatePassTime_tag):
+		// provides a new accurate time for the OBC to set itself to
+		case (TelecommandMessage_updateTime_tag):
+			// TODO: implement functionality
 			break;
 
-		// TODO: implement functionality
+		// instructs OBC to reset certain components on the Satellite
 		case (TelecommandMessage_reset_tag):
+			// TODO: implement functionality
 			break;
 
-		// unknown telecommand; return failure
+		// unknown telecommand
 		default:
+			// do nothing; return failure
 			return 0;
 	}
 

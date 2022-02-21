@@ -7,6 +7,7 @@
 #include <RTransceiver.h>
 #include <RCommunicationTasks.h>
 #include <RProtocolService.h>
+#include <RTelecommandService.h>
 
 #include <string.h>
 
@@ -44,8 +45,8 @@ typedef enum _response_state_t {
 
 /** Abstraction of the ACK/NACK return types */
 typedef enum _response_t {
-	responseACK		= ProtocolMessage_ack_tag,	///> Acknowledge (the message was received properly)
-	responseNACK	= ProtocolMessage_nack_tag,	///> Negative Acknowledge (the message was NOT received properly)
+	responseAck		= ProtocolMessage_ack_tag,	///> Acknowledge (the message was received properly)
+	responseNack	= ProtocolMessage_nack_tag,	///> Negative Acknowledge (the message was NOT received properly)
 } response_t;
 
 
@@ -104,6 +105,9 @@ static void endQuietModeCallback(xTimerHandle timer);
 
 static void resetState(void);
 
+static void ceaseTransmission(void);
+static void resumeTransmission(void);
+
 
 /***************************************************************************************************
 											 PUBLIC API
@@ -157,18 +161,45 @@ void communicationRxTask(void* parameters) {
 				if ((state.mode == commModeTelecommand || state.mode == commModeQuiet)
 				&& (!state.telecommand.transmitReady))
 				{
-					// TODO: forward message to command centre and determine ACK/NACK response to send
-					// TODO: determine if this message was signalling the end of telecommand mode
-					response_t response = responseACK;
-					int endOfTelecommandMode = 1;
+					// send telecommands to Telecommand Service for execution; extract specific telecommand
+					uint8_t telecommand = telecommandHandle(rxMessage, rxMessageSize);
 
-					// prepare for file transfer mode (if necessary)
-					if (endOfTelecommandMode)
-						state.mode = commModeFileTransfer;
+					// a valid telecommand was received and extracted
+					if (telecommand > 0)
+						state.telecommand.responseToSend = responseAck;
+
+					// no valid telecommand could be extracted
+					else
+						state.telecommand.responseToSend = responseNack;
 
 					// prepare to send ACK/NACK response
-					state.telecommand.responseToSend = response;
 					state.telecommand.transmitReady = responseStateReady;
+
+					// handle additional (communication-related) telecommand actions if necessary
+					switch (telecommand) {
+
+						// indicates that a telecommands are done; ready for file transfers
+						case (TelecommandMessage_beginFileTransfer_tag):
+							// prepare for File Transfer Mode
+							state.mode = commModeFileTransfer;
+							break;
+
+						// indicates that all downlink activities shall be ceased
+						case (TelecommandMessage_ceaseTransmission_tag):
+							// immediately cease all downlink communications
+							ceaseTransmission();
+							break;
+
+						// indicates that downlink activities may be resumed
+						case (TelecommandMessage_ResumeTransmission_tag):
+							// immediately resume all downlink communications
+							resumeTransmission();
+							break;
+
+						default:
+							// do nothing; all other responsibilities are managed within the Telecommand Service
+							break;
+					}
 				}
 
 				// file transfer mode, awaiting ACK/NACK from the Ground Station
@@ -237,7 +268,7 @@ void communicationTxTask(void* parameters) {
 			else if (state.mode == commModeFileTransfer && state.fileTransfer.transmitReady) {
 
 				// ACK received from ground Station; obtain next message and send it
-				if (state.fileTransfer.responseReceived == responseACK) {
+				if (state.fileTransfer.responseReceived == responseAck) {
 
 					// clear transmission error counter
 					state.fileTransfer.transmissionErrors = 0;
@@ -253,7 +284,7 @@ void communicationTxTask(void* parameters) {
 						state.telecommand.transmitReady = responseStateIdle;
 					// force NACK in order to resend the packet
 					else
-						state.fileTransfer.responseReceived = responseNACK;
+						state.fileTransfer.responseReceived = responseNack;
 				}
 
 				// NACK received from ground Station; re-send the previous message
@@ -292,42 +323,6 @@ void communicationTxTask(void* parameters) {
  */
 uint8_t communicationPassModeActive(void) {
 	return (state.mode > commModeIdle);
-}
-
-
-/**
- * Forcefully puts the communication Tasks into quiet mode, without an automatic way out.
- *
- * Should only be put here via Telecommand from Ground Station. Only way out is through a
- * subsequent telecommand from the Ground Station (see @sa communicationResumeTransmission).
- */
-void communicationCeaseTransmission(void) {
-
-	// reset the local communication state
-	resetState();
-
-	// cancel any communication mode timers that may be running
-	xTimerStop(passTimer, 0);
-	xTimerStop(quietTimer, 0);
-
-	// enter quiet mode
-	state.mode = commModeQuiet;
-}
-
-
-/**
- * Forcefully puts the communication Tasks back into idle mode, ready to continue normal operations.
- *
- * Should only be called via Telecommand from the Ground Station, following a previous Telecommand
- * that had the Satellite cease transmissions (see @sa communicationCeaseTransmission).
- */
-void communicationResumeTransmission(void) {
-
-	// reset the local communication state
-	resetState();
-
-	// start a pass mode (clearly are in one if we received this command)
-	startPassMode();
 }
 
 
@@ -437,3 +432,40 @@ static void endQuietModeCallback(xTimerHandle xTimer) {
 static void resetState(void) {
 	memset(&state, 0, sizeof(communication_state_t));
 }
+
+
+/**
+ * Forcefully puts the communication Tasks into quiet mode, without an automatic way out.
+ *
+ * Should only be put here via Telecommand from Ground Station. Only way out is through a
+ * subsequent telecommand from the Ground Station (see @sa resumeTransmission).
+ */
+static void ceaseTransmission(void) {
+
+	// reset the local communication state
+	resetState();
+
+	// cancel any communication mode timers that may be running
+	xTimerStop(passTimer, 0);
+	xTimerStop(quietTimer, 0);
+
+	// enter quiet mode
+	state.mode = commModeQuiet;
+}
+
+
+/**
+ * Forcefully puts the communication Tasks back into idle mode, ready to continue normal operations.
+ *
+ * Should only be called via Telecommand from the Ground Station, following a previous Telecommand
+ * that had the Satellite cease transmissions (see @sa ceaseTransmission).
+ */
+static void resumeTransmission(void) {
+
+	// reset the local communication state
+	resetState();
+
+	// start a pass mode (clearly are in one if we received this command)
+	startPassMode();
+}
+
