@@ -84,6 +84,7 @@
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
 									<listOptionValue builtIn="false" value="../operation/message/crypt"/>
+									<listOptionValue builtIn="false" value="../operation/services"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
@@ -230,6 +231,7 @@
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
 									<listOptionValue builtIn="false" value="../operation/message/crypt"/>
+									<listOptionValue builtIn="false" value="../operation/services"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
@@ -389,6 +391,7 @@
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
 									<listOptionValue builtIn="false" value="../operation/message/crypt"/>
+									<listOptionValue builtIn="false" value="../operation/services"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>
