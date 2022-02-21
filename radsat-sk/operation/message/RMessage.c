@@ -5,6 +5,7 @@
  */
 
 #include <RMessage.h>
+#include <RXorCipher.h>
 
 
 /***************************************************************************************************
@@ -31,16 +32,31 @@ uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage) {
 }
 
 
-uint8_t messageUnwrap(uint8_t* wrappedMessage, RadsatMessage* rawMessage) {
+uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, RadsatMessage* rawMessage) {
 
-	// TODO decrypt entire message
+	// decrypt entire message
+	int error = xorDecrypt(wrappedMessage, size);
+	if (error)
+		return 0;
 
-	// TODO confirm preamble, CRC
+	// access the message header; obtain size, confirm preamble and CRC
+	radsat_sk_header_t *header = (radsat_sk_header_t *)wrappedMessage;
 
-	// TODO deserialize message
+	if (header->preamble != RADSAT_SK_MESSAGE_PREAMBLE)
+		return 0;
 
-	// TODO fill the given buffer with the final unwrapped message
+	// calculate and confirm the CRC of entire message (except for preamble and crc itself)
+	crc_t localCrc = crcFast(&wrappedMessage[RADSAT_SK_HEADER_CRC_OFFSET],
+							 (int)(size - RADSAT_SK_HEADER_CRC_OFFSET));
 
-	return 0;
+	if (header->crc != localCrc)
+		return 0;
+
+	// deserialize the encoded message with NanoPB Protobuf decoding
+	error = protoDecode(&wrappedMessage[RADSAT_SK_HEADER_SIZE], rawMessage);
+	if (error)
+		return 0;
+
+	return header->size;
 }
 

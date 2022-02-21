@@ -20,8 +20,6 @@
 typedef struct __attribute__((packed)) _radsat_sk_header_t {
 	uint16_t preamble;		///> A hardcoded tag that identifies the start of a RADSAT-SK message
 	crc_t crc;				///> Cyclical Redundancy Check of all of the following bytes
-	uint8_t topicTag;		///> The Protobuf topic tag ID
-	uint8_t messageTag;		///> The Protobuf message tag ID
 	uint8_t size;			///> The size of the message in bytes (NOT including the header)
 } radsat_sk_header_t;
 
@@ -43,7 +41,7 @@ typedef struct __attribute__((packed)) _radsat_sk_header_t {
 ***************************************************************************************************/
 
 uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage);
-uint8_t messageUnwrap(uint8_t* wrappedMessage, RadsatMessage* rawMessage);
+uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, RadsatMessage* rawMessage);
 
 
 #endif /* RMESSAGE_H_ */

@@ -26,7 +26,7 @@
 ***************************************************************************************************/
 
 uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer);
-uint8_t protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage);
+int protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage);
 
 
 #endif /* RPROTOBUF_H_ */

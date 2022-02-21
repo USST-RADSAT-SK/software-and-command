@@ -5,6 +5,7 @@
  */
 
 #include <RProtobuf.h>
+#include <hal/errors.h>
 
 
 /***************************************************************************************************
@@ -41,19 +42,19 @@ uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer) {
  *
  * @param incomingBuffer The buffer containing the encoded message (no header).
  * @param decodedMessage The message that will be populated with the decoded message.
- * @return true (1) if the message is decoded successfully, false (0) otherwise.
+ * @return 0 if the message is decoded successfully, otherwise error occured.
  */
-uint8_t protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage) {
+int protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage) {
 
 	// ensure incoming buffers are not NULL
 	if (incomingBuffer == 0 || decodedMessage == 0)
-		return 0;
+		return E_INPUT_POINTER_NULL;
 
 	// create stream object
 	pb_istream_t stream = pb_istream_from_buffer((uint8_t*)incomingBuffer, PROTO_MAX_ENCODED_SIZE);
 
-	// encode the message into the byte array
+	// decode the message into the empty message struct
 	uint8_t success = pb_decode(&stream, RadsatMessage_fields, decodedMessage);
 
-	return success;
+	return !success;
 }
