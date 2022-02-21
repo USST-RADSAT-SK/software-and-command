@@ -7,6 +7,7 @@
 #ifndef RPROTOCOLSERVICE_H_
 #define RPROTOCOLSERVICE_H_
 
+#include <RProtocol.pb.h>
 #include <stdint.h>
 
 

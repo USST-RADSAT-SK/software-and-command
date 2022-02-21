@@ -6,7 +6,6 @@
 
 #include <RProtocolService.h>
 #include <RMessage.h>
-#include <hal/errors.h>
 
 
 /***************************************************************************************************

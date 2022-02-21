@@ -6,6 +6,7 @@
 
 #include <RTransceiver.h>
 #include <RCommunicationTasks.h>
+#include <RProtocolService.h>
 
 #include <string.h>
 
@@ -43,8 +44,8 @@ typedef enum _response_state_t {
 
 /** Abstraction of the ACK/NACK return types */
 typedef enum _response_t {
-	responseACK		= 0,	///> Acknowledge (the message was received properly)
-	responseNACK	= 1,	///> Negative Acknowledge (the message was NOT received properly)
+	responseACK		= ProtocolMessage_ack_tag,	///> Acknowledge (the message was received properly)
+	responseNACK	= ProtocolMessage_nack_tag,	///> Negative Acknowledge (the message was NOT received properly)
 } response_t;
 
 
@@ -173,8 +174,8 @@ void communicationRxTask(void* parameters) {
 				// file transfer mode, awaiting ACK/NACK from the Ground Station
 				else if (state.mode == commModeFileTransfer && !state.fileTransfer.transmitReady)
 				{
-					// TODO: forward message to command centre and extract the received ACK/NACK response
-					response_t response = responseACK;
+					// forward message to the Protocol Service and extract the received ACK/NACK response
+					response_t response = protocolHandle(rxMessage, rxMessageSize);
 
 					// prepare to send subsequent (or resend previous) file transfer frame
 					state.fileTransfer.responseReceived = response;
@@ -221,17 +222,14 @@ void communicationTxTask(void* parameters) {
 			if (state.telecommand.transmitReady) {
 
 				// serialize the ACK/NACK response to be sent
-				// TODO: use real functions
-//				if (state.telecommand.responseToSend == responseACK)
-//					downlinkSerializedAck(txMessage, &txMessageSize);
-//				else
-//					downlinkSerializedNack(txMessage, &txMessageSize);
+				txMessageSize = protocolGenerate(state.telecommand.responseToSend, txMessage);
 
 				// send the message
-				error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
+				if (txMessageSize > 0)
+					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
 
 				// prepare to receive next message
-				if (!error)
+				if (error == 0 && txMessageSize > 0)
 					state.telecommand.transmitReady = responseStateIdle;
 			}
 
@@ -272,7 +270,7 @@ void communicationTxTask(void* parameters) {
 					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
 
 					// prepare to receive ACK/NACK
-					if (!error)
+					if (error == 0)
 						state.telecommand.transmitReady = responseStateIdle;
 				}
 			}
@@ -406,10 +404,10 @@ static void startQuietMode(void) {
 	if (quietTimer == NULL) {
 		// create the timer; connect it to the callback
 		quietTimer = xTimerCreate((const signed char *)"quietTimer",
-								 QUIET_MODE_DURATION,
-								 pdFALSE,
-								 NULL,
-								 endQuietModeCallback);
+								  QUIET_MODE_DURATION,
+								  pdFALSE,
+								  NULL,
+								  endQuietModeCallback);
 
 		// start the timer immediately
 		xTimerStart(quietTimer, 0);
