@@ -59,7 +59,12 @@ uint8_t protocolHandle(uint8_t* wrappedMessage, uint8_t size) {
 	// unwrap the message
 	uint8_t rawSize = messageUnwrap(wrappedMessage, size, &rawMessage);
 
+	// exit if unwrapping failed
 	if (rawSize == 0)
+		return 0;
+
+	// exit if this message is not a telecommand message
+	if (rawMessage.which_topic != RadsatMessage_protocolMessage_tag)
 		return 0;
 
 	// obtain and return the response
