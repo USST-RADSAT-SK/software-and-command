@@ -41,6 +41,11 @@
 #endif
 
 
+/** BEGIN - MODIFIED BY TYREL KOSTYK FEB 21 2022 */
+// flag to track whether CRC lookup table has been computed or not
+static int initialized = 0;
+/** END   - MODIFIED BY TYREL KOSTYK FEB 21 2022 */
+
 /*********************************************************************
  *
  * Function:    reflect()
@@ -155,6 +160,12 @@ crc_t  crcTable[256];
 void
 crcInit(void)
 {
+    /** BEGIN - MODIFIED BY TYREL KOSTYK FEB 21 2022 */
+    // check flag to ensure this only gets ran once
+    if (initialized == 1)
+    	return;
+    /** END   - MODIFIED BY TYREL KOSTYK FEB 21 2022 */
+
     crc_t			   remainder;
 	int			   dividend;
 	unsigned char  bit;
@@ -194,6 +205,12 @@ crcInit(void)
         crcTable[dividend] = remainder;
     }
 
+    /** BEGIN - MODIFIED BY TYREL KOSTYK FEB 21 2022 */
+    // update flag to ensure this only gets ran once
+    if (initialized == 0)
+    	initialized = 1;
+    /** END   - MODIFIED BY TYREL KOSTYK FEB 21 2022 */
+
 }   /* crcInit() */
 
 
@@ -211,6 +228,13 @@ crcInit(void)
 crc_t
 crcFast(unsigned char const message[], int nBytes)
 {
+
+    /** BEGIN - MODIFIED BY TYREL KOSTYK FEB 21 2022 */
+	// run CRC init once to compute CRC lookup table (to improve speed of subsequent CRCs)
+    if (initialized == 0)
+    	crcInit();
+    /** END   - MODIFIED BY TYREL KOSTYK FEB 21 2022 */
+
     crc_t	           remainder = INITIAL_REMAINDER;
     unsigned char  data;
 	int            byte;

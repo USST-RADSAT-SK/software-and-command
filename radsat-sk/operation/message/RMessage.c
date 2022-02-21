@@ -12,7 +12,21 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
+/**
+ * Wrap a raw RADSAT-SK message, preparing it for downlink.
+ *
+ * This function will serialize the message with NanoPB Protobuf encoding, populate and prepend
+ * a message header, and generate a CRC of the message.
+ *
+ * @param rawMessage The raw RADSAT-SK message, including all desired data to be downlinked.
+ * @param wrappedMessage The final wrapped message. Filled by function.
+ * @return The size of the message, not including header. 0 on failure.
+ */
 uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage) {
+
+	// ensure the input pointers are not NULL
+	if (rawMessage == 0 || wrappedMessage == 0)
+		return 0;
 
 	// serialize the raw message with NanoPB Protobuf encoding
 	uint8_t encodedSize = protoEncode(rawMessage, &wrappedMessage[RADSAT_SK_HEADER_SIZE]);
@@ -32,7 +46,23 @@ uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage) {
 }
 
 
+/**
+ * Unwrap a message, extracting its contents after being uplinked.
+ *
+ * This message decrypts the message using a simple XOR Cipher, extracts and validates the data
+ * found in the message header (including the CRC), and then deserializes the message with NanoPB
+ * Protobuf encoding.
+ *
+ * @param wrappedMessage The message to unwrap.
+ * @param size The size of the full message buffer.
+ * @param rawMessage The final extracted message. Filled by function.
+ * @return The size of the message, not including the header. 0 on failure.
+ */
 uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, RadsatMessage* rawMessage) {
+
+	// ensure the input pointers are not NULL
+	if (wrappedMessage == 0 || rawMessage == 0)
+		return 0;
 
 	// decrypt entire message
 	int error = xorDecrypt(wrappedMessage, size);
@@ -42,13 +72,15 @@ uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, RadsatMessage* rawM
 	// access the message header; obtain size, confirm preamble and CRC
 	radsat_sk_header_t *header = (radsat_sk_header_t *)wrappedMessage;
 
+	// confirm preamble
 	if (header->preamble != RADSAT_SK_MESSAGE_PREAMBLE)
 		return 0;
 
-	// calculate and confirm the CRC of entire message (except for preamble and crc itself)
+	// locally calculate the CRC of the entire message (except for preamble and crc itself)
 	crc_t localCrc = crcFast(&wrappedMessage[RADSAT_SK_HEADER_CRC_OFFSET],
 							 (int)(size - RADSAT_SK_HEADER_CRC_OFFSET));
 
+	// confirm locally-calculated CRC with the one sent with the message header
 	if (header->crc != localCrc)
 		return 0;
 
@@ -57,6 +89,7 @@ uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, RadsatMessage* rawM
 	if (error)
 		return 0;
 
+	// return the size of the message itself
 	return header->size;
 }
 
