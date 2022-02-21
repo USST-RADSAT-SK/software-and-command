@@ -23,12 +23,12 @@
 /*
  * Select the CRC standard from the list that follows.
  */
-#define CRC32
+#define CRC16
 
 
 #if defined(CRC_CCITT)
 
-typedef unsigned short  crc;
+typedef unsigned short  crc_t;
 
 #define CRC_NAME			"CRC-CCITT"
 #define POLYNOMIAL			0x1021
@@ -40,7 +40,7 @@ typedef unsigned short  crc;
 
 #elif defined(CRC16)
 
-typedef unsigned short  crc;
+typedef unsigned short  crc_t;
 
 #define CRC_NAME			"CRC-16"
 #define POLYNOMIAL			0x8005
@@ -52,7 +52,7 @@ typedef unsigned short  crc;
 
 #elif defined(CRC32)
 
-typedef unsigned long  crc;
+typedef unsigned long  crc_t;
 
 #define CRC_NAME			"CRC-32"
 #define POLYNOMIAL			0x04C11DB7
@@ -70,8 +70,8 @@ typedef unsigned long  crc;
 
 
 void  crcInit(void);
-crc   crcSlow(unsigned char const message[], int nBytes);
-crc   crcFast(unsigned char const message[], int nBytes);
+crc_t   crcSlow(unsigned char const message[], int nBytes);
+crc_t   crcFast(unsigned char const message[], int nBytes);
 
 
 #endif /* _crc_h */

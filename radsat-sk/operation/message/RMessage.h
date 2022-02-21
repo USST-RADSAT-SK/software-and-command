@@ -8,30 +8,42 @@
 #define RMESSAGE_H_
 
 #include <stdint.h>
+#include <crc.h>
+#include <RProtobuf.h>
 
 
 /***************************************************************************************************
                                              DEFINITIONS
 ***************************************************************************************************/
 
+/** Header that will precede all RADSAT-SK messages. */
 typedef struct __attribute__((packed)) _radsat_sk_header_t {
-	uint32_t preamble;		///> A 32-bit tag that identifies the start of the message
-	uint32_t crc;			///> Cyclical Redundancy Check of the message following this header
-	uint16_t topicTag;		///> The Protobuf topic tag ID
-	uint16_t messageTag;	///> The Protobuf message tag ID
-	uint16_t size;			///> The size of the message in bytes (NOT including the header)
+	uint16_t preamble;		///> A hardcoded tag that identifies the start of a RADSAT-SK message
+	crc_t crc;				///> Cyclical Redundancy Check of all of the following bytes
+	uint8_t topicTag;		///> The Protobuf topic tag ID
+	uint8_t messageTag;		///> The Protobuf message tag ID
+	uint8_t size;			///> The size of the message in bytes (NOT including the header)
 } radsat_sk_header_t;
 
-#define RADSAT_SK_MESSAGE_PREAMBLE	((uint32_t)0x55535354)	////> "USST" in ASCII code
+/** The hardcoded preamble that will begin every RADSAT-SK message. The starting year the RADSAT-SK Project*/
+#define RADSAT_SK_MESSAGE_PREAMBLE	(0x2018)
 
+/** The size of the RADSAT-SK message header. */
+#define RADSAT_SK_HEADER_SIZE	(sizeof(radsat_sk_header_t))
+
+/** The offset of the CRC start location within the RADSAT-SK Message Header. */
+#define RADSAT_SK_HEADER_CRC_OFFSET	(sizeof(((radsat_sk_header_t*)0)->preamble)+sizeof(((radsat_sk_header_t*)0)->crc))
+
+/** The maximum size of a RADSAT-SK message (not including the message header). */
+#define RADSAT_SK_MAX_MESSAGE_SIZE	((uint16_t)((PROTO_MAX_ENCODED_SIZE)+(RADSAT_SK_HEADER_SIZE)))
 
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
-void messageWrap(uint8_t* dataToWrap, uint16_t topicTag, uint16_t messageTag, uint8_t* wrappedMessage);
-void messageUnwrap(uint8_t* wrappedMessage, uint8_t* unwrappedData);
+uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage);
+uint8_t messageUnwrap(uint8_t* wrappedMessage, RadsatMessage* rawMessage);
 
 
 #endif /* RMESSAGE_H_ */

@@ -17,7 +17,8 @@
                                              DEFINITIONS
 ***************************************************************************************************/
 
-#define PROTO_MAX_ENCODED_SIZE	((uint16_t)RadsatMessage_size)	///> The max size of a message
+/** The maximum size of a NanoPB encoded message (not including the message header). */
+#define PROTO_MAX_ENCODED_SIZE	((uint16_t)RadsatMessage_size)
 
 
 /***************************************************************************************************

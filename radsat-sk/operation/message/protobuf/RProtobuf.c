@@ -16,7 +16,7 @@
  *
  * @param rawMessage The raw (non-serialized) RadsatMessage struct to encode.
  * @param outgoingBuffer The buffer that will hold the encoded message.
- * @return The size of the encoded message; 0 if encoding failed.
+ * @return The size of the encoded message (max 255); 0 if encoding failed.
  */
 uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer) {
 

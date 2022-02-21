@@ -21,7 +21,7 @@
 /*
  * Derive parameters from the standard-specific parameters in crc.h.
  */
-#define WIDTH    (8 * sizeof(crc))
+#define WIDTH    (8 * sizeof(crc_t))
 #define TOPBIT   (1 << (WIDTH - 1))
 
 #if (REFLECT_DATA == TRUE)
@@ -34,7 +34,7 @@
 
 #if (REFLECT_REMAINDER == TRUE)
 #undef  REFLECT_REMAINDER
-#define REFLECT_REMAINDER(X)	((crc) reflect((X), WIDTH))
+#define REFLECT_REMAINDER(X)	((crc_t) reflect((X), WIDTH))
 #else
 #undef  REFLECT_REMAINDER
 #define REFLECT_REMAINDER(X)	(X)
@@ -91,10 +91,10 @@ reflect(unsigned long data, unsigned char nBits)
  * Returns:		The CRC of the message.
  *
  *********************************************************************/
-crc
+crc_t
 crcSlow(unsigned char const message[], int nBytes)
 {
-    crc            remainder = INITIAL_REMAINDER;
+    crc_t            remainder = INITIAL_REMAINDER;
 	int            byte;
 	unsigned char  bit;
 
@@ -136,7 +136,7 @@ crcSlow(unsigned char const message[], int nBytes)
 }   /* crcSlow() */
 
 
-crc  crcTable[256];
+crc_t  crcTable[256];
 
 
 /*********************************************************************
@@ -155,7 +155,7 @@ crc  crcTable[256];
 void
 crcInit(void)
 {
-    crc			   remainder;
+    crc_t			   remainder;
 	int			   dividend;
 	unsigned char  bit;
 
@@ -208,10 +208,10 @@ crcInit(void)
  * Returns:		The CRC of the message.
  *
  *********************************************************************/
-crc
+crc_t
 crcFast(unsigned char const message[], int nBytes)
 {
-    crc	           remainder = INITIAL_REMAINDER;
+    crc_t	           remainder = INITIAL_REMAINDER;
     unsigned char  data;
 	int            byte;
 
