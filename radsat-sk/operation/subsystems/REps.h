@@ -1,26 +1,53 @@
 /**
  * @file REps.h
- * @date December 12, 2021
- * @author Tyrel Kostyk (tck290)
+ * @date February 21, 2022
+ * @author Tyrel Kostyk (tck290) and Isaac Poirier (iap992)
  */
 
 #ifndef REPS_H_
 #define REPS_H_
 
+#include <stdint.h>
 
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
 
-/** I2C Slave Address for Power Distribution Board */
-#define PDB_I2C_SLAVE_ADDR (0x2B)
+
+/** Struct for storing Sun Sensor Telemetry Data */
+typedef struct _sunSensorStatus {
+	float xPos;
+	float xNeg;
+	float yPos;
+	float yNeg;
+	float zPos;
+	float zNeg;
+	int16_t timestamp;
+} SunSensorStatus;
+
+
+/** Struct for passing all telemetry data */
+typedef struct _epsStatus {
+	SunSensorStatus sunSensorData;
+	// Output Voltages
+	float outputVoltageBCR;
+	float outputVoltageBatteryBus;
+	float outputVoltage5VBus;
+	float outputVoltage3V3Bus;
+	// Output Currents
+	float outputCurrentBCR_mA;
+	float outputCurrentBatteryBus;
+	float outputCurrent5VBus;
+	float outputCurrent3V3Bus;
+} EpsStatus;
 
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
-
+SunSensorStatus getSunSensorData(void);
+EpsStatus getEpsTelemetry(void);
 
 
 #endif /* REPS_H_ */
