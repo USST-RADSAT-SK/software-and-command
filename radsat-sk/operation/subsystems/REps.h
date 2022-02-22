@@ -51,6 +51,6 @@ typedef struct _epsStatus {
 
 SunSensorStatus getSunSensorData(void);
 EpsStatus getEpsTelemetry(void);
-
+int petEpsWatchdog(void);
 
 #endif /* REPS_H_ */
