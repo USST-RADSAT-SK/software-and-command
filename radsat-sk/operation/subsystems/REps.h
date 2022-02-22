@@ -22,7 +22,7 @@ typedef struct _sunSensorStatus {
 	float yNeg;
 	float zPos;
 	float zNeg;
-	int16_t timestamp;
+	uint16_t timestamp;
 } SunSensorStatus;
 
 
@@ -39,6 +39,9 @@ typedef struct _epsStatus {
 	float outputCurrentBatteryBus;
 	float outputCurrent5VBus;
 	float outputCurrent3V3Bus;
+	// PDB Motherboard Temperature
+	float epsTemperature;
+	uint16_t timestamp;
 } EpsStatus;
 
 

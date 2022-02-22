@@ -39,7 +39,8 @@
 
 /** Used in: (Temp in Deg C = (Scale * ADC Count) - Shift) */
 #define ADC_COUNT_TO_SOLAR_ARRAY_TEMP_SCALE	((float) 0.4963)
-#define ADC_COUNT_TO_SOLAR_ARRAY_TEMP_SHIFT ((float) 273.15)
+// Can use this \/ interchangeably between solar array and motherboard temp shift
+#define ADC_COUNT_TO_MOTHERBOARD_TEMP_SHIFT ((float) 273.15)
 #define ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE ((float) 0.372434)
 
 
@@ -58,8 +59,10 @@
 #define EPS_COMMAND_LENGTH			(4)
 /** Data Returned from the EPS via I2C is 4 Bytes */
 #define EPS_RESPONSE_LENGTH			(4)
-/** Delay between telemetry read/write operations with the EPS on I2C */
+/** Delay between telemetry read/write operations with the EPS on I2C is 5ms */
 #define EPS_I2C_TELEM_DELAY			(5)
+/** Delay between other read/write operations with the EPS on I2C is 1ms */
+#define EPS_I2C_DELAY				(1)
 
 
 /**
@@ -121,7 +124,6 @@ static uint16_t epsI2cTalk(uint32_t command);
 /**
  * Get the Irradiance value from the sun sensor on each face of the CubeSat
  *
- * @param N/A
  * @return A pointer to a SunSensorStatus object containing the converted ADC data for each sun sensor
  */
 SunSensorStatus getSunSensorData(void) {
@@ -160,7 +162,6 @@ SunSensorStatus getSunSensorData(void) {
  * Request and store all of the relevant data (voltage, current, temperature, sun sensor data)
  *  	from the EPS board
  *
- * @param N/A
  * @return A pointer to an EpsStatus object containing all of the telemetry for the EPS system
  */
 EpsStatus getEpsTelemetry(void) {
@@ -173,6 +174,7 @@ EpsStatus getEpsTelemetry(void) {
 
 	// Create a temporary variable for receiving I2C data
 	uint16_t i2c_received;
+
 
 	// Get ADC output voltage readings from the EPS
 	i2c_received = epsI2cTalk(epsVoltageCommandBytes[0]);
@@ -202,19 +204,36 @@ EpsStatus getEpsTelemetry(void) {
 	dataStorage.outputCurrent3V3Bus = ADC_COUNT_TO_3V3_BUS_OUTPUT_CURRENT * i2c_received;
 
 
+	// Get ADC temperature reading from the EPS
+	i2c_received = epsI2cTalk(0x10E308);	// Telemetry code for motherboard temperature
+	dataStorage.epsTemperature = (ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE * i2c_received)
+										- ADC_COUNT_TO_MOTHERBOARD_TEMP_SHIFT ;
+
 	return dataStorage;
 }
 
 
+/**
+ * Pet the Communications watchdog on the EPS using code 0x22
+ * @return either an error if it occurred, or 0
+ */
+int petEpsWatchdog(void){
 
+	// One way communication so just use transmit using reset watchdog command 0x22
+	int error = i2cTransmit(EPS_I2C_SLAVE_ADDR, 0x2200, EPS_COMMAND_LENGTH);
+	if (error != 0) {
+		return error;
+	}
+	else {
+		return 0;
+	}
+}
 
 
 
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
 ***************************************************************************************************/
-
-//static EpsStatus get
 
 
 static uint16_t epsI2cTalk(uint32_t command) {
@@ -224,19 +243,22 @@ static uint16_t epsI2cTalk(uint32_t command) {
 
 	// Create a temp variable for passing the proper command length
 	uint8_t comm_length;
+	uint8_t comm_delay;
 
 	// Variable selection for command length dependent on if it is a telemetry call
 	// Byte mask to look only at the command field to see if it is 0x10 (telem call)
 	if ((command && 0x0000FF0000) == 0x0000100000) {
 		comm_length = EPS_TELEM_COMMAND_LENGTH;
+		comm_delay = EPS_I2C_TELEM_DELAY;
 	}
 	else {
 		comm_length = EPS_COMMAND_LENGTH;
+		comm_delay = EPS_I2C_DELAY;
 	}
 
-	// tell EPS to give us sun sensor data; and store into our internal buffer
+	// tell EPS to give us data; and store into our internal buffer
 	int error = i2cTalk(EPS_I2C_SLAVE_ADDR, comm_length, EPS_RESPONSE_LENGTH,
-							command, i2c_data, EPS_I2C_TELEM_DELAY);
+							command, i2c_data, comm_delay);
 
 	// return error? if an error occurs, else send the data back
 	// TODO: Make this return 0 on a failure? Printf the error instead? Get advice for this
