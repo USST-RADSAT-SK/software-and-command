@@ -24,7 +24,7 @@ typedef enum _camera_image_slots {
                                              PUBLIC API
 ***************************************************************************************************/
 
-int cameraCaptureImage(camera_slot_t slot);
-int sendCameraCaptureImageTc(tc_t slot);
+//int cameraCaptureImage(camera_slot_t slot);
+//int sendCameraCaptureImageTc();
 
 #endif /* RCAMERA_H_ */
