@@ -25,7 +25,7 @@ typedef struct _frame_t {
 	uint8_t size;
 } frame_t;
 
-static frame_t frames[MAX_FRAME_COUNT] = {0};
+static frame_t frames[MAX_FRAME_COUNT] = { {{0}, 0} };
 
 static uint8_t frameWriteCursor, frameReadCursor = 0;
 
