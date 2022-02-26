@@ -8,6 +8,7 @@
 #include <RCommunicationTasks.h>
 #include <RProtocolService.h>
 #include <RTelecommandService.h>
+#include <RFileTransferService.h>
 
 #include <string.h>
 

@@ -28,20 +28,20 @@ typedef struct _ResumeTransmission {
 } ResumeTransmission;
 
 typedef struct _BeginPass {
-    int32_t passLength;
+    uint32_t passLength;
 } BeginPass;
 
 typedef struct _CeaseTransmission {
-    int32_t duration;
+    uint32_t duration;
 } CeaseTransmission;
 
 typedef struct _Reset {
     Reset_device_t device;
-    int32_t hard;
+    uint32_t hard;
 } Reset;
 
 typedef struct _UpdateTime {
-    int32_t unixTime;
+    uint32_t unixTime;
 } UpdateTime;
 
 typedef struct _TelecommandMessage {
@@ -114,7 +114,7 @@ X(a, STATIC,   ONEOF,    MESSAGE,  (message,reset,reset),   6)
 #define TelecommandMessage_message_reset_MSGTYPE Reset
 
 #define BeginPass_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    passLength,        1)
+X(a, STATIC,   SINGULAR, UINT32,   passLength,        1)
 #define BeginPass_CALLBACK NULL
 #define BeginPass_DEFAULT NULL
 
@@ -124,7 +124,7 @@ X(a, STATIC,   SINGULAR, INT32,    passLength,        1)
 #define BeginFileTransfer_DEFAULT NULL
 
 #define CeaseTransmission_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    duration,          1)
+X(a, STATIC,   SINGULAR, UINT32,   duration,          1)
 #define CeaseTransmission_CALLBACK NULL
 #define CeaseTransmission_DEFAULT NULL
 
@@ -134,13 +134,13 @@ X(a, STATIC,   SINGULAR, INT32,    duration,          1)
 #define ResumeTransmission_DEFAULT NULL
 
 #define UpdateTime_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    unixTime,          1)
+X(a, STATIC,   SINGULAR, UINT32,   unixTime,          1)
 #define UpdateTime_CALLBACK NULL
 #define UpdateTime_DEFAULT NULL
 
 #define Reset_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UENUM,    device,            1) \
-X(a, STATIC,   SINGULAR, INT32,    hard,              2)
+X(a, STATIC,   SINGULAR, UINT32,   hard,              2)
 #define Reset_CALLBACK NULL
 #define Reset_DEFAULT NULL
 
@@ -162,13 +162,13 @@ extern const pb_msgdesc_t Reset_msg;
 #define Reset_fields &Reset_msg
 
 /* Maximum encoded size of messages (where known) */
-#define TelecommandMessage_size                  15
-#define BeginPass_size                           11
+#define TelecommandMessage_size                  10
+#define BeginPass_size                           6
 #define BeginFileTransfer_size                   0
-#define CeaseTransmission_size                   11
+#define CeaseTransmission_size                   6
 #define ResumeTransmission_size                  0
-#define UpdateTime_size                          11
-#define Reset_size                               13
+#define UpdateTime_size                          6
+#define Reset_size                               8
 
 #ifdef __cplusplus
 } /* extern "C" */

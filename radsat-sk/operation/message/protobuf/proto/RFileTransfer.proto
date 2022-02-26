@@ -27,10 +27,10 @@ message FileTransferMessage {
 
 // Information about the state of the OBC
 message ObcTelemetry {
-	int32 mode				= 1;	///< Mode of operation at time of recording
-	int32 uptime			= 2;	///< Uptime (in ticks) since last reset (of any kind)
-	int32 rtcTime			= 3;	///< RTC Time (in unix time; seconds since Unix Epoch)
-	int32 rtcTemperature	= 4;	///< 10bit Temperature recorded by OBC's RTC
+	uint32 mode				= 1;	///< Mode of operation at time of recording
+	uint32 uptime			= 2;	///< Uptime (in ticks) since last reset (of any kind)
+	uint32 rtcTime			= 3;	///< RTC Time (in unix time; seconds since Unix Epoch)
+	uint32 rtcTemperature	= 4;	///< 10bit Temperature recorded by OBC's RTC
 }
 
 
@@ -48,8 +48,8 @@ message TransceiverTelemetry {
 		float vupa_curr		= 7; 	///< Tx Telemetry power amplifier current.
 		float pa_temp		= 8; 	///< Rx Telemetry power amplifier temperature
 		float board_temp	= 9; 	///< Rx Telemetry board temperature.
-		int32 uptime		= 10;	///< Rx Uptime in Seconds.
-		int32 frames		= 11;	///< Rx Frames currently in Receive Buffer.
+		uint32 uptime		= 10;	///< Rx Uptime in Seconds.
+		uint32 frames		= 11;	///< Rx Frames currently in Receive Buffer.
 	}
 
 	// Telemetry for the Transmitter
@@ -63,7 +63,7 @@ message TransceiverTelemetry {
 		float vupa_curr		= 7; 	///< Tx Telemetry power amplifier current.
 		float pa_temp		= 8; 	///< Tx Telemetry power amplifier temperature.
 		float board_temp	= 9; 	///< Tx Telemetry board temperature.
-		int32 uptime		= 10;	///< Tx Uptime in Seconds.
+		uint32 uptime		= 10;	///< Tx Uptime in Seconds.
 	}
 
 	receiverTelemetry receiver 			= 1;	///< Receiver Telemetry
@@ -72,7 +72,7 @@ message TransceiverTelemetry {
 
 // Information about the state of the Camera
 message CameraTelemetry {
-	int32 upTime	= 1;	///< Local uptime (since last startup) in seconds
+	uint32 upTime	= 1;	///< Local uptime (since last startup) in seconds
 }
 
 // Information about the state of the Electrical Power Supply
@@ -95,14 +95,14 @@ message AntennaTelemetry {
 message DosimeterData {
 	// Payload Data for a single Dosimeter board
 	message DosimeterBoardData {
-		int32 voltageChannelZero	= 1;	///< COTS 2048mV REF IC, Shielding: none
-		int32 voltageChannelOne		= 2;	///< COTS 2048mV REF IC, Shielding: 50 mil
-		int32 voltageChannelTwo		= 3;	///< COTS 2048mV REF IC, Shielding: 100 mil
-		int32 voltageChannelThree	= 4;	///< COTS 2048mV REF IC, Shielding: 200 mil
-		int32 voltageChannelFour	= 5;	///< COTS 2048mV REF IC, Shielding: 20 mil
-		int32 voltageChannelFive	= 6;	///< RADFET Experimental Dosimeter, Shielding: none
-		int32 voltageChannelSix		= 7;	///< COTS 2048mV REF IC, Shielding: 300 mil
-		int32 voltageChannelSeven	= 8;	///< Temperature Sensor
+		float voltageChannelZero	= 1;	///< COTS 2048mV REF IC, Shielding: none
+		float voltageChannelOne		= 2;	///< COTS 2048mV REF IC, Shielding: 50 mil
+		float voltageChannelTwo		= 3;	///< COTS 2048mV REF IC, Shielding: 100 mil
+		float voltageChannelThree	= 4;	///< COTS 2048mV REF IC, Shielding: 200 mil
+		float voltageChannelFour	= 5;	///< COTS 2048mV REF IC, Shielding: 20 mil
+		float voltageChannelFive	= 6;	///< RADFET Experimental Dosimeter, Shielding: none
+		float voltageChannelSix		= 7;	///< COTS 2048mV REF IC, Shielding: 300 mil
+		float voltageChannelSeven	= 8;	///< Temperature Sensor
 	}
 
 	DosimeterBoardData boardOne	= 1;	///< Payload Data from the first Dosimeter Board ("bottom" of the Satellite, beneath OBC)
@@ -111,7 +111,7 @@ message DosimeterData {
 
 // Image Packet
 message ImagePacket {
-	int32 id			= 1;	///< ID of the image
+	uint32 id			= 1;	///< ID of the image
 	enum image_type_t {
 		fullResolution		= 0;	///< 1024 x 1024 = 1MB
 		halfResolution		= 1;	///< 512  x 512  = 256kB

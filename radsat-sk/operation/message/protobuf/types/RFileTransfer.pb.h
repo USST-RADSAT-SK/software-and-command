@@ -31,32 +31,32 @@ typedef struct _EpsTelemetry {
 } EpsTelemetry;
 
 typedef struct _CameraTelemetry {
-    int32_t upTime;
+    uint32_t upTime;
 } CameraTelemetry;
 
 typedef struct _DosimeterData_DosimeterBoardData {
-    int32_t voltageChannelZero;
-    int32_t voltageChannelOne;
-    int32_t voltageChannelTwo;
-    int32_t voltageChannelThree;
-    int32_t voltageChannelFour;
-    int32_t voltageChannelFive;
-    int32_t voltageChannelSix;
-    int32_t voltageChannelSeven;
+    float voltageChannelZero;
+    float voltageChannelOne;
+    float voltageChannelTwo;
+    float voltageChannelThree;
+    float voltageChannelFour;
+    float voltageChannelFive;
+    float voltageChannelSix;
+    float voltageChannelSeven;
 } DosimeterData_DosimeterBoardData;
 
 typedef PB_BYTES_ARRAY_T(200) ImagePacket_data_t;
 typedef struct _ImagePacket {
-    int32_t id;
+    uint32_t id;
     ImagePacket_image_type_t type;
     ImagePacket_data_t data;
 } ImagePacket;
 
 typedef struct _ObcTelemetry {
-    int32_t mode;
-    int32_t uptime;
-    int32_t rtcTime;
-    int32_t rtcTemperature;
+    uint32_t mode;
+    uint32_t uptime;
+    uint32_t rtcTime;
+    uint32_t rtcTemperature;
 } ObcTelemetry;
 
 typedef struct _TransceiverTelemetry_receiverTelemetry {
@@ -69,8 +69,8 @@ typedef struct _TransceiverTelemetry_receiverTelemetry {
     float vupa_curr;
     float pa_temp;
     float board_temp;
-    int32_t uptime;
-    int32_t frames;
+    uint32_t uptime;
+    uint32_t frames;
 } TransceiverTelemetry_receiverTelemetry;
 
 typedef struct _TransceiverTelemetry_transmitterTelemetry {
@@ -83,7 +83,7 @@ typedef struct _TransceiverTelemetry_transmitterTelemetry {
     float vupa_curr;
     float pa_temp;
     float board_temp;
-    int32_t uptime;
+    uint32_t uptime;
 } TransceiverTelemetry_transmitterTelemetry;
 
 typedef struct _DosimeterData {
@@ -224,10 +224,10 @@ X(a, STATIC,   ONEOF,    MESSAGE,  (message,imagePacket,imagePacket),   8)
 #define FileTransferMessage_message_imagePacket_MSGTYPE ImagePacket
 
 #define ObcTelemetry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    mode,              1) \
-X(a, STATIC,   SINGULAR, INT32,    uptime,            2) \
-X(a, STATIC,   SINGULAR, INT32,    rtcTime,           3) \
-X(a, STATIC,   SINGULAR, INT32,    rtcTemperature,    4)
+X(a, STATIC,   SINGULAR, UINT32,   mode,              1) \
+X(a, STATIC,   SINGULAR, UINT32,   uptime,            2) \
+X(a, STATIC,   SINGULAR, UINT32,   rtcTime,           3) \
+X(a, STATIC,   SINGULAR, UINT32,   rtcTemperature,    4)
 #define ObcTelemetry_CALLBACK NULL
 #define ObcTelemetry_DEFAULT NULL
 
@@ -249,8 +249,8 @@ X(a, STATIC,   SINGULAR, FLOAT,    vurx_curr,         6) \
 X(a, STATIC,   SINGULAR, FLOAT,    vupa_curr,         7) \
 X(a, STATIC,   SINGULAR, FLOAT,    pa_temp,           8) \
 X(a, STATIC,   SINGULAR, FLOAT,    board_temp,        9) \
-X(a, STATIC,   SINGULAR, INT32,    uptime,           10) \
-X(a, STATIC,   SINGULAR, INT32,    frames,           11)
+X(a, STATIC,   SINGULAR, UINT32,   uptime,           10) \
+X(a, STATIC,   SINGULAR, UINT32,   frames,           11)
 #define TransceiverTelemetry_receiverTelemetry_CALLBACK NULL
 #define TransceiverTelemetry_receiverTelemetry_DEFAULT NULL
 
@@ -264,12 +264,12 @@ X(a, STATIC,   SINGULAR, FLOAT,    vurx_curr,         6) \
 X(a, STATIC,   SINGULAR, FLOAT,    vupa_curr,         7) \
 X(a, STATIC,   SINGULAR, FLOAT,    pa_temp,           8) \
 X(a, STATIC,   SINGULAR, FLOAT,    board_temp,        9) \
-X(a, STATIC,   SINGULAR, INT32,    uptime,           10)
+X(a, STATIC,   SINGULAR, UINT32,   uptime,           10)
 #define TransceiverTelemetry_transmitterTelemetry_CALLBACK NULL
 #define TransceiverTelemetry_transmitterTelemetry_DEFAULT NULL
 
 #define CameraTelemetry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    upTime,            1)
+X(a, STATIC,   SINGULAR, UINT32,   upTime,            1)
 #define CameraTelemetry_CALLBACK NULL
 #define CameraTelemetry_DEFAULT NULL
 
@@ -297,19 +297,19 @@ X(a, STATIC,   OPTIONAL, MESSAGE,  boardTwo,          2)
 #define DosimeterData_boardTwo_MSGTYPE DosimeterData_DosimeterBoardData
 
 #define DosimeterData_DosimeterBoardData_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    voltageChannelZero,   1) \
-X(a, STATIC,   SINGULAR, INT32,    voltageChannelOne,   2) \
-X(a, STATIC,   SINGULAR, INT32,    voltageChannelTwo,   3) \
-X(a, STATIC,   SINGULAR, INT32,    voltageChannelThree,   4) \
-X(a, STATIC,   SINGULAR, INT32,    voltageChannelFour,   5) \
-X(a, STATIC,   SINGULAR, INT32,    voltageChannelFive,   6) \
-X(a, STATIC,   SINGULAR, INT32,    voltageChannelSix,   7) \
-X(a, STATIC,   SINGULAR, INT32,    voltageChannelSeven,   8)
+X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelZero,   1) \
+X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelOne,   2) \
+X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelTwo,   3) \
+X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelThree,   4) \
+X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelFour,   5) \
+X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelFive,   6) \
+X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelSix,   7) \
+X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelSeven,   8)
 #define DosimeterData_DosimeterBoardData_CALLBACK NULL
 #define DosimeterData_DosimeterBoardData_DEFAULT NULL
 
 #define ImagePacket_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, INT32,    id,                1) \
+X(a, STATIC,   SINGULAR, UINT32,   id,                1) \
 X(a, STATIC,   SINGULAR, UENUM,    type,              2) \
 X(a, STATIC,   SINGULAR, BYTES,    data,              3)
 #define ImagePacket_CALLBACK NULL
@@ -343,18 +343,18 @@ extern const pb_msgdesc_t ImagePacket_msg;
 #define ImagePacket_fields &ImagePacket_msg
 
 /* Maximum encoded size of messages (where known) */
-#define FileTransferMessage_size                 219
-#define ObcTelemetry_size                        44
-#define TransceiverTelemetry_size                127
-#define TransceiverTelemetry_receiverTelemetry_size 67
-#define TransceiverTelemetry_transmitterTelemetry_size 56
-#define CameraTelemetry_size                     11
+#define FileTransferMessage_size                 214
+#define ObcTelemetry_size                        24
+#define TransceiverTelemetry_size                112
+#define TransceiverTelemetry_receiverTelemetry_size 57
+#define TransceiverTelemetry_transmitterTelemetry_size 51
+#define CameraTelemetry_size                     6
 #define EpsTelemetry_size                        0
 #define BatteryTelemetry_size                    0
 #define AntennaTelemetry_size                    0
-#define DosimeterData_size                       180
-#define DosimeterData_DosimeterBoardData_size    88
-#define ImagePacket_size                         216
+#define DosimeterData_size                       84
+#define DosimeterData_DosimeterBoardData_size    40
+#define ImagePacket_size                         211
 
 #ifdef __cplusplus
 } /* extern "C" */
