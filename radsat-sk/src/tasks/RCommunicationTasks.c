@@ -143,7 +143,7 @@ void communicationRxTask(void* parameters) {
 		error = transceiverRxFrameCount(&rxFrameCount);
 
 		// obtain frames when present
-		if (rxFrameCount > 0 && !error) {
+		if (rxFrameCount > 0 && error == 0) {
 
 			// obtain new frame from the transceiver
 			rxMessageSize = 0;
@@ -151,7 +151,7 @@ void communicationRxTask(void* parameters) {
 			error = transceiverGetFrame(rxMessage, &rxMessageSize);
 
 			// handle valid frames once obtained
-			if (rxMessageSize > 0 && !error) {
+			if (rxMessageSize > 0 && error == 0) {
 
 				// transition out of idle mode and into pass mode (if not already done)
 				if (state.mode == commModeIdle)
@@ -273,14 +273,14 @@ void communicationTxTask(void* parameters) {
 					// clear transmission error counter
 					state.fileTransfer.transmissionErrors = 0;
 
-					// TODO: obtain new message and size from downlink manager
-//					downlinkNextFrame(txMessage, &txMessageSize);
+					// obtain new message and size from File Transfer Service
+					txMessageSize = fileTransferNextFrame(txMessage);
 
 					// send the message
 					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
 
 					// prepare to receive ACK/NACK
-					if (!error)
+					if (error == 0)
 						state.telecommand.transmitReady = responseStateIdle;
 					// force NACK in order to resend the packet
 					else

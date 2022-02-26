@@ -20,7 +20,7 @@
  *
  * @param rawMessage The raw RADSAT-SK message, including all desired data to be downlinked.
  * @param wrappedMessage The final wrapped message. Filled by function.
- * @return The size of the message, not including header. 0 on failure.
+ * @return The total size of the message, including the header. 0 on failure.
  */
 uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage) {
 
@@ -42,7 +42,7 @@ uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage) {
 	header->crc = crcFast(&wrappedMessage[RADSAT_SK_HEADER_CRC_OFFSET],
 						  (int)(header->size + RADSAT_SK_HEADER_SIZE - RADSAT_SK_HEADER_CRC_OFFSET));
 
-	return header->size;
+	return header->size + RADSAT_SK_HEADER_SIZE;
 }
 
 

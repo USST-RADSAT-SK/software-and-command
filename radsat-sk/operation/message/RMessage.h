@@ -23,7 +23,7 @@ typedef struct __attribute__((packed)) _radsat_sk_header_t {
 	uint8_t size;			///> The size of the message in bytes (NOT including the header)
 } radsat_sk_header_t;
 
-/** The hardcoded preamble that will begin every RADSAT-SK message. The starting year the RADSAT-SK Project*/
+/** The hardcoded preamble that will begin every RADSAT-SK message. The starting year of the RADSAT-SK Project*/
 #define RADSAT_SK_MESSAGE_PREAMBLE	(0x2018)
 
 /** The size of the RADSAT-SK message header. */

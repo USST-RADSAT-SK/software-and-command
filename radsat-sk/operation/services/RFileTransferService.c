@@ -15,26 +15,40 @@
                                    DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
 
-#define MAX_FRAME_COUNT 200
+/** The max number of frames locally stored at one time. */
+#define MAX_FRAME_COUNT 		(200)
 
+/** Error code for internal issues regarding frame cursors (wrap-around, etc.). */
 #define ERROR_CURSOR			(-1)
+
+/** Error code for failed message wrapping. */
 #define ERROR_MESSAGE_WRAPPING	(-2)
 
+/** Struct that defines a prepared frame and its total size. */
 typedef struct _frame_t {
-	uint8_t data[TRANCEIVER_TX_MAX_FRAME_SIZE];
-	uint8_t size;
+	uint8_t data[TRANCEIVER_TX_MAX_FRAME_SIZE];	///> The buffer holding the prepared frame
+	uint8_t size;								///> The size (in bytes) of the entire frame
 } frame_t;
 
+
+/** Local FIFO containing frames prepared for downlink. */
 static frame_t frames[MAX_FRAME_COUNT] = { {{0}, 0} };
 
-static uint8_t frameWriteCursor, frameReadCursor = 0;
+/** Cursor for writing to the frame FIFO (starts ahead of the read cursor). */
+static uint8_t frameWriteCursor = 1;
+
+/** Cursor for reading from the frame FIFO. */
+static uint8_t frameReadCursor = 0;
+
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
 /**
- * Increment the internal FIFO and provide the latest frame.
+ * Increment the internal FIFO and provide the frame at that location.
+ *
+ * Invalidates (deletes) the previous frame before moving on.
  *
  * @param frame Pointer to a buffer that the frame will be placed into. Set by function.
  * @return The size of the frame placed into the buffer; 0 on error.
@@ -73,6 +87,7 @@ uint8_t fileTransferCurrentFrame(uint8_t* frame) {
 	// return the size of the frame
 	return frames[frameReadCursor].size;
 }
+
 
 /**
  * Prepare a message for downlink and add it to the internal FIFO.
