@@ -87,16 +87,12 @@ typedef struct _TransceiverTelemetry_transmitterTelemetry {
 } TransceiverTelemetry_transmitterTelemetry;
 
 typedef struct _DosimeterData {
-    bool has_boardOne;
     DosimeterData_DosimeterBoardData boardOne;
-    bool has_boardTwo;
     DosimeterData_DosimeterBoardData boardTwo;
 } DosimeterData;
 
 typedef struct _TransceiverTelemetry {
-    bool has_receiver;
     TransceiverTelemetry_receiverTelemetry receiver;
-    bool has_transmitter;
     TransceiverTelemetry_transmitterTelemetry transmitter;
 } TransceiverTelemetry;
 
@@ -128,26 +124,26 @@ extern "C" {
 /* Initializer values for message structs */
 #define FileTransferMessage_init_default         {0, {ObcTelemetry_init_default}}
 #define ObcTelemetry_init_default                {0, 0, 0, 0}
-#define TransceiverTelemetry_init_default        {false, TransceiverTelemetry_receiverTelemetry_init_default, false, TransceiverTelemetry_transmitterTelemetry_init_default}
+#define TransceiverTelemetry_init_default        {TransceiverTelemetry_receiverTelemetry_init_default, TransceiverTelemetry_transmitterTelemetry_init_default}
 #define TransceiverTelemetry_receiverTelemetry_init_default {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define TransceiverTelemetry_transmitterTelemetry_init_default {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define CameraTelemetry_init_default             {0}
 #define EpsTelemetry_init_default                {0}
 #define BatteryTelemetry_init_default            {0}
 #define AntennaTelemetry_init_default            {0}
-#define DosimeterData_init_default               {false, DosimeterData_DosimeterBoardData_init_default, false, DosimeterData_DosimeterBoardData_init_default}
+#define DosimeterData_init_default               {DosimeterData_DosimeterBoardData_init_default, DosimeterData_DosimeterBoardData_init_default}
 #define DosimeterData_DosimeterBoardData_init_default {0, 0, 0, 0, 0, 0, 0, 0}
 #define ImagePacket_init_default                 {0, _ImagePacket_image_type_t_MIN, {0, {0}}}
 #define FileTransferMessage_init_zero            {0, {ObcTelemetry_init_zero}}
 #define ObcTelemetry_init_zero                   {0, 0, 0, 0}
-#define TransceiverTelemetry_init_zero           {false, TransceiverTelemetry_receiverTelemetry_init_zero, false, TransceiverTelemetry_transmitterTelemetry_init_zero}
+#define TransceiverTelemetry_init_zero           {TransceiverTelemetry_receiverTelemetry_init_zero, TransceiverTelemetry_transmitterTelemetry_init_zero}
 #define TransceiverTelemetry_receiverTelemetry_init_zero {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define TransceiverTelemetry_transmitterTelemetry_init_zero {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define CameraTelemetry_init_zero                {0}
 #define EpsTelemetry_init_zero                   {0}
 #define BatteryTelemetry_init_zero               {0}
 #define AntennaTelemetry_init_zero               {0}
-#define DosimeterData_init_zero                  {false, DosimeterData_DosimeterBoardData_init_zero, false, DosimeterData_DosimeterBoardData_init_zero}
+#define DosimeterData_init_zero                  {DosimeterData_DosimeterBoardData_init_zero, DosimeterData_DosimeterBoardData_init_zero}
 #define DosimeterData_DosimeterBoardData_init_zero {0, 0, 0, 0, 0, 0, 0, 0}
 #define ImagePacket_init_zero                    {0, _ImagePacket_image_type_t_MIN, {0, {0}}}
 
@@ -232,8 +228,8 @@ X(a, STATIC,   SINGULAR, UINT32,   rtcTemperature,    4)
 #define ObcTelemetry_DEFAULT NULL
 
 #define TransceiverTelemetry_FIELDLIST(X, a) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  receiver,          1) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  transmitter,       2)
+X(a, STATIC,   SINGULAR, MESSAGE,  receiver,          1) \
+X(a, STATIC,   SINGULAR, MESSAGE,  transmitter,       2)
 #define TransceiverTelemetry_CALLBACK NULL
 #define TransceiverTelemetry_DEFAULT NULL
 #define TransceiverTelemetry_receiver_MSGTYPE TransceiverTelemetry_receiverTelemetry
@@ -289,8 +285,8 @@ X(a, STATIC,   SINGULAR, UINT32,   upTime,            1)
 #define AntennaTelemetry_DEFAULT NULL
 
 #define DosimeterData_FIELDLIST(X, a) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  boardOne,          1) \
-X(a, STATIC,   OPTIONAL, MESSAGE,  boardTwo,          2)
+X(a, STATIC,   SINGULAR, MESSAGE,  boardOne,          1) \
+X(a, STATIC,   SINGULAR, MESSAGE,  boardTwo,          2)
 #define DosimeterData_CALLBACK NULL
 #define DosimeterData_DEFAULT NULL
 #define DosimeterData_boardOne_MSGTYPE DosimeterData_DosimeterBoardData

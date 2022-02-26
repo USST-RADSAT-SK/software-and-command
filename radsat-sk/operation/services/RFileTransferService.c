@@ -32,7 +32,7 @@ typedef struct _frame_t {
 
 
 /** Local FIFO containing frames prepared for downlink. */
-static frame_t frames[MAX_FRAME_COUNT] = { {{0}, 0} };
+static frame_t frames[MAX_FRAME_COUNT] = { 0 };
 
 /** Cursor for writing to the frame FIFO (starts ahead of the read cursor). */
 static uint8_t frameWriteCursor = 1;

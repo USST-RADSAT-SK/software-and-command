@@ -123,7 +123,7 @@ int dosimeterCollectData(void)
 	DosimeterData data = { 0 };
 
 	// prepare a 2D array to store the values obtained in the following loops
-	float results[dosimeterBoardCount][adcChannelCount] = { { 0 } };
+	float results[dosimeterBoardCount][adcChannelCount] = { 0 };
 
 	// iterate through both melanin-dosimeter boards
 	for (uint8_t dosimeterBoard = dosimeterBoardOne; dosimeterBoard < dosimeterBoardCount; dosimeterBoard++) {
