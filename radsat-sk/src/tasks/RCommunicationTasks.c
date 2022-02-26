@@ -28,7 +28,7 @@
 #define QUIET_MODE_DURATION		((portTickType)(15*60*1000))
 
 /** Maximum amount of consecutive NACKs before transmission is aborted. */
-#define NACK_ERROR_LIMIT		((uint8_t)5)
+#define NACK_ERROR_LIMIT		((uint8_t)15)
 
 /**
  * Delay duration (in ms) when the transmitter's buffer is full.
