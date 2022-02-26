@@ -277,15 +277,17 @@ void communicationTxTask(void* parameters) {
 					// obtain new message and size from File Transfer Service
 					txMessageSize = fileTransferNextFrame(txMessage);
 
-					// send the message
-					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
+					// send the message if one exists
+					if (txMessageSize > 0) {
+						error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
 
-					// prepare to receive ACK/NACK
-					if (error == 0)
-						state.telecommand.transmitReady = responseStateIdle;
-					// force NACK in order to resend the packet
-					else
-						state.fileTransfer.responseReceived = responseNack;
+						// prepare to receive ACK/NACK
+						if (error == 0)
+							state.telecommand.transmitReady = responseStateIdle;
+						// force NACK in order to resend the packet
+						else
+							state.fileTransfer.responseReceived = responseNack;
+					}
 				}
 
 				// NACK received from ground Station; re-send the previous message
