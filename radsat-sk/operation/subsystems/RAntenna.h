@@ -13,10 +13,10 @@
                                             DEFINITIONS
 ***************************************************************************************************/
 
-/** I2C slave address for antenna receive port, primary */
+/** I2C slave address for antenna, primary */
 #define ANTENNA_I2C_SLAVE_ADDR_PRIMARY (0x31)
 
-/** I2C slave address for antenna receive port, primary */
+/** I2C slave address for antenna, redundant */
 #define ANTENNA_I2C_SLAVE_ADDR_REDUNANT (0x32)
 
 /** number of attached Antennas in the system */
@@ -29,25 +29,25 @@
 #define MAX_DEPLOYMENT_TIMEOUT 60
 
 /** Antenna Deployment status Struct */
-typedef struct _antennaDeploymentStatus {
+typedef struct _antenna_deployment_status_t {
 	int DeployedAntennaOne;
 	int DeployedAntennaTwo;
 	int DeployedAntennaThree;
 	int DeployedAntennaFour;
 	int AntennaArmed;
-} antennaDeploymentStatus;
+} antenna_deployment_status_t;
 
 /** Struct that holds telemetry for one side of the Antenna */
-typedef struct _antenna_telemetry_side {
-	antennaDeploymentStatus deployStatus;	///< Antenna Deployment status.
-	float board_temp; 					 	///< Antenna board temperature.
-	uint32_t uptime;						///< Antenna Uptime in Seconds.
-} antenna_telemetry_side;
+typedef struct _antenna_telemetry_side_t {
+	antenna_deployment_status_t deployStatus;	///< Antenna Deployment status.
+	float board_temp; 					 		///< Antenna board temperature.
+	uint32_t uptime;							///< Antenna Uptime in Seconds.
+} antenna_telemetry_side_t;
 
 /** Struct that holds all telemetry for the Antenna */
 typedef struct _antenna_telemetry_t {
-	antenna_telemetry_side sideA;	///< Antenna Telemetry for side A.
-	antenna_telemetry_side sideB;   ///< Antenna Telemetry for side B.
+	antenna_telemetry_side_t sideA;	///< Antenna Telemetry for side A.
+	antenna_telemetry_side_t sideB;   ///< Antenna Telemetry for side B.
 	//TODO: Set up Timestamp		///< TimeStamp for telemetry
 } antenna_telemetry_t;
 

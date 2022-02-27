@@ -17,7 +17,7 @@
 ISISantsI2Caddress RAntennaI2Caddress = {ANTENNA_I2C_SLAVE_ADDR_PRIMARY,ANTENNA_I2C_SLAVE_ADDR_REDUNANT};
 
 /** Struct that holds the current deployment status of the antenna*/
-antennaDeploymentStatus RAntennaStatus;
+antenna_deployment_status_t RAntennaStatus;
 
 /** Track whether the antenna has been initialized yet */
 static int antennaInitialized = 0;
@@ -126,9 +126,15 @@ int antennaDeploymentAttempt(void) {
 				}
 
 				// Disarm A Side Antenna system
-				IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,isisants_disarm);
-			}
+				error = IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,isisants_disarm);
 
+				// Check if disarm failed
+				if(error != 0) {
+
+					// TODO: record errors (if present) to System Manager
+					return error;
+				}
+			}
 		}
 
 		// Increment deployment attempts for side A
@@ -198,8 +204,15 @@ int antennaDeploymentAttempt(void) {
 					return error;
 				}
 
-				//disarm A Side Antenna system
-				IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,isisants_disarm);
+				//disarm B Side Antenna system
+				error = IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,isisants_disarm);
+
+				// Check if disarm failed
+				if(error != 0) {
+
+					// TODO: record errors (if present) to System Manager
+					return error;
+				}
 			}
 
 		}
