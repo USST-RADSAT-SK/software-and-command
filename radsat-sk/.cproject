@@ -94,7 +94,7 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.663972223" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>
 									<listOptionValue builtIn="false" value="at91sam9g20"/>
-									<listOptionValue builtIn="false" value="TRACE_LEVEL=5"/>
+									<listOptionValue builtIn="false" value="TRACE_LEVEL=0"/>
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="'BASE_REVISION_NUMBER=$(REV)'"/>
 									<listOptionValue builtIn="false" value="'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)'"/>

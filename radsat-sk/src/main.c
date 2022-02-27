@@ -8,81 +8,159 @@
 
 #include <hal/Timing/WatchDogTimer.h>
 #include <hal/Drivers/LED.h>
+//#include <hal/Drivers/I2C.h>
+//#include <hal/Drivers/UART.h>
+//#include <hal/Storage/FRAM.h>
+
 #include <hal/boolean.h>
 #include <hal/Utility/util.h>
 #include <hal/version/version.h>
 
-#include <at91/utility/trace.h>
 #include <at91/peripherals/cp15/cp15.h>
 #include <at91/utility/exithandler.h>
 #include <at91/commons.h>
 #include <stdlib.h>
 
+#include <RDebug.h>
+#include <RFram.h>
+#include <RI2c.h>
+#include <RUart.h>
+
+#include <RCommunicationTasks.h>
+#include <RDosimeterCollectionTask.h>
+
 #ifdef TEST
 #include <RTestSuite.h>
 #endif /* TEST */
 
-#define ENABLE_MAIN_TRACES 1
-#if ENABLE_MAIN_TRACES
-	#define MAIN_TRACE_INFO			TRACE_INFO
-	#define MAIN_TRACE_DEBUG		TRACE_DEBUG
-	#define MAIN_TRACE_WARNING		TRACE_WARNING
-	#define MAIN_TRACE_ERROR		TRACE_ERROR
-	#define MAIN_TRACE_FATAL		TRACE_FATAL
-#else
-	#define MAIN_TRACE_INFO(...)	{ }
-	#define MAIN_TRACE_DEBUG(...)	{ }
-	#define MAIN_TRACE_WARNING(...)	{ }
-	#define MAIN_TRACE_ERROR		TRACE_ERROR
-	#define MAIN_TRACE_FATAL		TRACE_FATAL
-#endif
+/***************************************************************************************************
+                                   DEFINITIONS AND PRIVATE GLOBALS
+***************************************************************************************************/
+
+/** How often the internal OBC Watchdog is kicked (i.e. pet, i.e. reset) in ms. */
+#define OBC_WDOG_KICK_PERIOD_MS	(15 / portTICK_RATE_MS)
+
+/** How often the external subsystem Watchdog timers are kicked (i.e. pet, i.e. reset) in ms. */
+#define OBC_WDOG_KICK_PERIOD_MS	(15 / portTICK_RATE_MS)
 
 
-void taskMain(void* parameters)
-{
-	(void)parameters;
+/***************************************************************************************************
+                                     PRIVATE FUNCTION PROTOTYPES
+***************************************************************************************************/
 
-	WDT_startWatchdogKickTask(10 / portTICK_RATE_MS, FALSE);
+static void initBoard(void);
+static void initHal(void);
+static void initSsi(void);
 
-	while(1) {
-		LED_wave(1);
-		LED_waveReverse(1);
-		LED_wave(1);
-		LED_waveReverse(1);
+static void initObcWatchdog(void);
+static void initTasks(void);
 
-		vTaskDelay(500 / portTICK_RATE_MS);
-	}
+static void runTests(void);
+
+
+/***************************************************************************************************
+                                                MAIN
+***************************************************************************************************/
+
+int main(void) {
+
+	// initialize internal OBC board settings
+	initBoard();
+
+	// initialize the HAL drivers
+	initHal();
+
+	// initialize the internal OBC watchdog (and the resetting of it)
+	initObcWatchdog();
+
+	// initialize the SSI library/drivers
+	initSsi();
+
+	// TODO: Subsystem Initialization (Transceiver, Downlink Manager, etc. if necessary)
+
+	// run test suite - ONLY RUNS ON 'Test' BUILD CONFIGURATIONS
+	runTests();
+
+	// TODO: Antenna Diagnostic & Deployment (if necessary)
+	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
+
+	// initialize the FreeRTOS Tasks for operation
+	initTasks();
+
+	// start the FreeRTOS Schedule - NEVER GETS PAST THIS LINE
+	vTaskStartScheduler();
+
+	// This function should never get here, nevertheless, please make sure that this last call doesn't get optimized away
+	exit(0);
 }
 
-int main(void)
-{
-	xTaskHandle taskMainHandle;
 
-	TRACE_CONFIGURE_ISP(DBGU_STANDARD, 2000000, BOARD_MCK);
+static void initBoard(void) {
+
 	// Enable the Instruction cache of the ARM9 core. Keep the MMU and Data Cache disabled.
 	CP15_Enable_I_Cache();
 
-	printf("\n\r -- ISIS-OBC First Project Program Booted --\n\r");
-#ifdef __OPTIMIZE__
-	printf("\n\r -- Compiled on  %s %s in release mode --\n\r", __DATE__, __TIME__);
-#else
-	printf("\n\r -- Compiled on  %s %s in debug mode --\n\r", __DATE__, __TIME__);
-#endif
-	printf("\n\r -- Using HAL version %s.%s.%s --\n\r", HalVersionMajor, HalVersionMinor, HalVersionRevision);
 
+}
+
+
+static void initHal(void) {
+
+	// initialize the FRAM memory module for safe persistent storage
+	framInit();
+
+	// initialize the Auxillary Camera UART port for communication with Camera
+	uartInit(UART_CAMERA_BUS);
+
+	// initialize the I2C bus for general inter-component communication
+	i2cInit();
+
+#ifndef RELEASE
+
+	// initilize the LED API
 	LED_start();
 
-	// The actual watchdog has already started, this only initializes the watchdog-kick interface.
-	WDT_start();
+	// initialize the Debug UART port for debug printing
+	uartInit(UART_DEBUG_BUS);
 
-	LED_wave(1);
-	LED_waveReverse(1);
-	LED_wave(1);
-	LED_waveReverse(1);
+	debug("\n\r -- Using HAL version %s.%s.%s --\n\r", HalVersionMajor, HalVersionMinor, HalVersionRevision);
 
-	// TODO: System Initialization (HAL, SSI, other low-level initializations, etc.)
-	// TODO: Subsystem Initialization (Transceiver, Downlink Manager, etc. if necessary)
+#endif
 
+}
+
+
+static initSsi(void) {
+
+}
+
+
+/**
+ * Initialize a low-priority task that automatically resets the OBC's internal Watchdog.
+ *
+ * On all builds except for Release, this will also enable an LED that blink every time that the
+ * Watchdog timer is reset, allowing for a simple heartbeat to show proper OBC operation.
+ *
+ * @note This also initializes the Watchdog API.
+ */
+static void initObcWatchdog(void) {
+
+#ifdef RELEASE
+	WDT_startWatchdogKickTask(OBC_WDOG_KICK_PERIOD_MS, FALSE);
+#else
+	WDT_startWatchdogKickTask(OBC_WDOG_KICK_PERIOD_MS, TRUE);
+#endif
+
+}
+
+
+static void initTasks(void) {
+
+	xTaskGenericCreate(communicationRxTask, (const signed char*)"Communication RX Task", 1024, NULL, configMAX_PRIORITIES-2, &taskMainHandle, NULL, NULL);
+
+}
+
+static void runTests(void) {
 #ifdef TEST
 
 	// run unit test suite
@@ -90,21 +168,5 @@ int main(void)
 
 	// TODO: Initialize FreeRTOS Tasks for Integration Testing
 
-#else /* TEST */
-
-	// TODO: Antenna Diagnostic & Deployment (if necessary)
-	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
-
-	// TODO: Initialize FreeRTOS Tasks
-
-#endif /* TEST */
-
-	printf("\t main: Starting main task.. \n\r");
-	xTaskGenericCreate(taskMain, (const signed char*)"taskMain", 1024, NULL, configMAX_PRIORITIES-2, &taskMainHandle, NULL, NULL);
-
-	printf("\t main: Starting scheduler.. \n\r");
-	vTaskStartScheduler();
-
-	// This function should never get here, nevertheless, please make sure that this last call doesn't get optimized away
-	exit(0);
+#endif
 }
