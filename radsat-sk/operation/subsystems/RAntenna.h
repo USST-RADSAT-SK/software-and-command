@@ -47,8 +47,8 @@ typedef struct _antenna_telemetry_side_t {
 /** Struct that holds all telemetry for the Antenna */
 typedef struct _antenna_telemetry_t {
 	antenna_telemetry_side_t sideA;	///< Antenna Telemetry for side A.
-	antenna_telemetry_side_t sideB;   ///< Antenna Telemetry for side B.
-	//TODO: Set up Timestamp		///< TimeStamp for telemetry
+	antenna_telemetry_side_t sideB; ///< Antenna Telemetry for side B.
+	uint32_t timestamp; 			///> The time (in seconds since Unix Epoch) that the message was formatted
 } antenna_telemetry_t;
 
 
@@ -58,7 +58,7 @@ typedef struct _antenna_telemetry_t {
 ***************************************************************************************************/
 
 int antennaInit(void);
-int antennaDeploymentAttempt(void)
+int antennaDeploymentAttempt(void);
 int antennaTelemetry(antenna_telemetry_t* telemetry);
 
 

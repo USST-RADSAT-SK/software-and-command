@@ -8,6 +8,7 @@
 #include <satellite-subsystems/IsisAntS.h>
 #include <string.h>
 #include <hal/errors.h>
+#include <hal/Timing/Time.h>
 
 /***************************************************************************************************
                                   PRIVATE DEFINITIONS AND VARIABLES
@@ -41,6 +42,7 @@ int antennaInit(void) {
 	if (antennaInitialized)
 		return 0;
 
+	// Isis Function call for antenna initialization
 	int error = IsisAntS_initialize(&RAntennaI2Caddress, ANTENNAS_ON_BOARD);
 
 	// Update flag if successfully initialized
@@ -48,13 +50,12 @@ int antennaInit(void) {
 		antennaInitialized = 1;
 
 	// TODO: record errors (if present) to System Manager
-
 	return error;
 }
 
 /**
  * Activate the auto-deployment mechanism on ISISpace Antenna System which will attempt to sequentially
- * deploy all anntennas present on the system without intervention. Has a built in timer per antenna deployment
+ * deploy all antennas present on the system without intervention. Has a built in timer per antenna deployment
  * @return 0 for success, non-zero for failure. See hal/errors.h for details.
  */
 int antennaDeploymentAttempt(void) {
@@ -79,14 +80,14 @@ int antennaDeploymentAttempt(void) {
 		}
 
 		// Update the antenna status struct
-		RAntennaStatus.DeployedAntennaOne = RISISantsStatus.fields.ant1Undeployed;
-		RAntennaStatus.DeployedAntennaTwo = RISISantsStatus.fields.ant2Undeployed;
-		RAntennaStatus.DeployedAntennaThree = RISISantsStatus.fields.ant3Undeployed;
-		RAntennaStatus.DeployedAntennaFour = RISISantsStatus.fields.ant4Undeployed;
+		RAntennaStatus.DeployedAntennaOne = !RISISantsStatus.fields.ant1Undeployed;
+		RAntennaStatus.DeployedAntennaTwo = !RISISantsStatus.fields.ant2Undeployed;
+		RAntennaStatus.DeployedAntennaThree = !RISISantsStatus.fields.ant3Undeployed;
+		RAntennaStatus.DeployedAntennaFour = !RISISantsStatus.fields.ant4Undeployed;
 		RAntennaStatus.AntennaArmed = RISISantsStatus.fields.armed;
 
 
-		// If one antenna is not deployed, repeat attempt
+		// If one antenna is not deployed repeat attempt, otherwise do nothing
 		if (!RAntennaStatus.DeployedAntennaOne || !RAntennaStatus.DeployedAntennaTwo || !RAntennaStatus.DeployedAntennaThree || !RAntennaStatus.DeployedAntennaFour) {
 
 			// Arm A Side Antenna system
@@ -158,10 +159,10 @@ int antennaDeploymentAttempt(void) {
 		}
 
 		// Update the antenna status struct, replaces data from A side
-		RAntennaStatus.DeployedAntennaOne = RISISantsStatus.fields.ant1Undeployed;
-		RAntennaStatus.DeployedAntennaTwo = RISISantsStatus.fields.ant2Undeployed;
-		RAntennaStatus.DeployedAntennaThree = RISISantsStatus.fields.ant3Undeployed;
-		RAntennaStatus.DeployedAntennaFour = RISISantsStatus.fields.ant4Undeployed;
+		RAntennaStatus.DeployedAntennaOne = !RISISantsStatus.fields.ant1Undeployed;
+		RAntennaStatus.DeployedAntennaTwo = !RISISantsStatus.fields.ant2Undeployed;
+		RAntennaStatus.DeployedAntennaThree = !RISISantsStatus.fields.ant3Undeployed;
+		RAntennaStatus.DeployedAntennaFour = !RISISantsStatus.fields.ant4Undeployed;
 		RAntennaStatus.AntennaArmed = RISISantsStatus.fields.armed;
 
 
@@ -232,6 +233,8 @@ int antennaDeploymentAttempt(void) {
  */
 int antennaTelemetry(antenna_telemetry_t* telemetry) {
 
+	int error;
+
 	// ensure the pointer is valid
 	if (telemetry == 0)
 		return E_INPUT_POINTER_NULL;
@@ -240,7 +243,7 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	ISISantsTelemetry RISISantsTelemetry = { .fields = { 0 } };
 
 	// Execute Telemetry command for Side A
-	int error = IsisAntS_getAlltelemetry(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideA, &RISISantsTelemetry);
+	error = IsisAntS_getAlltelemetry(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideA, &RISISantsTelemetry);
 
 	// Error check for Isis Antenna function
 	if(error != 0) {
@@ -250,16 +253,16 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	}
 
 	// Assign side A Telemetry to struct
-	telemetry->sideA->deployStatus.DeployedAntennaOne = !RISISantsTelemetry.fields->ants_deployment.fields.ant1Undeployed;
-	telemetry->sideA->deployStatus.DeployedAntennaTwo = !RISISantsTelemetry.fields->ants_deployment.fields.ant2Undeployed;
-	telemetry->sideA->deployStatus.DeployedAntennaThree = !RISISantsTelemetry.fields->ants_deployment.fields.ant3Undeployed;
-	telemetry->sideA->deployStatus.DeployedAntennaFour = !RISISantsTelemetry.fields->ants_deployment.fields.ant4Undeployed;
-	telemetry->sideA->deployStatus.AntennaArmed = !RISISantsTelemetry.fields->ants_deployment.fields.armed;
+	telemetry->sideA.deployStatus.DeployedAntennaOne = !RISISantsTelemetry.fields.ants_deployment.fields.ant1Undeployed;
+	telemetry->sideA.deployStatus.DeployedAntennaTwo = !RISISantsTelemetry.fields.ants_deployment.fields.ant2Undeployed;
+	telemetry->sideA.deployStatus.DeployedAntennaThree = !RISISantsTelemetry.fields.ants_deployment.fields.ant3Undeployed;
+	telemetry->sideA.deployStatus.DeployedAntennaFour = !RISISantsTelemetry.fields.ants_deployment.fields.ant4Undeployed;
+	telemetry->sideA.deployStatus.AntennaArmed = !RISISantsTelemetry.fields.ants_deployment.fields.armed;
 	telemetry->sideA.board_temp = 0.00322581 * RISISantsTelemetry.fields.ants_temperature;
 	telemetry->sideA.uptime = RISISantsTelemetry.fields.ants_uptime;
 
 	// Execute command for Side B
-	int error = IsisAntS_getAlltelemetry(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideB, &RISISantsTelemetry);
+	error = IsisAntS_getAlltelemetry(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideB, &RISISantsTelemetry);
 
 	// Error check for Isis Antenna function
 	if(error != 0) {
@@ -268,14 +271,23 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 		return error;
 	}
 
-	// Assign side A Telemetry to struct
-	telemetry->sideB->deployStatus.DeployedAntennaOne = !RISISantsTelemetry.fields->ants_deployment.fields.ant1Undeployed;
-	telemetry->sideB->deployStatus.DeployedAntennaTwo = !RISISantsTelemetry.fields->ants_deployment.fields.ant2Undeployed;
-	telemetry->sideB->deployStatus.DeployedAntennaThree = !RISISantsTelemetry.fields->ants_deployment.fields.ant3Undeployed;
-	telemetry->sideB->deployStatus.DeployedAntennaFour = !RISISantsTelemetry.fields->ants_deployment.fields.ant4Undeployed;
-	telemetry->sideB->deployStatus.AntennaArmed = !RISISantsTelemetry.fields->ants_deployment.fields.armed;
+	// Assign side B Telemetry to struct
+	telemetry->sideB.deployStatus.DeployedAntennaOne = !RISISantsTelemetry.fields.ants_deployment.fields.ant1Undeployed;
+	telemetry->sideB.deployStatus.DeployedAntennaTwo = !RISISantsTelemetry.fields.ants_deployment.fields.ant2Undeployed;
+	telemetry->sideB.deployStatus.DeployedAntennaThree = !RISISantsTelemetry.fields.ants_deployment.fields.ant3Undeployed;
+	telemetry->sideB.deployStatus.DeployedAntennaFour = !RISISantsTelemetry.fields.ants_deployment.fields.ant4Undeployed;
+	telemetry->sideB.deployStatus.AntennaArmed = !RISISantsTelemetry.fields.ants_deployment.fields.armed;
 	telemetry->sideB.board_temp = 0.00322581 * RISISantsTelemetry.fields.ants_temperature;
 	telemetry->sideB.uptime = RISISantsTelemetry.fields.ants_uptime;
+
+	//create timestamp
+	error = Time_getUnixEpoch((unsigned int*)&(telemetry->timestamp));
+
+	if(error != 0) {
+
+		// TODO: record errors (if present) to System Manager
+		return error;
+	}
 
 	return 0;
 }
