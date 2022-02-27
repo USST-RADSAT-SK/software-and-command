@@ -17,13 +17,20 @@
 #define _crc_h
 
 
-#define FALSE	0
-#define TRUE	!FALSE
+/** BEGIN - MODIFIED BY TYREL KOSTYK FEB 21 2022 */
+// true and false definitions already provided by the HAL
+#include <hal/boolean.h>
+//#define FALSE	0
+//#define TRUE	!FALSE
+/** END - MODIFIED BY TYREL KOSTYK FEB 21 2022 */
 
 /*
  * Select the CRC standard from the list that follows.
  */
+/** BEGIN - MODIFIED BY TYREL KOSTYK FEB 21 2022 */
+// messages are under 255 bytes long, so a 16-bit CRC is sufficient
 #define CRC16
+/** END - MODIFIED BY TYREL KOSTYK FEB 21 2022 */
 
 
 #if defined(CRC_CCITT)

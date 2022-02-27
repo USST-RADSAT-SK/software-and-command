@@ -21,6 +21,7 @@ typedef struct __attribute__((packed)) _radsat_sk_header_t {
 	uint16_t preamble;		///> A hardcoded tag that identifies the start of a RADSAT-SK message
 	crc_t crc;				///> Cyclical Redundancy Check of all of the following bytes
 	uint8_t size;			///> The size of the message in bytes (NOT including the header)
+	uint32_t timestamp;		///> The time (in seconds since Unix Epoch) that the message was formatted
 } radsat_sk_header_t;
 
 /** The hardcoded preamble that will begin every RADSAT-SK message. The starting year of the RADSAT-SK Project*/
