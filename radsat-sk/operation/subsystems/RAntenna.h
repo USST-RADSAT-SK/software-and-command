@@ -48,6 +48,7 @@ typedef struct _antenna_telemetry_side {
 typedef struct _antenna_telemetry_t {
 	antenna_telemetry_side sideA;	///< Antenna Telemetry for side A.
 	antenna_telemetry_side sideB;   ///< Antenna Telemetry for side B.
+	//TODO: Set up Timestamp		///< TimeStamp for telemetry
 } antenna_telemetry_t;
 
 
