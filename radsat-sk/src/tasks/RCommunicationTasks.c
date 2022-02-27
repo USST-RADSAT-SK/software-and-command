@@ -4,8 +4,8 @@
  * @author Tyrel Kostyk (tck290) and Matthew Buglass (mab839)
  */
 
-#include <RTransceiver.h>
 #include <RCommunicationTasks.h>
+#include <RTransceiver.h>
 #include <RProtocolService.h>
 #include <RTelecommandService.h>
 #include <RFileTransferService.h>

@@ -7,6 +7,7 @@
 #include <freertos/task.h>
 
 #include <hal/Timing/WatchDogTimer.h>
+#include <hal/Timing/Time.h>
 #include <hal/Drivers/LED.h>
 
 #include <hal/boolean.h>
@@ -31,11 +32,6 @@
 #include <RAdcsCaptureTask.h>
 #include <RTelemetryCollectionTask.h>
 #include <RSatelliteWatchdogTask.h>
-
-
-#ifdef TEST
-#include <RTestSuite.h>
-#endif /* TEST */
 
 
 /***************************************************************************************************
@@ -80,42 +76,50 @@ static const int satelliteWatchdogTaskPriority = configMAX_PRIORITIES - 4;
 ***************************************************************************************************/
 
 static void initBoard(void);
-static void initHal(void);
+static void initDrivers(void);
+static void initTime(void);
 static void initSubsystems(void);
 
 static void initObcWatchdog(void);
 static void initTasks(void);
-
-static void runTests(void);
 
 
 /***************************************************************************************************
                                                 MAIN
 ***************************************************************************************************/
 
+/**
+ * The main application entry point.
+ * @return Never returns.
+ */
 int main(void) {
 
 	// initialize internal OBC board settings
 	initBoard();
 
 	// initialize the Hardware Abstraction Library (HAL) drivers
-	initHal();
+	initDrivers();
 
 	// initialize external components and the Satellite Subsystem Interface (SSI)
 	initSubsystems();
 
-	// initialize the internal OBC watchdog (and the resetting of it)
+	// initialize the internal OBC watchdog, and start a task that automatically pets it
 	initObcWatchdog();
 
-	// run test suite - ONLY RUNS ON 'Test' BUILD CONFIGURATIONS
-	runTests();
+#ifdef TEST
+
+	// TODO: run tests
+
+#else	/* TEST */
 
 	// TODO: Antenna Diagnostic & Deployment (if necessary)
 
 	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
 
-	// initialize the FreeRTOS Tasks for operation
+	// initialize the FreeRTOS Tasks used for typical operation
 	initTasks();
+
+#endif	/* TEST */
 
 	// start the FreeRTOS Scheduler - NEVER GETS PAST THIS LINE
 	vTaskStartScheduler();
@@ -129,6 +133,9 @@ int main(void) {
                                          PRIVATE FUNCTIONS
 ***************************************************************************************************/
 
+/**
+ * Initialize low-level MCU/OBC configuration settings.
+ */
 static void initBoard(void) {
 
 	// Enable the Instruction cache of the ARM9 core. Keep the MMU and Data Cache disabled.
@@ -137,7 +144,10 @@ static void initBoard(void) {
 }
 
 
-static void initHal(void) {
+/**
+ * Initialize the low-level peripheral drivers used on the OBC.
+ */
+static void initDrivers(void) {
 
 	// initialize the FRAM memory module for safe persistent storage
 	framInit();
@@ -148,9 +158,12 @@ static void initHal(void) {
 	// initialize the I2C bus for general inter-component communication
 	i2cInit();
 
+	// initialize the RTC and RTT to the default time
+	initTime();
+
 #ifndef RELEASE
 
-	// initilize the LED API
+	// initilize the LEDs
 	LED_start();
 
 	// initialize the Debug UART port for debug printing
@@ -163,6 +176,33 @@ static void initHal(void) {
 }
 
 
+/**
+ * Initialize the RTC and RTT, setting the default time in the process.
+ */
+static void initTime(void) {
+
+	// create Time struct with default times (estimated Launch date)
+	Time time = { 0 };
+	time.year = 22;		// 2022
+	time.month = 8;		// August
+	time.date = 1;		// the 1st
+	time.day = 2;		// Monday
+	time.hours = 12;	// 12:00:00
+	time.minutes = 0;	// 12:00:00
+	time.seconds = 0;	// 12:00:00
+
+	// the time (in seconds) between RTC and RTT synchronizations
+	const unsigned int syncInterval = 120;
+
+	// initilize the RTC and RTT and set the default time
+	Time_start(&time, syncInterval);
+
+}
+
+
+/**
+ * Initialize external subsystem modules and the Satellite Subsystem Interface library.
+ */
 static void initSubsystems(void) {
 
 	// initialize the Transceiver module
@@ -190,6 +230,9 @@ static void initObcWatchdog(void) {
 }
 
 
+/**
+ * Initialize all of the FreeRTOS tasks used during typical operation.
+ */
 static void initTasks(void) {
 
 	// initialize the Communication Receive Task
@@ -255,16 +298,4 @@ static void initTasks(void) {
 					   &satelliteWatchdogTaskHandle,
 					   NULL, NULL);
 
-}
-
-
-static void runTests(void) {
-#ifdef TEST
-
-	// run unit test suite
-	testSuiteRunAll();
-
-	// TODO: Initialize FreeRTOS Tasks for Integration Testing
-
-#endif
 }
