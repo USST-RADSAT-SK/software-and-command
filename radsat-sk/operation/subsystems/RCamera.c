@@ -1013,3 +1013,38 @@ static int confirmPreviousTelecommand(void) {
 }
 
 
+int captureADCSdata(void){
+
+	// Create telecommand buffer
+	uint16_t telecommandBuffer;
+
+	// Add start of message identifer
+	telecommandBuffer = (0x1F7F << 20);
+
+	// Add Telecommand ID
+	telecommandBuffer = (0x14 << 18);
+
+	// Specify Using Camera 1
+	telecommandBuffer = (0x0 << 14);
+
+	// Specify Using SRAM 1
+	telecommandBuffer = (0x0 << 10);
+
+	// Add End of Message identifer
+	telecommandBuffer = (0x1FFF << 0);
+
+	// Get Size of Telecommand
+	int sizeOfBuffer = sizeof(telecommandBuffer);
+
+	// Send telecommand 20 over UART
+	uartTransmit(bus0_uart, &telecommandBuffer, sizeOfBuffer);
+
+	// Request Telemetry 20
+
+
+
+}
+
+
+
+
