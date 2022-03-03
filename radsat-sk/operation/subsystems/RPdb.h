@@ -1,11 +1,11 @@
 /**
- * @file REps.h
+ * @file RPdb.h
  * @date February 21, 2022
  * @author Tyrel Kostyk (tck290) and Isaac Poirier (iap992)
  */
 
-#ifndef REPS_H_
-#define REPS_H_
+#ifndef RPdb_H_
+#define RPdb_H_
 
 #include <stdint.h>
 
@@ -27,7 +27,7 @@ typedef struct _sunSensorStatus {
 
 
 /** Struct for passing all telemetry data */
-typedef struct _epsStatus {
+typedef struct _PdbStatus {
 	SunSensorStatus sunSensorData;
 	// Output Voltages
 	float outputVoltageBCR;
@@ -40,9 +40,8 @@ typedef struct _epsStatus {
 	float outputCurrent5VBus;
 	float outputCurrent3V3Bus;
 	// PDB Motherboard Temperature
-	float epsTemperature;
-	uint16_t timestamp;
-} EpsStatus;
+	float PdbTemperature;
+} PdbStatus;
 
 
 /***************************************************************************************************
@@ -50,7 +49,7 @@ typedef struct _epsStatus {
 ***************************************************************************************************/
 
 SunSensorStatus getSunSensorData(void);
-EpsStatus getEpsTelemetry(void);
-int petEpsWatchdog(void);
+PdbStatus getPdbTelemetry(void);
+int petPdbWatchdog(void);
 
-#endif /* REPS_H_ */
+#endif /* RPdb_H_ */

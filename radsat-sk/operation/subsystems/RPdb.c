@@ -1,10 +1,10 @@
 /**
- * @file REps.c
+ * @file RPdb.c
  * @date February 21, 2022
  * @author Isaac Poirier (iap992)
  */
 
-#include <REps.h>
+#include <RPdb.h>
 #include <RI2c.h>
 #include <string.h>
 
@@ -30,8 +30,8 @@
 
 /** Used in: (Amps = Constant * ADC Count) */
 #define ADC_COUNT_TO_BCR_AMPERAGE				((float) 0.0009775)
-#define ADC_COUNT_TO_3V3_EPS_CURRENT_DRAW		((float) 0.001327547)
-#define ADC_COUNT_TO_5V_EPS_CURRENT_DRAW		((float) 0.001327547)
+#define ADC_COUNT_TO_3V3_PDB_CURRENT_DRAW		((float) 0.001327547)
+#define ADC_COUNT_TO_5V_PDB_CURRENT_DRAW		((float) 0.001327547)
 #define ADC_COUNT_TO_BATTERY_BUS_OUTPUT_CURRENT	((float) 0.005237)
 #define ADC_COUNT_TO_5V_BUS_OUTPUT_CURRENT		((float) 0.005237)
 #define ADC_COUNT_TO_3V3_BUS_OUTPUT_CURRENT		((float) 0.005237)
@@ -51,18 +51,18 @@
 /**
  * Constant Values for I2C Communication
  */
-/** I2C Slave Address for EPS */
-#define EPS_I2C_SLAVE_ADDR 			(0x2B)
-/** Data Sent to the EPS via I2C for telemetry commands is 6 Bytes, 2 for the command, 4 for data*/
-#define EPS_TELEM_COMMAND_LENGTH	(6)
-/** Data sent to the EPS via I2C for all other commands is 4 Bytes, 2 for the command, 2 for data*/
-#define EPS_COMMAND_LENGTH			(4)
-/** Data Returned from the EPS via I2C is 4 Bytes */
-#define EPS_RESPONSE_LENGTH			(4)
-/** Delay between telemetry read/write operations with the EPS on I2C is 5ms */
-#define EPS_I2C_TELEM_DELAY			(5)
-/** Delay between other read/write operations with the EPS on I2C is 1ms */
-#define EPS_I2C_DELAY				(1)
+/** I2C Slave Address for PDB */
+#define PDB_I2C_SLAVE_ADDR 			(0x2B)
+/** Data Sent to the PDB via I2C for telemetry commands is 6 Bytes, 2 for the command, 4 for data*/
+#define PDB_TELEM_COMMAND_LENGTH	(6)
+/** Data sent to the PDB via I2C for all other commands is 4 Bytes, 2 for the command, 2 for data*/
+#define PDB_COMMAND_LENGTH			(4)
+/** Data Returned from the PDB via I2C is 4 Bytes */
+#define PDB_RESPONSE_LENGTH			(4)
+/** Delay between telemetry read/write operations with the PDB on I2C is 5ms */
+#define PDB_I2C_TELEM_DELAY			(5)
+/** Delay between other read/write operations with the PDB on I2C is 1ms */
+#define PDB_I2C_DELAY				(1)
 
 
 /**
@@ -81,7 +81,7 @@
  *  4 Byte commands to request data for each of the 6 sun-sensors
  *	located on each face of the CubeSat Solar Arrays.
  */
-static uint16_t epsSunSensorCommandBytes[6] = {
+static uint32_t PdbSunSensorCommandBytes[6] = {
 	0x10E11C,     // SA1A - xPos? TODO: Fill out which side is which connection
 	0x10E11D,     // SA1B -
 	0x10E12C,     // SA2A -
@@ -93,7 +93,7 @@ static uint16_t epsSunSensorCommandBytes[6] = {
 /**
  * 4 Byte commands for requesting output voltage readings for each bus and BCR
  */
-static uint16_t epsVoltageCommandBytes[4] = {
+static uint32_t PdbVoltageCommandBytes[4] = {
 		0x10E280,		// Output Voltage of BCR
 		0x10E220,		// Output Voltage of Battery Bus
 		0x10E210,		// Output Voltage of 5V Bus
@@ -103,7 +103,7 @@ static uint16_t epsVoltageCommandBytes[4] = {
 /**
  * 4 Byte commands for requesting output current readings for each bus and BCR
  */
-static uint16_t epsCurrentCommandBytes[4] = {
+static uint32_t PdbCurrentCommandBytes[4] = {
 		0x10E284,		// Output Current of BCR in mA
 		0x10E224,		// Output Current of Battery Bus
 		0x10E214,		// Output Current of 5V Bus
@@ -115,7 +115,7 @@ static uint16_t epsCurrentCommandBytes[4] = {
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
 
-static uint16_t epsI2cTalk(uint32_t command);
+static uint16_t PdbI2cTalk(uint32_t command);
 
 
 /***************************************************************************************************
@@ -139,7 +139,7 @@ SunSensorStatus getSunSensorData(void) {
 
 	// Send 6 commands to get each of the sun sensor's data
 	for(int i = 0; i < NUM_SUN_SENSORS; i = i + 1){
-		i2c_received = epsI2cTalk(epsSunSensorCommandBytes[i]);
+		i2c_received = PdbI2cTalk(PdbSunSensorCommandBytes[i]);
 		convertedData[i] = ADC_COUNT_TO_IRRADIANCE * i2c_received;
 	}
 
@@ -160,53 +160,53 @@ SunSensorStatus getSunSensorData(void) {
 
 /**
  * Request and store all of the relevant data (voltage, current, temperature, sun sensor data)
- *  	from the EPS board
+ *  	from the PDB board
  *
- * @return A pointer to an EpsStatus object containing all of the telemetry for the EPS system
+ * @return A pointer to an PDBStatus object containing all of the telemetry for the PDB system
  */
-EpsStatus getEpsTelemetry(void) {
+PdbStatus getPdbTelemetry(void) {
 
-	// Create a new EpsStatus Structure
-	EpsStatus dataStorage;
+	// Create a new PDBStatus Structure
+	PdbStatus dataStorage;
 
-	// Get sun sensor data and store it in the new EpsStatus Structure
+	// Get sun sensor data and store it in the new PDBStatus Structure
 	dataStorage.sunSensorData = getSunSensorData();
 
 	// Create a temporary variable for receiving I2C data
 	uint16_t i2c_received;
 
 
-	// Get ADC output voltage readings from the EPS
-	i2c_received = epsI2cTalk(epsVoltageCommandBytes[0]);
+	// Get ADC output voltage readings from the PDB
+	i2c_received = PdbI2cTalk(PdbVoltageCommandBytes[0]);
 	dataStorage.outputVoltageBCR = ADC_COUNT_TO_BCR_OUTPUT_VOLTAGE * i2c_received;
 
-	i2c_received = epsI2cTalk(epsVoltageCommandBytes[1]);
+	i2c_received = PdbI2cTalk(PdbVoltageCommandBytes[1]);
 	dataStorage.outputVoltageBatteryBus = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE * i2c_received;
 
-	i2c_received = epsI2cTalk(epsVoltageCommandBytes[2]);
+	i2c_received = PdbI2cTalk(PdbVoltageCommandBytes[2]);
 	dataStorage.outputVoltage5VBus = ADC_COUNT_TO_5V_BUS_OUTPUT_VOLTAGE * i2c_received;
 
-	i2c_received = epsI2cTalk(epsVoltageCommandBytes[3]);
+	i2c_received = PdbI2cTalk(PdbVoltageCommandBytes[3]);
 	dataStorage.outputVoltage3V3Bus = ADC_COUNT_TO_3V3_BUS_OUTPUT_VOLTAGE * i2c_received;
 
 
-	// Get ADC Output current readings from the EPS
-	i2c_received = epsI2cTalk(epsCurrentCommandBytes[0]);
+	// Get ADC Output current readings from the PDB
+	i2c_received = PdbI2cTalk(PdbCurrentCommandBytes[0]);
 	dataStorage.outputCurrentBCR_mA = ADC_COUNT_TO_BCR_OUTPUT_CURRENT * i2c_received;
 
-	i2c_received = epsI2cTalk(epsCurrentCommandBytes[1]);
+	i2c_received = PdbI2cTalk(PdbCurrentCommandBytes[1]);
 	dataStorage.outputCurrentBatteryBus = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_CURRENT * i2c_received;
 
-	i2c_received = epsI2cTalk(epsCurrentCommandBytes[2]);
+	i2c_received = PdbI2cTalk(PdbCurrentCommandBytes[2]);
 	dataStorage.outputCurrent5VBus = ADC_COUNT_TO_5V_BUS_OUTPUT_CURRENT * i2c_received;
 
-	i2c_received = epsI2cTalk(epsCurrentCommandBytes[3]);
+	i2c_received = PdbI2cTalk(PdbCurrentCommandBytes[3]);
 	dataStorage.outputCurrent3V3Bus = ADC_COUNT_TO_3V3_BUS_OUTPUT_CURRENT * i2c_received;
 
 
-	// Get ADC temperature reading from the EPS
-	i2c_received = epsI2cTalk(0x10E308);	// Telemetry code for motherboard temperature
-	dataStorage.epsTemperature = (ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE * i2c_received)
+	// Get ADC temperature reading from the PDB
+	i2c_received = PdbI2cTalk(0x10E308);	// Telemetry code for motherboard temperature
+	dataStorage.PdbTemperature = (ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE * i2c_received)
 										- ADC_COUNT_TO_MOTHERBOARD_TEMP_SHIFT ;
 
 	return dataStorage;
@@ -214,13 +214,13 @@ EpsStatus getEpsTelemetry(void) {
 
 
 /**
- * Pet the Communications watchdog on the EPS using code 0x22
+ * Pet the Communications watchdog on the PDB using code 0x22
  * @return either an error if it occurred, or 0
  */
-int petEpsWatchdog(void){
+int petPdbWatchdog(void){
 
 	// One way communication so just use transmit using reset watchdog command 0x22
-	int error = i2cTransmit(EPS_I2C_SLAVE_ADDR, 0x2200, EPS_COMMAND_LENGTH);
+	int error = i2cTransmit(PDB_I2C_SLAVE_ADDR, 0x2200, PDB_COMMAND_LENGTH);
 	if (error != 0) {
 		return error;
 	}
@@ -236,7 +236,7 @@ int petEpsWatchdog(void){
 ***************************************************************************************************/
 
 
-static uint16_t epsI2cTalk(uint32_t command) {
+static uint16_t PdbI2cTalk(uint32_t command) {
 
 	// Create a temporary variable for receiving I2C data
 	uint16_t i2c_data = 0;
@@ -248,16 +248,16 @@ static uint16_t epsI2cTalk(uint32_t command) {
 	// Variable selection for command length dependent on if it is a telemetry call
 	// Byte mask to look only at the command field to see if it is 0x10 (telem call)
 	if ((command && 0x0000FF0000) == 0x0000100000) {
-		comm_length = EPS_TELEM_COMMAND_LENGTH;
-		comm_delay = EPS_I2C_TELEM_DELAY;
+		comm_length = PDB_TELEM_COMMAND_LENGTH;
+		comm_delay = PDB_I2C_TELEM_DELAY;
 	}
 	else {
-		comm_length = EPS_COMMAND_LENGTH;
-		comm_delay = EPS_I2C_DELAY;
+		comm_length = PDB_COMMAND_LENGTH;
+		comm_delay = PDB_I2C_DELAY;
 	}
 
-	// tell EPS to give us data; and store into our internal buffer
-	int error = i2cTalk(EPS_I2C_SLAVE_ADDR, comm_length, EPS_RESPONSE_LENGTH,
+	// tell PDB to give us data; and store into our internal buffer
+	int error = i2cTalk(PDB_I2C_SLAVE_ADDR, comm_length, PDB_RESPONSE_LENGTH,
 							command, i2c_data, comm_delay);
 
 	// return error? if an error occurs, else send the data back
