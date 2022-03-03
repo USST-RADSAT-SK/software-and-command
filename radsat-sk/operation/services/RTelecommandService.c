@@ -12,6 +12,13 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
+/**
+ * Process (and execute where necessary) received telecommands.
+ *
+ * @param wrappedMessage A pointer to a wrapped (encrypted, etc.) RADSAT-SK message.
+ * @param size The size (in bytes) of the wrapped message.
+ * @return The tag of the processed telecommand (0 on failure).
+ */
 uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
 
 	// ensure the input pointer is not NULL
