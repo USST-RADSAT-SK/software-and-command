@@ -22,7 +22,6 @@ typedef struct _sunSensorStatus {
 	float yNeg;
 	float zPos;
 	float zNeg;
-	uint16_t timestamp;
 } SunSensorStatus;
 
 
