@@ -9,10 +9,38 @@
 PB_BIND(FileTransferMessage, FileTransferMessage, AUTO)
 
 
-PB_BIND(FileTransferResponse, FileTransferResponse, AUTO)
+PB_BIND(ObcTelemetry, ObcTelemetry, AUTO)
 
 
-PB_BIND(FileTransferPacket, FileTransferPacket, AUTO)
+PB_BIND(TransceiverTelemetry, TransceiverTelemetry, AUTO)
+
+
+PB_BIND(TransceiverTelemetry_receiverTelemetry, TransceiverTelemetry_receiverTelemetry, AUTO)
+
+
+PB_BIND(TransceiverTelemetry_transmitterTelemetry, TransceiverTelemetry_transmitterTelemetry, AUTO)
+
+
+PB_BIND(CameraTelemetry, CameraTelemetry, AUTO)
+
+
+PB_BIND(EpsTelemetry, EpsTelemetry, AUTO)
+
+
+PB_BIND(BatteryTelemetry, BatteryTelemetry, AUTO)
+
+
+PB_BIND(AntennaTelemetry, AntennaTelemetry, AUTO)
+
+
+PB_BIND(DosimeterData, DosimeterData, AUTO)
+
+
+PB_BIND(DosimeterData_DosimeterBoardData, DosimeterData_DosimeterBoardData, AUTO)
+
+
+PB_BIND(ImagePacket, ImagePacket, AUTO)
+
 
 
 
