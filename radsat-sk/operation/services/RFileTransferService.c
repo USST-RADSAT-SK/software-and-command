@@ -64,8 +64,10 @@ uint8_t fileTransferNextFrame(uint8_t* frame) {
 
 	// increment the read cursor
 	frameReadCursor++;
+	if (frameReadCursor == MAX_FRAME_COUNT)
+		frameReadCursor = 0;
 
-	// transfer the frame into the provided buffer
+	// transfer the new (now current) frame into the provided buffer
 	memcpy(frame, frames[frameReadCursor].data, frames[frameReadCursor].size);
 
 	return frames[frameReadCursor].size;

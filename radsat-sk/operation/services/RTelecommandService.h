@@ -18,5 +18,4 @@
 uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size);
 
 
-
 #endif /* RTELECOMMANDSERVICE_H_ */

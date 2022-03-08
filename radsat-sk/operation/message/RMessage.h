@@ -33,7 +33,7 @@ typedef struct __attribute__((packed)) _radsat_sk_header_t {
 /** The offset of the CRC start location within the RADSAT-SK Message Header. */
 #define RADSAT_SK_HEADER_CRC_OFFSET	(sizeof(((radsat_sk_header_t*)0)->preamble)+sizeof(((radsat_sk_header_t*)0)->crc))
 
-/** The maximum size of a RADSAT-SK message (not including the message header). */
+/** The maximum size of a RADSAT-SK message (including the message header and all other overhead). */
 #define RADSAT_SK_MAX_MESSAGE_SIZE	((uint16_t)((PROTO_MAX_ENCODED_SIZE)+(RADSAT_SK_HEADER_SIZE)))
 
 

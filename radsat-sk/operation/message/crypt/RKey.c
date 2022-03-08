@@ -6,6 +6,7 @@
 
 #include <RKey.h>
 #include <RFram.h>
+#include <RDebug.h>
 
 
 /***************************************************************************************************
@@ -24,6 +25,13 @@
 
 /** The 1-byte private key used for the decryption operations. */
 static uint8_t key = 0;
+
+
+/***************************************************************************************************
+                                       PRIVATE FUNCTION STUBS
+***************************************************************************************************/
+
+static void rewriteKey(uint8_t goodKey, uint32_t badKeyAddress);
 
 
 /***************************************************************************************************
@@ -55,27 +63,74 @@ uint8_t privateKey(void) {
 		if (error) return 0;
 
 		// all of the keys are the same
-		if ((key1 == key2) && (key1 == key3) && (key2 == key3))
+		if ((key1 == key2) && (key1 == key3) && (key2 == key3)) {
 			key = key1;
+		}
 
 		// key1 is different
-		else if ((key1 != key2) && (key1 != key3) && (key2 == key3))
+		else if ((key1 != key2) && (key1 != key3) && (key2 == key3)) {
+
+			debugPrint("RKey: key1 is different (expected %d, got %d). Overwriting...\n", key2, key1);
+
+			// rewrite key1 with a valid one
+			rewriteKey(key2, PRIVATE_KEY_ADDR_ONE);
+
+			// send key2
 			key = key2;
+		}
 
 		// key2 is different
-		else if ((key1 != key2) && (key1 == key3) && (key2 != key3))
+		else if ((key1 != key2) && (key1 == key3) && (key2 != key3)) {
+
+			debugPrint("RKey: key2 is different (expected %d, got %d). Overwriting...\n", key1, key2);
+
+			// rewrite key2 with a valid one
+			rewriteKey(key1, PRIVATE_KEY_ADDR_TWO);
+
+			// send key1
 			key = key1;
+		}
 
 		// key3 is different
-		else if ((key1 == key2) && (key1 != key3) && (key2 != key3))
-			key = key1;
+		else if ((key1 == key2) && (key1 != key3) && (key2 != key3)) {
 
-		// all three are different... yikes. TODO: report an error?
-		else
+			debugPrint("RKey: key3 is different (expected %d, got %d). Overwriting...\n", key1, key3);
+
+			// rewrite key3 with a valid one
+			rewriteKey(key1, PRIVATE_KEY_ADDR_THREE);
+
+			// send key1
 			key = key1;
+		}
+
+		// all three are different... yikes
+		else {
+
+			debugPrint("RKey: all three keys are different (Key1 = %d, Key2 = %d, Key3 = %d). Sending Key1...\n", key1, key2, key3);
+
+			// TODO: report an error to the system manager
+
+			key = key1;
+		}
 	}
 
 	return key;
 }
 
 
+/***************************************************************************************************
+                                         PRIVATE FUNCTIONS
+***************************************************************************************************/
+
+/**
+ * Rewrite a corrupted Private Key in FRAM with a valid key.
+ *
+ * @param goodKey A valid private key.
+ * @param badKeyAddress The address of the key that is determined to be invalid.
+ */
+static void rewriteKey(uint8_t goodKey, uint32_t badKeyAddress) {
+
+	// write good key into location of corrupted key
+	framWrite(&goodKey, badKeyAddress, sizeof(goodKey));
+
+}
