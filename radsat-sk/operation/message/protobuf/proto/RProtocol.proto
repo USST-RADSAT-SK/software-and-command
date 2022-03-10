@@ -1,0 +1,28 @@
+/* file: fileTransfer.proto
+ * date: February 9 2022
+ *
+ * This proto file includes the raw definitions (using proto3 syntax) of
+ * messages that are to be compiled into C structs using the protoc library.
+ *
+ * The messages defined in this file will be used for the Acknowledgement (ACK) and
+ * Negative-Acknowledgement (NACK) of messages sent between the Satellite and the Ground
+ * Station.
+ */
+
+syntax = "proto3";
+
+// top level File Transfer message object
+message ProtocolMessage {
+	oneof message {
+		Ack ack     = 1;
+		Nack nack   = 2;
+	}
+}
+
+// Positive Acknowledgement
+message Ack {
+}
+
+// Negative Acknowledgement
+message Nack {
+}
