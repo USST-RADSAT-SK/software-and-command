@@ -17,6 +17,8 @@
                                             DEFINITIONS
 ***************************************************************************************************/
 
+uint8_t safeFlag;
+
 
 /** Struct for passing all telemetry data */
 typedef struct _batteryStatus {
@@ -33,7 +35,6 @@ typedef struct _batteryStatus {
 	float daughterboardTemp1;
 	float daughterboardTemp2;
 	float daughterboardTemp3;
-	uint16_t timestamp;
 } BatteryStatus;
 
 
@@ -43,6 +44,8 @@ typedef struct _batteryStatus {
 ***************************************************************************************************/
 
 BatteryStatus getBatteryTelemetry(void);
+
+void checkSafeFlag(void);
 
 
 //#endif  /* RBATTERY_H_ */

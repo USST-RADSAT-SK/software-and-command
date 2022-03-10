@@ -153,6 +153,28 @@ BatteryStatus getBatteryTelemetry(void){
 }
 
 
+/**
+ * Send a telecommand via I2C to check on the current battery voltage, and if under 6.5V, raise the global safeFlag
+ * @return nothing.
+ */
+void checkSafeFlag(void){
+
+	// Create a temporary variable for receiving I2C data
+	uint16_t i2c_received;
+
+	// Get the battery output voltage
+	i2c_received = batteryI2cTalk(batteryVoltageCommandBytes[0]);
+	uint16_t converted_value = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE * i2c_received;
+
+	// If the voltage is less than 6.5V then raise the safeFlag to send the cubeSat into safe mode.
+	// TODO: generate an error?
+	if(converted_value < 6.5){
+		safeFlag = 1;
+	}
+	else{
+		safeFlag = 0;
+	}
+}
 
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
