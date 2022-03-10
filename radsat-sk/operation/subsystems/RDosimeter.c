@@ -5,6 +5,8 @@
  */
 
 #include <RDosimeter.h>
+#include <RFileTransferService.h>
+#include <RFileTransfer.pb.h>
 #include <RI2c.h>
 #include <string.h>
 
@@ -91,7 +93,7 @@ static uint8_t dosimeterCommandBytes[adcChannelCount] = {
 ***************************************************************************************************/
 
 static float convertCountsToVoltage(uint8_t highByte, uint8_t lowByte);
-static int16_t convertVoltageToTemperature(float voltage);
+static float convertVoltageToTemperature(float voltage);
 
 
 /***************************************************************************************************
@@ -117,13 +119,17 @@ int dosimeterCollectData(void)
 	// internal buffer for receiving I2C responses
 	uint8_t dataResponse[DOSIMETER_RESPONSE_LENGTH] = { 0 };
 
-	// TODO: prepare a protobuf struct to populate within the nested for loops
+	// prepare a protobuf struct to populate with data
+	DosimeterData data = { 0 };
+
+	// prepare a 2D array to store the values obtained in the following loops
+	float results[dosimeterBoardCount][adcChannelCount] = { 0 };
 
 	// iterate through both melanin-dosimeter boards
 	for (uint8_t dosimeterBoard = dosimeterBoardOne; dosimeterBoard < dosimeterBoardCount; dosimeterBoard++) {
 
 		// request data from each sensor on a particular board
-		for (uint8_t adcChannel = adcChannelOne; adcChannel < adcChannelCount; adcChannel++) {
+		for (uint8_t adcChannel = adcChannelZero; adcChannel < adcChannelCount; adcChannel++) {
 
 			// reset internal buffer
 			memset(dataResponse, 0, DOSIMETER_RESPONSE_LENGTH);
@@ -134,22 +140,45 @@ int dosimeterCollectData(void)
 								dataResponse, DOSIMETER_I2C_DELAY);
 
 			// check for success of I2C command
-			if ( error != 0 )
+			if (error != 0)
 				return error;
 
 			float finalVoltage = convertCountsToVoltage(dataResponse[0], dataResponse[1]);
 
 			// if reading the temperature sensor, convert it to celsius
-			if (adcChannel == temperatureSensor) {
-				uint16_t temperature = convertVoltageToTemperature(finalVoltage);
-			}
+			if (adcChannel == temperatureSensor)
+				finalVoltage = convertVoltageToTemperature(finalVoltage);
 
-			// TODO: format data into Protobuf message
+			// store result in 2D array
+			results[dosimeterBoard][adcChannel] = finalVoltage;
 
 		}
 	}
 
-	// TODO: send formatted protobuf messages to downlink manager
+	// format protobuf message with recorded values
+
+	// board one
+	data.boardOne.voltageChannelZero = results[dosimeterBoardOne][adcChannelZero];
+	data.boardOne.voltageChannelOne = results[dosimeterBoardOne][adcChannelOne];
+	data.boardOne.voltageChannelTwo = results[dosimeterBoardOne][adcChannelTwo];
+	data.boardOne.voltageChannelThree = results[dosimeterBoardOne][adcChannelThree];
+	data.boardOne.voltageChannelFour = results[dosimeterBoardOne][adcChannelFour];
+	data.boardOne.voltageChannelFive = results[dosimeterBoardOne][adcChannelFive];
+	data.boardOne.voltageChannelSix = results[dosimeterBoardOne][adcChannelSix];
+	data.boardOne.voltageChannelSeven = results[dosimeterBoardOne][adcChannelSeven];
+
+	// board two
+	data.boardTwo.voltageChannelZero = results[dosimeterBoardTwo][adcChannelZero];
+	data.boardTwo.voltageChannelOne = results[dosimeterBoardTwo][adcChannelOne];
+	data.boardTwo.voltageChannelTwo = results[dosimeterBoardTwo][adcChannelTwo];
+	data.boardTwo.voltageChannelThree = results[dosimeterBoardTwo][adcChannelThree];
+	data.boardTwo.voltageChannelFour = results[dosimeterBoardTwo][adcChannelFour];
+	data.boardTwo.voltageChannelFive = results[dosimeterBoardTwo][adcChannelFive];
+	data.boardTwo.voltageChannelSix = results[dosimeterBoardTwo][adcChannelSix];
+	data.boardTwo.voltageChannelSeven = results[dosimeterBoardTwo][adcChannelSeven];
+
+	// send formatted protobuf messages to downlink manager
+	fileTransferAddMessage(&data, sizeof(data), FileTransferMessage_dosimeterData_tag);
 
 	return 0;
 }
@@ -228,8 +257,8 @@ static float convertCountsToVoltage(uint8_t highByte, uint8_t lowByte) {
  * @param voltage The voltage reading of the LMT87 (in mV)
  * @return The voltage (in degrees Celsius) as a whole number
  */
-static int16_t convertVoltageToTemperature(float voltage) {
+static float convertVoltageToTemperature(float voltage) {
 
-	int16_t temperature = (int16_t)( ( voltage * TEMPERATURE_SCALE_SLOPE ) + TEMPERATURE_SCALE_OFFSET );
+	float temperature = (float)( ( voltage * TEMPERATURE_SCALE_SLOPE ) + TEMPERATURE_SCALE_OFFSET );
 	return temperature;
 }

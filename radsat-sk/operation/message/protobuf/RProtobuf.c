@@ -5,7 +5,7 @@
  */
 
 #include <RProtobuf.h>
-#include <assert.h>
+#include <hal/errors.h>
 
 
 /***************************************************************************************************
@@ -13,22 +13,23 @@
 ***************************************************************************************************/
 
 /**
- * Encode a raw protobuf message with NanoPB into a buffer, and encode the header as well.
+ * Encode (serialize) a raw protobuf message with NanoPB into a buffer.
  *
- * @param rawMessage The raw (unencoded) RadSat struct message to encode.
- * @param outgoingBuffer The buffer that will hold the encoded message & header.
- * @return The size of the encoded message; 0 if encoding failed.
+ * @param rawMessage The raw (non-serialized) RadsatMessage struct to encode.
+ * @param outgoingBuffer The buffer that will hold the encoded message.
+ * @return The size of the encoded message (max 255); 0 if encoding failed.
  */
 uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer) {
-	// ensure incoming buffer is not NULL
-	assert(rawMessage);
-	assert(outgoingBuffer);
+
+	// ensure incoming buffers are not NULL
+	if (rawMessage == 0 || outgoingBuffer == 0)
+		return 0;
 
 	// create stream object
 	pb_ostream_t stream = pb_ostream_from_buffer((uint8_t*)rawMessage, PROTO_MAX_ENCODED_SIZE);
 
 	// encode the message into the byte array
-	if (pb_encode(&stream, RadsatMessage_fields, &outgoingBuffer))
+	if (pb_encode(&stream, RadsatMessage_fields, outgoingBuffer))
 		return stream.bytes_written;
 
 	// if the encoding failed, return 0
@@ -37,20 +38,23 @@ uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer) {
 
 
 /**
- * Decode an encoded protobuf message, and confirm that the contents match the header.
+ * Decode an encoded protobuf message.
  *
- * @param incomingBuffer The buffer containing the encoded message/header.
+ * @param incomingBuffer The buffer containing the encoded message (no header).
  * @param decodedMessage The message that will be populated with the decoded message.
- * @return true if the message is decoded successfully, false otherwise.
+ * @return 0 if the message is decoded successfully, otherwise error occured.
  */
-uint8_t protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage) {
-	// ensure incoming buffer is not NULL
-	assert(incomingBuffer);
-	assert(decodedMessage);
+int protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage) {
+
+	// ensure incoming buffers are not NULL
+	if (incomingBuffer == 0 || decodedMessage == 0)
+		return E_INPUT_POINTER_NULL;
 
 	// create stream object
 	pb_istream_t stream = pb_istream_from_buffer((uint8_t*)incomingBuffer, PROTO_MAX_ENCODED_SIZE);
 
-	// encode the message into the byte array
-	return pb_decode(&stream, RadsatMessage_fields, &decodedMessage);
+	// decode the message into the empty message struct
+	uint8_t success = pb_decode(&stream, RadsatMessage_fields, decodedMessage);
+
+	return !success;
 }
