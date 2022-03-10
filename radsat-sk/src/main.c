@@ -56,6 +56,7 @@ void taskMain(void* parameters)
 
 int main(void)
 {
+
 	xTaskHandle taskMainHandle;
 
 	TRACE_CONFIGURE_ISP(DBGU_STANDARD, 2000000, BOARD_MCK);
