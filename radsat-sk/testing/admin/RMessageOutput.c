@@ -87,7 +87,20 @@ void printFileTransferMessages(void) {
 													FileTransferMessage_dosimeterData_tag);
 
 	if (dosimiterSize != 0) {
+		uint8_t dosimeterFrame[sizeof(mockDosimeterData)] = { 0 };
 
+		int dosimeterFrameStatus = fileTransferNextFrame(&dosimeterFrame);
+
+		if (dosimeterFrameStatus != 0) {
+			printf(dosimeterFrame);
+		}
+		else {
+			printf("Error in getting dosimeter frame");
+		}
+
+	}
+	else {
+		printf("Error in creating a dosimeter message");
 	}
 
 	// OBC Telemetry
@@ -101,6 +114,23 @@ void printFileTransferMessages(void) {
 	int obcTelemetrySize = fileTransferAddMessage(&mockObcTelemetry,
 													sizeof(mockObcTelemetry),
 													FileTransferMessage_obcTelemetry_tag);
+
+	if (obcTelemetrySize != 0) {
+		uint8_t obcTelemetryFrame[sizeof(mockObcTelemetry)] = { 0 };
+
+		int obcTelemetryFrameStatus = fileTransferNextFrame(&obcTelemetryFrame);
+
+		if (obcTelemetryFrameStatus != 0) {
+			printf(obcTelemetryFrame);
+		}
+		else {
+			printf("Error in getting obcTelemetry frame");
+		}
+
+	}
+	else {
+		printf("Error in creating a obcTelemetry message");
+	}
 
 
 	// Transceiver Telemetry
@@ -133,6 +163,23 @@ void printFileTransferMessages(void) {
 	int transceiverTelemetrySize = fileTransferAddMessage(&mockTransceiverTelemetry,
 															sizeof(mockTransceiverTelemetry),
 															FileTransferMessage_transceiverTelemetry_tag);
+
+	if (transceiverTelemetrySize != 0) {
+		uint8_t transceiverFrame[sizeof(mockTransceiverTelemetry)] = { 0 };
+
+		int transceiverTelemetryFrameStatus = fileTransferNextFrame(&transceiverFrame);
+
+		if (transceiverTelemetryFrameStatus != 0) {
+			printf(transceiverFrame);
+		}
+		else {
+			printf("Error in getting transceiverTelemetry frame");
+		}
+
+	}
+	else {
+		printf("Error in creating a transceiverTelemetry message");
+	}
 
 
 }
