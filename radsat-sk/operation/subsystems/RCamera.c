@@ -1,18 +1,14 @@
-
 /**
  * @file RCamera.c
  * @date December 23, 2021
  * @author Shiva Moghtaderi (shm153)
  */
 
-
 #include <RCamera.h>
 #include <RUart.h>
 #include <hal/errors.h>
 #include <string.h>
 #include <stdio.h>
-
-
 
 /***************************************************************************************************
                                             DEFINITIONS
@@ -30,32 +26,32 @@ typedef struct __attribute__((__packed__)) _tc_trailer_t {
 
 typedef uint8_t telecommand_id_t;
 
-#define startidentifier1              ((uint8_t) 0x1F)
-#define startidentifier2              ((uint8_t) 0x7F)
+#define START_IDENTIFIER1              ((uint8_t) 0x1F)
+#define START_IDENTIFIER2              ((uint8_t) 0x7F)
 
-#define telecommandid0                ((uint8_t) 0x00)
-#define telecommandid11               ((uint8_t) 0x0B)
-#define telecommandid20               ((uint8_t) 0x14)
-#define telecommandid21               ((uint8_t) 0x15)
-#define telecommandid40               ((uint8_t) 0x28)
-#define telecommandid41               ((uint8_t) 0x29)
-#define telecommandid42               ((uint8_t) 0x2A)
-#define telecommandid43               ((uint8_t) 0x2B)
-#define telecommandid44               ((uint8_t) 0x2C)
-#define telecommandid45               ((uint8_t) 0x2D)
-#define telecommandid50               ((uint8_t) 0x32)
-#define telecommandid51               ((uint8_t) 0x33)
-#define telecommandid52               ((uint8_t) 0x34)
-#define telecommandid53               ((uint8_t) 0x35)
-#define telecommandid54               ((uint8_t) 0x36)
-#define telecommandid55               ((uint8_t) 0x37)
-#define telecommandid64               ((uint8_t) 0x40)
-#define telecommandid65               ((uint8_t) 0x41)
+#define TELECOMMAND_ID_0                ((uint8_t) 0x00)
+#define TELECOMMAND_ID_11               ((uint8_t) 0x0B)
+#define TELECOMMAND_ID_20               ((uint8_t) 0x14)
+#define TELECOMMAND_ID_21               ((uint8_t) 0x15)
+#define TELECOMMAND_ID_40               ((uint8_t) 0x28)
+#define TELECOMMAND_ID_41               ((uint8_t) 0x29)
+#define TELECOMMAND_ID_42               ((uint8_t) 0x2A)
+#define TELECOMMAND_ID_43               ((uint8_t) 0x2B)
+#define TELECOMMAND_ID_44               ((uint8_t) 0x2C)
+#define TELECOMMAND_ID_45               ((uint8_t) 0x2D)
+#define TELECOMMAND_ID_50               ((uint8_t) 0x32)
+#define TELECOMMAND_ID_51               ((uint8_t) 0x33)
+#define TELECOMMAND_ID_52               ((uint8_t) 0x34)
+#define TELECOMMAND_ID_53               ((uint8_t) 0x35)
+#define TELECOMMAND_ID_54               ((uint8_t) 0x36)
+#define TELECOMMAND_ID_55               ((uint8_t) 0x37)
+#define TELECOMMAND_ID_64               ((uint8_t) 0x40)
+#define TELECOMMAND_ID_65               ((uint8_t) 0x41)
 
-#define CAPTURE_IMAGE_CMD_SIZE	      ((uint8_t) 3)
-#define CAPTURE_IMAGE_TC_SIZE	      ((uint8_t) 8)
-#define REQUEST_TELEMETRY_SIZE	      ((uint8_t) 5)
-#define TELEMETRY_ACK_SIZE	          ((uint8_t) 5)
+#define CAPTURE_IMAGE_CMD_SIZE	        ((uint8_t) 3)
+#define CAPTURE_IMAGE_TC_SIZE	        ((uint8_t) 8)
+#define REQUEST_TELEMETRY_SIZE	        ((uint8_t) 5)
+#define TELEMETRY_ACK_SIZE	            ((uint8_t) 5)
 
 #define TELECOMMAND_OVERHEAD	                ((uint8_t) (sizeof(tc_header_t) + sizeof(tc_trailer_t) + sizeof(telecommand_id_t)))
 #define TELECOMMAND_HEADER_INDEX	            ((uint8_t)  0)
@@ -63,120 +59,120 @@ typedef uint8_t telecommand_id_t;
 #define TELECOMMAND_PARAM_INDEX		            ((uint8_t)  (TELECOMMAND_ID_INDEX + sizeof(telecommand_id_t)))
 #define TELECOMMAND_TRAILER_INDEX(paramLength)	((uint8_t)  (TELECOMMAND_PARAM_INDEX + paramLength))
 
-#define resetCommunicationInterfaces  ((uint8_t) 1)
-#define resetCameras                  ((uint8_t) 2)
-#define resetMCU                      ((uint8_t) 3)
+#define RESET_COMMUNICATION_INTERFACES  ((uint8_t) 1)
+#define RESET_CAMERAS                   ((uint8_t) 2)
+#define REST_MCU                        ((uint8_t) 3)
 
-#define ClearSRAM1flag                ((uint8_t) 0)
-#define ClearSRAM2flag                ((uint8_t) 1)
-#define ClearBothFlags                ((uint8_t) 2)
+#define CLEAR_SRAM1_FLAG                ((uint8_t) 0)
+#define CLEAR_SRAM2_FLAG                ((uint8_t) 1)
+#define CLEAR_BOTH_FLAGS                ((uint8_t) 2)
 
-#define CAMERA_ONE	                  ((uint8_t) 0)
-#define CAMERA_TWO	                  ((uint8_t) 1)
+#define CAMERA_ONE	                    ((uint8_t) 0)
+#define CAMERA_TWO	                    ((uint8_t) 1)
 
-#define IMAGE_SENSOR	              ((uint8_t) CAMERA_TWO)
-#define SUN_SENSOR	         	      ((uint8_t) CAMERA_ONE)
+#define IMAGE_SENSOR	                ((uint8_t) CAMERA_TWO)
+#define SUN_SENSOR	         	        ((uint8_t) CAMERA_ONE)
 
-#define SRAM1                         ((uint8_t) 0)
-#define SRAM2                         ((uint8_t) 1)
+#define SRAM1                           ((uint8_t) 0)
+#define SRAM2                           ((uint8_t) 1)
 
-#define TOP_HALVE                     ((uint8_t) 0)
-#define BOTTOM_HALVE                  ((uint8_t) 1)
+#define TOP_HALVE                       ((uint8_t) 0)
+#define BOTTOM_HALVE                    ((uint8_t) 1)
 
-#define detectionThresholdValue1      ((uint8_t) 1)
-#define detectionThresholdValue2      ((uint8_t) 1)
+#define DETECTION_THRESHOLD_VALUE1      ((uint8_t) 1)
+#define DETECTION_THRESHOLD_VALUE2      ((uint8_t) 1)
 
-#define autoadjustdisabled            ((uint8_t) 0)
-#define autoadjustenabled             ((uint8_t) 1)
+#define AUTOADJUST_DISABLED             ((uint8_t) 0)
+#define AUTOADJUST_ENABLED              ((uint8_t) 1)
 
-#define exposureRegisterValue1        ((uint8_t) 1)
-#define gainControlRegister1          ((uint8_t) 1)
-#define blueGainControlRegister1      ((uint8_t) 1)
-#define redGainControlRegister1       ((uint8_t) 1)
+#define EXPOSURE_REGISTER_VALUE1        ((uint8_t) 1)
+#define GAIN_CONTROL_REGISTER1          ((uint8_t) 1)
+#define BLUE_GAIN_CONTROL_REGISTER1     ((uint8_t) 1)
+#define RED_GAIN_CONTROL_REGISTER1      ((uint8_t) 1)
 
-#define exposureRegisterValue2        ((uint8_t) 1)
-#define gainControlRegister2          ((uint8_t) 1)
-#define blueGainControlRegister2      ((uint8_t) 1)
-#define redGainControlRegister2       ((uint8_t) 1)
+#define EXPOSURE_REGISTER_VALUE2        ((uint8_t) 1)
+#define GAIN_CONTROL_REGISTER2          ((uint8_t) 1)
+#define BLUE_GAIN_CONTROL_REGISTER2     ((uint8_t) 1)
+#define RED_GAIN_CONTROL_REGISTER2      ((uint8_t) 1)
 
-#define xPixelLocationCAM1Boresight   ((uint8_t) 1)
-#define yPixelLocationCAM1Boresight   ((uint8_t) 1)
+#define X_PIXEL_LOCATION_CAM1_BORESIGHT ((uint8_t) 1)
+#define Y_PIXEL_LOCATION_CAM1_BORESIGHT ((uint8_t) 1)
 
-#define xPixelLocationCAM2Boresight   ((uint8_t) 1)
-#define yPixelLocationCAM2Boresight   ((uint8_t) 1)
+#define X_PIXEL_LOCATION_CAM2_BORESIGHT ((uint8_t) 1)
+#define Y_PIXEL_LOCATION_CAM2_BORESIGHT ((uint8_t) 1)
 
-#define areaNumber1                   ((uint8_t) 1)
-#define lowerXLimit1                  ((uint8_t) 1)
-#define upperXLimit1                  ((uint8_t) 1)
-#define lowerYLimit1                  ((uint8_t) 1)
-#define upperYLimit1                  ((uint8_t) 1)
+#define AREA_NUMBER1                    ((uint8_t) 1)
+#define LOWER_X_LIMIT1                  ((uint8_t) 1)
+#define UPPER_X_LIMIT1                  ((uint8_t) 1)
+#define LOWER_Y_LIMIT1                  ((uint8_t) 1)
+#define UPPER_Y_LIMIT1                  ((uint8_t) 1)
 
-#define areaNumber2                   ((uint8_t) 1)
-#define lowerXLimit2                  ((uint8_t) 1)
-#define upperXLimit2                  ((uint8_t) 1)
-#define lowerYLimit2                  ((uint8_t) 1)
-#define upperYLimit2                  ((uint8_t) 1)
+#define AREA_NUMBER2                    ((uint8_t) 1)
+#define LOWER_X_LIMIT2                  ((uint8_t) 1)
+#define UPPER_X_LIMIT2                  ((uint8_t) 1)
+#define LOWER_Y_LIMIT2                  ((uint8_t) 1)
+#define UPPER_Y_LIMIT2                  ((uint8_t) 1)
 
-#define Mantissa11Value               ((uint8_t) 1)
-#define Exponent11Value               ((uint8_t) 1)
-#define Mantissa12Value               ((uint8_t) 1)
-#define Exponent12Value               ((uint8_t) 1)
-#define Mantissa13Value               ((uint8_t) 1)
-#define Exponent13Value               ((uint8_t) 1)
-#define Mantissa14Value               ((uint8_t) 1)
-#define Exponent14Value               ((uint8_t) 1)
-#define Mantissa15Value               ((uint8_t) 1)
-#define Exponent15Value               ((uint8_t) 1)
+#define MANTISSA11_VALUE                ((uint8_t) 1)
+#define EXPONENT11_VALUE                ((uint8_t) 1)
+#define MANTISSA12_VALUE                ((uint8_t) 1)
+#define EXPONENT12_VALUE                ((uint8_t) 1)
+#define MANTISSA13_VALUE                ((uint8_t) 1)
+#define EXPONENT13_VALUE                ((uint8_t) 1)
+#define MANTISSA14_VALUE                ((uint8_t) 1)
+#define EXPONENT14_VALUE                ((uint8_t) 1)
+#define MANTISSA15_VALUE                ((uint8_t) 1)
+#define EXPONENT15_VALUE                ((uint8_t) 1)
 
-#define Mantissa21Value               ((uint8_t) 1)
-#define Exponent21Value               ((uint8_t) 1)
-#define Mantissa22Value               ((uint8_t) 1)
-#define Exponent22Value               ((uint8_t) 1)
-#define Mantissa23Value               ((uint8_t) 1)
-#define Exponent23Value               ((uint8_t) 1)
-#define Mantissa24Value               ((uint8_t) 1)
-#define Exponent24Value               ((uint8_t) 1)
-#define Mantissa25Value               ((uint8_t) 1)
-#define Exponent25Value               ((uint8_t) 1)
+#define MANTISSA21_VALUE                ((uint8_t) 1)
+#define EXPONENT21_VALUE                ((uint8_t) 1)
+#define MANTISSA22_VALUE                ((uint8_t) 1)
+#define EXPONENT22_VALUE                ((uint8_t) 1)
+#define MANTISSA23_VALUE                ((uint8_t) 1)
+#define EXPONENT23_VALUE                ((uint8_t) 1)
+#define MANTISSA24_VALUE                ((uint8_t) 1)
+#define EXPONENT24_VALUE                ((uint8_t) 1)
+#define MANTISSA25_VALUE                ((uint8_t) 1)
+#define EXPONENT25_VALUE                ((uint8_t) 1)
 
-#define ImageSize1024                 ((uint8_t) 0)
-#define ImageSize512                  ((uint8_t) 1)
-#define ImageSize256                  ((uint8_t) 2)
-#define ImageSize128                  ((uint8_t) 3)
-#define ImageSize64                   ((uint8_t) 4)
+#define IMAGE_SIZE_1024                 ((uint8_t) 0)
+#define IMAGE_SIZE_512                  ((uint8_t) 1)
+#define IMAGE_SIZE_256                  ((uint8_t) 2)
+#define IMAGE_SIZE_128                  ((uint8_t) 3)
+#define IMAGE_SIZE_64                   ((uint8_t) 4)
 
-#define nextFrameNumberValue          ((uint8_t) 4)
+#define NEXT_FRAME_NUMBER_VALUE         ((uint8_t) 4)
 
-#define endidentifier1                ((uint8_t) 0x1F)
-#define endidentifier2                ((uint8_t) 0xFF)
+#define END_IDENTIFIER1                 ((uint8_t) 0x1F)
+#define END_IDENTIFIER2                 ((uint8_t) 0xFF)
 
 //Telemetry define
-#define telemetryid0                  ((uint8_t) 0x80)
-#define telemetryid1                  ((uint8_t) 0x81)
-#define telemetryid2                  ((uint8_t) 0x82)
-#define telemetryid3                  ((uint8_t) 0x83)
-#define telemetryid19                 ((uint8_t) 0x93)
-#define telemetryid20                 ((uint8_t) 0x94)
-#define telemetryid21                 ((uint8_t) 0x95)
-#define telemetryid22                 ((uint8_t) 0x96)
-#define telemetryid23                 ((uint8_t) 0x97)
-#define telemetryid24                 ((uint8_t) 0x98)
-#define telemetryid25                 ((uint8_t) 0x99)
-#define telemetryid26                 ((uint8_t) 0x9A)
-#define telemetryid40                 ((uint8_t) 0xA8)
-#define telemetryid64                 ((uint8_t) 0xC0)
-#define telemetryid65                 ((uint8_t) 0xC1)
-#define telemetryid66                 ((uint8_t) 0xC2)
-#define telemetryid67                 ((uint8_t) 0xC3)
-#define telemetryid68                 ((uint8_t) 0xC4)
-#define telemetryid69                 ((uint8_t) 0xC5)
-#define telemetryid72                 ((uint8_t) 0xC8)
-#define telemetryid73                 ((uint8_t) 0xC9)
+#define TELEMETRY_ID_0                  ((uint8_t) 0x80)
+#define TELEMETRY_ID_1                  ((uint8_t) 0x81)
+#define TELEMETRY_ID_2                  ((uint8_t) 0x82)
+#define TELEMETRY_ID_3                  ((uint8_t) 0x83)
+#define TELEMETRY_ID_19                 ((uint8_t) 0x93)
+#define TELEMETRY_ID_20                 ((uint8_t) 0x94)
+#define TELEMETRY_ID_21                 ((uint8_t) 0x95)
+#define TELEMETRY_ID_22                 ((uint8_t) 0x96)
+#define TELEMETRY_ID_23                 ((uint8_t) 0x97)
+#define TELEMETRY_ID_24                 ((uint8_t) 0x98)
+#define TELEMETRY_ID_25                 ((uint8_t) 0x99)
+#define TELEMETRY_ID_26                 ((uint8_t) 0x9A)
+#define TELEMETRY_ID_40                 ((uint8_t) 0xA8)
+#define TELEMETRY_ID_64                 ((uint8_t) 0xC0)
+#define TELEMETRY_ID_65                 ((uint8_t) 0xC1)
+#define TELEMETRY_ID_66                 ((uint8_t) 0xC2)
+#define TELEMETRY_ID_67                 ((uint8_t) 0xC3)
+#define TELEMETRY_ID_68                 ((uint8_t) 0xC4)
+#define TELEMETRY_ID_69                 ((uint8_t) 0xC5)
+#define TELEMETRY_ID_72                 ((uint8_t) 0xC8)
+#define TELEMETRY_ID_73                 ((uint8_t) 0xC9)
 
-#define TELEMETRY_OVERHEAD	          ((uint8_t) (sizeof(TELECOMMAND_OVERHEAD))
-#define TELEMETRY_HEADER_INDEX	      ((uint8_t)  0)
-#define TELEMETRY_ID_INDEX		      ((uint8_t)  sizeof(tc_header_t))
-#define TELEMETRY_PARAM_INDEX		  ((uint8_t)  (TELEMETRY_ID_INDEX + sizeof(telecommand_id_t)))
+#define TELEMETRY_OVERHEAD	            ((uint8_t) (sizeof(TELECOMMAND_OVERHEAD))
+#define TELEMETRY_HEADER_INDEX	        ((uint8_t)  0)
+#define TELEMETRY_ID_INDEX		        ((uint8_t)  sizeof(tc_header_t))
+#define TELEMETRY_PARAM_INDEX		    ((uint8_t)  (TELEMETRY_ID_INDEX + sizeof(telecommand_id_t)))
 #define TELEMETRY_TRAILER_INDEX(paramLength)  ((uint8_t)  (TELEMETRY_PARAM_INDEX + paramLength))
 
 #define STATUS_TELEMETRY_SIZE                       ((uint8_t) 8)
@@ -201,418 +197,326 @@ static const uint8_t ackResponse[TELEMETRY_ACK_SIZE] = { 0x1F, 0x7F, 0x00, 0x1F,
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
-
-// static int confirmPreviousTelecommand(void);
-
-//ResetTelecommand
+// ResetTelecommand
 camera_telecommand_t resetTelecommand = {
-		.ID = 0x00,
+		.ID = TELECOMMAND_ID_0,
 		.paramLength = 1
-	};
-typedef struct _tc_reset_Telecommand_params_t {
-	uint8_t resetType;
-} tc_reset_Telecommand_params_t;
+};
 
-//Clear SRAM overcurrent flags Telecommand
+// Clear SRAM overcurrent flags Telecommand
 camera_telecommand_t clearSRAMOvercurrentFlags = {
-		.ID = 0x0B,
+		.ID = TELECOMMAND_ID_11,
 		.paramLength = 1
-	};
-typedef struct _tc_clear_SRAM_overcurrent_params_t {
-		uint8_t SRAMOverCurrentFlag;
-	} _tc_clear_SRAM_over_current_t;
+};
 
-//Capture & detect Telecommand
+// Image capture & detection Telecommand
 camera_telecommand_t captureAndDetect = {
-		.ID = 0x14,
+		.ID = TELECOMMAND_ID_20,
 		.paramLength = 2
-	};
-typedef struct _tc_image_capture_anddetect_params_t {
-	uint8_t camera;
-	uint8_t sram;
-	} _tc_image_capture_anddetect_params_t ;
+};
 
-//Capture Image Telecommand
+// Capture Image Telecommand
 camera_telecommand_t captureImageTelecommand = {
-		.ID = 0x15,
+		.ID = TELECOMMAND_ID_21,
 		.paramLength = 3
-	};
-typedef struct _tc_capture_image_params_t {
-	uint8_t camera;
-	uint8_t sram;
-	uint8_t whichHalf;
-} tc_capture_image_params_t;
+};
 
 //Set sensor 1 detection threshold Telecommand
 camera_telecommand_t setSensorOneDetectionThreshold = {
-		.ID = 0x28,
+		.ID = TELECOMMAND_ID_40,
 		.paramLength = 1
-	};
-typedef struct _tc_set_sensor_one_detection_threshold_t {
-		uint8_t detectionThreshold1;
-		} _tc_set_sensor_one_detection_threshold_t ;
+};
 
 //Set sensor 2 detection threshold Telecommand
 camera_telecommand_t setSensorTwoDetectionThreshold = {
-			.ID = 0x29,
+			.ID = TELECOMMAND_ID_41,
 			.paramLength = 1
-		};
-typedef struct _tc_set_sensor_two_detection_threshold_t {
-		uint8_t detectionThreshold2;
-		} _tc_set_sensor_two_detection_threshold_t ;
+};
 
 //Set sensor 1 auto-adjust Telecommand
 camera_telecommand_t setSensorOneAutoadjust = {
-			.ID = 0x2A,
+			.ID = TELECOMMAND_ID_42,
 			.paramLength = 1
-		};
-typedef struct _tc_set_SensorOne_Autoadjust_t {
-		uint8_t autoadjustenable1;
-		} _tc_set_SensorOne_Autoadjust_t ;
+};
 
 //Set sensor 1 settings Telecommand
 camera_telecommand_t setSensorOneSetting = {
-			.ID = 0x2B,
+			.ID = TELECOMMAND_ID_43,
 			.paramLength = 5
-		};
-typedef struct _tc_set_SensorOne_Setting_t {
-		uint8_t exposureTime1;
-		uint8_t AGC1;
-		uint8_t blueGain1;
-		uint8_t redGain1;
-		} _tc_set_SensorOne_Setting_t ;
+};
 
 //Set sensor 2 auto-adjust Telecommand
 camera_telecommand_t setSensorTwoAutoadjust = {
-			.ID = 0x2C,
+			.ID = TELECOMMAND_ID_44,
 			.paramLength = 1
-		};
-typedef struct _tc_set_SensorTwo_Autoadjust_t {
-		uint8_t autoadjustenable2;
-		} _tc_set_SensorTwo_Autoadjust_t ;
+};
 
 //Set sensor 2 settings Telecommand
 camera_telecommand_t setSensorTwoSetting = {
-			.ID = 0x2D,
+			.ID = TELECOMMAND_ID_45,
 			.paramLength = 5
-		};
-typedef struct _tc_set_SensorTwo_Setting_t {
-	   uint8_t exposureTime2;
-	   uint8_t AGC2;
-	   uint8_t blueGain2;
-	   uint8_t redGain2;
-	} _tc_set_SensorTwo_Setting_t ;
+};
 
 //Set sensor 1 boresight pixel location Telecommand
 camera_telecommand_t setSensorOneBoresightPixelLocation = {
-			.ID = 0x32,
+			.ID = TELECOMMAND_ID_50,
 			.paramLength = 4
-		};
-typedef struct _tc_set_SensorOne_Boresight_Pixel_Location_t {
-	   uint16_t X_pixel1;
-	   uint16_t Y_pixel1;
-} _tc_set_SensorOne_Boresight_Pixel_Location_t ;
+};
 
 //Set sensor 2 boresight pixel location Telecommand
 camera_telecommand_t setSensorTwoBoresightPixelLocation = {
-			.ID = 0x33,
+			.ID = TELECOMMAND_ID_51,
 			.paramLength = 4
-		};
-typedef struct _tc_set_SensorTwo_Boresight_Pixel_Location_t {
-	   uint16_t X_pixel2;
-	   uint16_t Y_pixel2;
-} _tc_set_SensorTwo_Boresight_Pixel_Location_t ;
-
+};
 
 //Set sensor 1 mask Telecommand
 camera_telecommand_t setSensorOneMask = {
-			.ID = 0x34,
+			.ID = TELECOMMAND_ID_52,
 			.paramLength = 9
-		};
-typedef struct _tc_set_SensorOne_Mask_t {
-	   uint8_t  maskNumber1;
-	   uint16_t xMinimum1;
-	   uint16_t xMaximum1;
-	   uint16_t yMinimum1;
-	   uint16_t yMaximum1;
-} _tc_set_SensorOne_Mask_t;
+};
 
 //Set sensor 2 mask Telecommand
 camera_telecommand_t setSensorTwoMask = {
-			.ID = 0x35,
+			.ID = TELECOMMAND_ID_53,
 			.paramLength = 9
-		};
-typedef struct _tc_set_SensorTwo_Mask_t {
-	   uint8_t  maskNumber2;
-	   uint16_t xMinimum2;
-	   uint16_t xMaximum2;
-	   uint16_t yMinimum2;
-	   uint16_t yMaximum2;
-} _tc_set_SensorTwo_Mask_t;
+};
 
 //Set sensor 1 distortion correction coefficients Telecommand
 camera_telecommand_t setSensorOneDistortionCorrectionCoefficient = {
-			.ID = 0x36,
+			.ID = TELECOMMAND_ID_54,
 			.paramLength = 15
-		};
-typedef struct _tc_set_SensorOne_distortionCorrectionCoefficient_params_t {
-	   uint16_t Mantissa11;
-	   uint8_t  Exponent11;
-	   uint16_t Mantissa12;
-	   uint8_t  Exponent12;
-	   uint16_t Mantissa13;
-	   uint8_t  Exponent13;
-	   uint16_t Mantissa14;
-	   uint8_t  Exponent14;
-	   uint16_t Mantissa15;
-	   uint8_t  Exponent15;
-} _tc_set_SensorOne_distortionCorrectionCoefficient_params_t;
+};
 
 //Set sensor 2 distortion correction coefficients Telecommand
 camera_telecommand_t setSensorTwoDistortionCorrectionCoefficient = {
-			.ID = 0x37,
+			.ID = TELECOMMAND_ID_55,
 			.paramLength = 15
-		};
-typedef struct _tc_set_SensorTwo_distortionCorrectionCoefficient_t {
-	   uint16_t Mantissa21;
-	   uint8_t  Exponent21;
-	   uint16_t Mantissa22;
-	   uint8_t  Exponent22;
-	   uint16_t Mantissa23;
-	   uint8_t  Exponent23;
-	   uint16_t Mantissa24;
-	   uint8_t  Exponent24;
-	   uint16_t Mantissa25;
-	   uint8_t  Exponent25;
-} _tc_set_SensorTwo_distortionCorrectionCoefficient_t;
+};
 
 //Initialize image download Telecommand
 camera_telecommand_t initializeImageDownload = {
-			.ID = 0x40,
+			.ID = TELECOMMAND_ID_64,
 			.paramLength = 3
-		};
-typedef struct _tc_initialize_imageDownload_params_t {
-	   uint8_t sramSelection;
-	   uint8_t sramLocation;
-	   uint8_t sizeSelection;
-} _tc_initialize_imageDownload_params_t;
+};
 
 //Advance image download Telecommand
 camera_telecommand_t advanceimageDownload = {
-			.ID = 0x41,
+			.ID = TELECOMMAND_ID_65,
 			.paramLength = 2
-		};
-typedef struct _tc_advance_imageDownload_params_t {
-	   uint16_t nextFrameNumber;
-	} _tc_advance_imageDownload_params_t;
+};
 
-//Header and footer
+//Header and trailer
 tc_header_t header = {
-		.header1 = startidentifier1,
-		.header2 = startidentifier2
+		.header1 = START_IDENTIFIER1,
+		.header2 = START_IDENTIFIER2
 };
 
 tc_trailer_t trailer = {
-		.trailer1 = endidentifier1,
-		.trailer2 = endidentifier2
+		.trailer1 = END_IDENTIFIER1,
+		.trailer2 = END_IDENTIFIER2
 };
 /***************************************************************************************************
-                                             PUBLIC API
+                                             PRIVATE API
 ***************************************************************************************************/
-int sendResetTc(uint8_t resetType)
+static int sendResetTc(uint8_t RresetType)
 {
-// determine size of telecommand
+    // determine size of telecommand
 	uint8_t resetTcSize = TELECOMMAND_OVERHEAD + resetTelecommand.paramLength;
 
-// build  camera capture telecommand
+    // build  camera capture telecommand
 	uint8_t commandBuffer[resetTcSize];
 
-// start of message identifiers
+	// start of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 0
-	commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid0;
+    // telecommand ID 0
+	commandBuffer[TELECOMMAND_ID_INDEX] = resetTelecommand.ID; //resetTelecmd.ID
 
-//telecommand parameters- Interface control document. Page:25
-	tc_reset_Telecommand_params_t params = {
-				.resetType= resetCommunicationInterfaces,
-		};
+    // telecommand parameters- Interface control document. Page:25
+	tc_reset_Telecommand_params_t params;
+	params.resetType = RresetType;
 
 	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
-// end of message identifiers
+
+    // end of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(captureImageTelecommand.paramLength)],
 		   &trailer,
 		   sizeof(trailer));
 
 	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+    // return 0 if an error occurs in UART
+
+	//TODO: Implement feature with error manager
 	if (error != 0)
-		return 0;
+		return error;
+
+	return 0;
 }
 /**************************************************************************************************************************/
-int sendClearSramOverCurrentFlagTc(uint8_t SRAMOverCurrentFlag)
+static int sendClearSramOverCurrentFlagTc(uint8_t SRAMOverCurrentFlag)
 {
-// determine size of telecommand
+   // determine size of telecommand
 	uint8_t clearSramOverCurrentFlagTcSize = TELECOMMAND_OVERHEAD + clearSRAMOvercurrentFlags.paramLength;
 
-// build  camera capture telecommand
+   // build  camera capture telecommand
 	uint8_t commandBuffer[clearSramOverCurrentFlagTcSize];
 
-// start of message identifiers
+   // start of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 0
-	commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid11;
+   // telecommand ID 0
+	commandBuffer[TELECOMMAND_ID_INDEX] = clearSRAMOvercurrentFlags.ID;
 
-//telecommand parameters- Interface control document. Page:25
-	_tc_clear_SRAM_overcurrent_params_t params = {
-				.SRAMOverCurrentFlag= ClearSRAM1flag,
-		};
+   // telecommand parameters- Interface control document. Page:25
+	tc_clear_SRAM_over_current_t params;
+	params.SRAMOverCurrentFlag= CLEAR_SRAM1_FLAG;
 
 	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
-// end of message identifiers
+   // end of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(captureImageTelecommand.paramLength)],
 		   &trailer,
 		   sizeof(trailer));
 
 	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+   // return 0 if an error occurs
 	if (error != 0)
-		return 0;
+		return error;
+
+	return 0;
 }
 /**************************************************************************************************/
-int sendCameraCaptureImageTc(uint8_t sensor, uint8_t sram, uint8_t half)
+static int sendCameraCaptureImageTc(uint8_t sensor, uint8_t sram, uint8_t half)
 {
-// determine size of telecommand
+    // determine size of telecommand
 	uint8_t cameraCaptureImageTcSize = TELECOMMAND_OVERHEAD + captureImageTelecommand.paramLength;
 
-// build  camera capture telecommand
+    // build  camera capture telecommand
 	uint8_t commandBuffer[cameraCaptureImageTcSize];
 
-// start of message identifiers
+    // start of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 21
-	commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid21;
+    // telecommand ID 21
+	commandBuffer[TELECOMMAND_ID_INDEX] = captureImageTelecommand.ID;
 
-//telecommand parameters- Interface control document. Page:25
-	tc_capture_image_params_t params = {
-			.camera = sensor,
-			.sram = sram,
-			.whichHalf = half
-	};
+    //telecommand parameters- Interface control document. Page:25
+	tc_capture_image_params_t params;
+	params.camera = sensor;
+	params.sram = sram;
+	params.whichHalf = half;
 
 	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
+    // end of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(captureImageTelecommand.paramLength)],
 		   &trailer,
 		   sizeof(trailer));
 
 	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
-		return 0;
+		return error;
+
+	return 0;
 }
 /******************************************************************************************************/
-int sendImageAndCaptureDetectionTc(uint8_t camera, uint8_t sram)
+static int sendImageAndCaptureDetectionTc(uint8_t camera, uint8_t sram)
 {
-// determine size of telecommand
+    // determine size of telecommand
 	uint8_t imageAndCaptureDetectionTcSize = TELECOMMAND_OVERHEAD + captureAndDetect.paramLength;
 
-// build  camera capture telecommand
+    // build  camera capture telecommand
 	uint8_t commandBuffer[imageAndCaptureDetectionTcSize];
 
-// start of message identifiers
+    // start of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 21
-	commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid20;
+    // telecommand ID 21
+	commandBuffer[TELECOMMAND_ID_INDEX] = captureAndDetect.ID;
 
-//telecommand parameters- Interface control document. Page:25
-	_tc_image_capture_anddetect_params_t params = {
-			.camera = CAMERA_ONE,
-			.sram = SRAM1,
-};
+    // telecommand parameters- Interface control document. Page:25
+	tc_image_capture_anddetect_params_t params;
+	params.camera = CAMERA_ONE;
+	params.sram = SRAM1;
 
 	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
-	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(_tc_image_capture_anddetect_params_t.paramLength)],
+    // end of message identifiers
+	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(captureAndDetect.paramLength)],
 		   &trailer,
 		   sizeof(trailer));
 
 	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
-		return 0;
+		return error;
+
+	return 0;
 }
 /**********************************************************************************************/
 /*The threshold is set to a default value calculated for robustness.
 If the user wishes to change the threshold values, telecommands 40
 and 41 can be used. It is however recommended that the default values be used.*/
 
-int sendSetSensorOneDetectionThresholdTc(uint8_t detectionThreshold1)
+static int sendSetSensorOneDetectionThresholdTc(uint8_t detectionThreshold1)
 {
-// determine size of telecommand
+    // determine size of telecommand
 	uint8_t setSensorOneDetectionThresholdTcSize = TELECOMMAND_OVERHEAD + setSensorOneDetectionThreshold.paramLength;
 
-// build  camera capture telecommand
+    // build  camera capture telecommand
 	uint8_t commandBuffer[setSensorOneDetectionThresholdTcSize];
 
-// start of message identifiers
+    // start of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 40
-	commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid40;
+    // telecommand ID 40
+	commandBuffer[TELECOMMAND_ID_INDEX] = setSensorOneDetectionThreshold.ID;
 
-//telecommand parameters- Interface control document. Page:26
-	_tc_set_sensor_one_detection_threshold_t params = {
-			.detectionThreshold1= detectionThresholdValue1,
-};
+    //telecommand parameters- Interface control document. Page:26
+    tc_set_sensor_one_detection_threshold_t params;
+           params.detectionThreshold1= DETECTION_THRESHOLD_VALUE1;
 
 	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
+    // end of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorOneDetectionThreshold.paramLength)],
 		   &trailer,
 		   sizeof(trailer));
 
 	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
 		return 0;
 }
 
 /****************************************************************************************************/
-int sendSetSensorTwoDetectionThresholdTc(uint8_t detectionThreshold2)
+static int sendSetSensorTwoDetectionThresholdTc(uint8_t detectionThreshold2)
 {
-// determine size of telecommand
+    // determine size of telecommand
 	uint8_t setSensorTwoDetectionThresholdTcSize = TELECOMMAND_OVERHEAD +  setSensorTwoDetectionThreshold.paramLength;
 
-// build  camera capture telecommand
+    // build  camera capture telecommand
 	uint8_t commandBuffer[setSensorTwoDetectionThresholdTcSize];
 
-// start of message identifiers
+   // start of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 41
-	commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid41;
+   // telecommand ID 41
+	commandBuffer[TELECOMMAND_ID_INDEX] = setSensorTwoDetectionThreshold.ID;
 
-//telecommand parameters- Interface control document. Page:26
-	_tc_set_sensor_two_detection_threshold_t params = {
-			.detectionThreshold2= detectionThresholdValue2,
-		};
+  //telecommand parameters- Interface control document. Page:26
+  tc_set_sensor_two_detection_threshold_t params;
+		params.detectionThreshold2= DETECTION_THRESHOLD_VALUE2;
 
 	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
+   // end of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorTwoDetectionThreshold.paramLength)],
 		   &trailer,
 		   sizeof(trailer));
 
 	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+   // return 0 if an error occurs
 	if (error != 0)
 		return 0;
 }
@@ -624,494 +528,490 @@ brightness of the earth in the sensor’s image. These values are calibrated for r
 If, however the client wishes to use the Nadir sensor as a greyscale imager, the exposure can be set by using
 telecommands 42 – 45.*/
 
-int sendSetSensorOneAutoadjustTc(uint8_t autoadjustenable1)
+static int sendSetSensorOneAutoadjustTc(uint8_t autoadjustenable1)
 {
-// determine size of telecommand
+   // determine size of telecommand
 	uint8_t setSensorOneAutoadjustTcSize = TELECOMMAND_OVERHEAD + setSensorOneAutoadjust.paramLength;
 
-// build  camera capture telecommand
+   // build  camera capture telecommand
 	uint8_t commandBuffer[setSensorOneAutoadjustTcSize];
 
-// start of message identifiers
+   // start of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 42
-	commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid42;
+   // telecommand ID 42
+	commandBuffer[TELECOMMAND_ID_INDEX] = setSensorOneAutoadjust.ID;
 
-//telecommand parameters- Interface control document. Page:26
-	_tc_set_SensorOne_Autoadjust_t params = {
-			.autoadjustenable1= autoadjustenabled,
-		};
+   //telecommand parameters- Interface control document. Page:26
+	tc_set_SensorOne_Autoadjust_t params;
+	params.autoadjustenable1= AUTOADJUST_ENABLED;
 
 	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
+   // end of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorOneAutoadjust.paramLength)],
 		   &trailer,
 		   sizeof(trailer));
 
 	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
 		return 0;
 }
 
 /*************************************************************************************************************/
 
-int sendSetSensorOneSettingTc(uint16_t exposureTime1, uint8_t AGC1, uint8_t blueGain1, uint8_t redGain1)
+static int sendSetSensorOneSettingTc(uint16_t exposureTime1, uint8_t AGC1, uint8_t blueGain1, uint8_t redGain1)
 {
-// determine size of telecommand
+   // determine size of telecommand
 	uint8_t setSensorOneSettingTcSize = TELECOMMAND_OVERHEAD + setSensorOneSetting.paramLength;
 
-// build  camera capture telecommand
+   // build  camera capture telecommand
 	uint8_t commandBuffer[setSensorOneSettingTcSize];
 
-// start of message identifiers
+   // start of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 43
-	commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid43;
+    // telecommand ID 43
+	commandBuffer[TELECOMMAND_ID_INDEX] = setSensorOneSetting.ID;
 
-//telecommand parameters- Interface control document. Page:26
-	_tc_set_SensorOne_Setting_t params = {
-			.exposureTime1= exposureRegisterValue1,
-			.AGC1=gainControlRegister1,
-			.blueGain1= blueGainControlRegister1,
-			.redGain1= redGainControlRegister1,
-		};
+    //telecommand parameters- Interface control document. Page:26
+	tc_set_SensorOne_Setting_t params;
+	params.exposureTime1= EXPOSURE_REGISTER_VALUE1;
+			params.AGC1=GAIN_CONTROL_REGISTER1;
+			params.blueGain1= BLUE_GAIN_CONTROL_REGISTER1;
+			params.redGain1= RED_GAIN_CONTROL_REGISTER1;
 
 	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
+    // end of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorOneSetting.paramLength)],
 		   &trailer,
 		   sizeof(trailer));
 
 	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
 		return 0;
 }
 /********************************************************************************************************/
-int sendSetSensorTwoAutoadjustTc(uint8_t autoadjustenable2)
+static int sendSetSensorTwoAutoadjustTc(uint8_t autoadjustenable2)
 {
-// determine size of telecommand
+    // determine size of telecommand
 	uint8_t setSensorTwoAutoadjustTcSize = TELECOMMAND_OVERHEAD + setSensorTwoAutoadjust.paramLength;
 
-// build  camera capture telecommand
+    // build  camera capture telecommand
 	uint8_t commandBuffer[setSensorTwoAutoadjustTcSize];
 
-// start of message identifiers
+    // start of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 44
-	commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid44;
+    // telecommand ID 44
+	commandBuffer[TELECOMMAND_ID_INDEX] = setSensorTwoAutoadjust.ID;
 
-//telecommand parameters- Interface control document. Page:27
-	_tc_set_SensorTwo_Autoadjust_t params = {
-			.autoadjustenable2=autoadjustenabled,
-		};
+    //telecommand parameters- Interface control document. Page:27
+   tc_set_SensorTwo_Autoadjust_t params;
+      params.autoadjustenable2=AUTOADJUST_ENABLED;
 
 	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
+    // end of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorTwoAutoadjust.paramLength)],
 		   &trailer,
 		   sizeof(trailer));
 
 	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
 		return 0;
 }
 /********************************************************************************************************************/
-int sendSetSensorTwoSettingTc(uint16_t exposureTime2, uint8_t AGC2,uint8_t blueGain2,uint8_t redGain2)
+static int sendSetSensorTwoSettingTc(uint16_t exposureTime2, uint8_t AGC2,uint8_t blueGain2,uint8_t redGain2)
 {
-// determine size of telecommand
+    // determine size of telecommand
 	uint8_t setSensorTwoSettingTcSize = TELECOMMAND_OVERHEAD + setSensorTwoSetting.paramLength;
 
-// build  camera capture telecommand
+    // build  camera capture telecommand
 	uint8_t commandBuffer[setSensorTwoSettingTcSize];
 
-// start of message identifiers
+    // start of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 45
-	commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid45;
+    // telecommand ID 45
+	commandBuffer[TELECOMMAND_ID_INDEX] = setSensorTwoSetting.ID;
 
-//telecommand parameters- Interface control document. Page:27
-	_tc_set_SensorTwo_Setting_t params = {
-			.exposureTime2= exposureRegisterValue2,
-			.AGC2=gainControlRegister2,
-			.blueGain2= blueGainControlRegister2,
-			.redGain2= redGainControlRegister2,
-		};
+    //telecommand parameters- Interface control document. Page:27
+	tc_set_SensorTwo_Setting_t params;
+	params.exposureTime2= EXPOSURE_REGISTER_VALUE2;
+			params.AGC2=GAIN_CONTROL_REGISTER2;
+			params.blueGain2= BLUE_GAIN_CONTROL_REGISTER2;
+			params.redGain2= RED_GAIN_CONTROL_REGISTER2;
 
 	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
+    // end of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorTwoSetting.paramLength)],
 		   &trailer,
 		   sizeof(trailer));
 
 	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
 		return 0;
 }
 /*******************************************************************************************************************/
-	int sendSetSensorOneBoresightPixelLocationTc(uint16_t Y_pixel1, uint16_t X_pixel1)
+static int sendSetSensorOneBoresightPixelLocationTc(uint16_t Y_pixel1, uint16_t X_pixel1)
 	{
-// determine size of telecommand
+    // determine size of telecommand
 		uint8_t setSensorOneBoresightPixelLocationTcSize = TELECOMMAND_OVERHEAD + setSensorOneBoresightPixelLocation.paramLength;
 
-// build  camera capture telecommand
+    // build  camera capture telecommand
 		uint8_t commandBuffer[setSensorOneBoresightPixelLocationTcSize];
 
-// start of message identifiers
+    // start of message identifiers
 		memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 50
-		commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid50;
+    // telecommand ID 50
+		commandBuffer[TELECOMMAND_ID_INDEX] = setSensorOneBoresightPixelLocation.ID;
 
-// telecommand parameters- Interface control document. Page:27
-		_tc_set_SensorOne_Boresight_Pixel_Location_t params = {
-				   .X_pixel1=xPixelLocationCAM1Boresight,
-				   .Y_pixel1=yPixelLocationCAM1Boresight,
-			};
+    // telecommand parameters- Interface control document. Page:27
+    tc_set_SensorOne_Boresight_Pixel_Location_t params;
+		params.X_pixel1=X_PIXEL_LOCATION_CAM1_BORESIGHT;
+		params.Y_pixel1=Y_PIXEL_LOCATION_CAM1_BORESIGHT;
 
 		memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
+    // end of message identifiers
 		memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorOneBoresightPixelLocation.paramLength)],
 			   &trailer,
 			   sizeof(trailer));
 
 		int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+    // return 0 if an error occurs
 		if (error != 0)
 			return 0;
    }
 /****************************************************************************************************/
-int sendSetSensorTwoBoresightPixelLocationTc(uint16_t X_pixel2, uint16_t Y_pixel2)
+static int sendSetSensorTwoBoresightPixelLocationTc(uint16_t X_pixel2, uint16_t Y_pixel2)
 		{
-// determine size of telecommand
-			uint8_t setSensorTwoBoresightPixelLocationTcSize = TELECOMMAND_OVERHEAD + setSensorTwoBoresightPixelLocation.paramLength;
+    // determine size of telecommand
+	uint8_t setSensorTwoBoresightPixelLocationTcSize = TELECOMMAND_OVERHEAD + setSensorTwoBoresightPixelLocation.paramLength;
 
-// build  camera capture telecommand
-		uint8_t commandBuffer[setSensorTwoBoresightPixelLocationTcSize];
+    // build  camera capture telecommand
+	uint8_t commandBuffer[setSensorTwoBoresightPixelLocationTcSize];
 
-// start of message identifiers
-		memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
+    // start of message identifiers
+	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 51
-		commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid51;
+    // telecommand ID 51
+	commandBuffer[TELECOMMAND_ID_INDEX] = setSensorTwoBoresightPixelLocation.ID;
 
-//telecommand parameters- Interface control document. Page:27
-		_tc_set_SensorTwo_Boresight_Pixel_Location_t params = {
-					  .X_pixel2=xPixelLocationCAM2Boresight,
-					  .Y_pixel2=yPixelLocationCAM2Boresight,
-			};
+    //telecommand parameters- Interface control document. Page:27
+	tc_set_SensorTwo_Boresight_Pixel_Location_t params;
+				params .X_pixel2=X_PIXEL_LOCATION_CAM2_BORESIGHT;
+				params .Y_pixel2=Y_PIXEL_LOCATION_CAM2_BORESIGHT;
 
-		memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
-			memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorTwoBoresightPixelLocation.paramLength)],
-				   &trailer,
-				   sizeof(trailer));
+	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-			int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
-			if (error != 0)
-				return 0;
+    // end of message identifiers
+	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorTwoBoresightPixelLocation.paramLength)],
+		   &trailer,
+			 sizeof(trailer));
+
+	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
+    // return 0 if an error occurs
+	if (error != 0)
+		return 0;
 		}
 /********************************************************************************************************************/
-int sendSetSensorOneMaskTc(uint8_t maskNumber1, uint16_t xMinimum1, uint16_t xMaximum1,uint16_t yMinimum1, uint16_t yMaximum1)
+static int sendSetSensorOneMaskTc(uint8_t maskNumber1, uint16_t xMinimum1, uint16_t xMaximum1,uint16_t yMinimum1, uint16_t yMaximum1)
 			{
-// determine size of telecommand
-				uint8_t setSensorOneMaskTcSize = TELECOMMAND_OVERHEAD + setSensorOneMask.paramLength;
+    // determine size of telecommand
+	uint8_t setSensorOneMaskTcSize = TELECOMMAND_OVERHEAD + setSensorOneMask.paramLength;
 
-// build  camera capture telecommand
-				uint8_t commandBuffer[setSensorOneMaskTcSize];
+    // build  camera capture telecommand
+	uint8_t commandBuffer[setSensorOneMaskTcSize];
 
-// start of message identifiers
-				memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
+    // start of message identifiers
+	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 52
-				commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid52;
+    // telecommand ID 52
+	commandBuffer[TELECOMMAND_ID_INDEX] = setSensorOneMask.ID;
 
-//telecommand parameters- Interface control document. Page:28
-				_tc_set_SensorOne_Mask_t params = {
-						   .maskNumber1=areaNumber1,
-						   .xMinimum1=lowerXLimit1,
-						   .xMaximum1=upperXLimit1,
-						   .yMinimum1=lowerYLimit1,
-						   .yMaximum1=upperYLimit1,
-				};
+    //telecommand parameters- Interface control document. Page:28
+	tc_set_SensorOne_Mask_t params;
+		params .maskNumber1=AREA_NUMBER1;
+		params .xMinimum1=LOWER_X_LIMIT1;
+		params .xMaximum1=UPPER_X_LIMIT1;
+		params .yMinimum1=LOWER_Y_LIMIT1;
+		params .yMaximum1=UPPER_Y_LIMIT1;
 
-				memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
+	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
-				memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorOneMask.paramLength)],
-					   &trailer,
-					   sizeof(trailer));
+    // end of message identifiers
+	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorOneMask.paramLength)],
+		 &trailer,
+		  sizeof(trailer));
 
-				int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
-				if (error != 0)
-					return 0;
+	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
+    // return 0 if an error occurs
+			if (error != 0)
+			return 0;
 			}
 /****************************************************************************************************************/
-int sendSetSensorTwoMaskTc(uint8_t maskNumber2, uint16_t xMinimum2, uint16_t xMaximum2,uint16_t yMinimum2, uint16_t yMaximum2)
+static int sendSetSensorTwoMaskTc(uint8_t maskNumber2, uint16_t xMinimum2, uint16_t xMaximum2,uint16_t yMinimum2, uint16_t yMaximum2)
 		{
-// determine size of telecommand
+        // determine size of telecommand
 		uint8_t setSensorTwoMaskTcSize = TELECOMMAND_OVERHEAD + setSensorTwoMask.paramLength;
 
-// build  camera capture telecommand
+        // build  camera capture telecommand
 		uint8_t commandBuffer[setSensorTwoMaskTcSize];
 
-// start of message identifiers
+        // start of message identifiers
 		memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 53
-		commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid53;
+        // telecommand ID 53
+		commandBuffer[TELECOMMAND_ID_INDEX] = setSensorTwoMask.ID;
 
-//telecommand parameters- Interface control document. Page:28
-		_tc_set_SensorTwo_Mask_t params = {
-							   .maskNumber2=areaNumber2,
-							   .xMinimum2=lowerXLimit2,
-							   .xMaximum2=upperXLimit2,
-							   .yMinimum2=lowerYLimit2,
-							   .yMaximum2=upperYLimit2,
-					};
+        //telecommand parameters- Interface control document. Page:28
+		tc_set_SensorTwo_Mask_t params;
+		params.maskNumber2=AREA_NUMBER2;
+		params.xMinimum2=LOWER_X_LIMIT2;
+		params.xMaximum2=UPPER_X_LIMIT2;
+		params.yMinimum2=LOWER_Y_LIMIT2;
+		params.yMaximum2=UPPER_Y_LIMIT2;
 
 		memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
+        // end of message identifiers
 	    memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorTwoMask.paramLength)],
-						 &trailer,
-						 sizeof(trailer));
+		 &trailer,
+		sizeof(trailer));
 
-int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
-if (error != 0)
-	return 0;
+        int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
+
+        // return 0 if an error occurs
+        if (error != 0)
+	    return 0;
 		}
 /**********************************************************************************************************/
-int sendSetSensorOneDistortionCorrectionCoefficientTc(uint16_t Mantissa11, uint8_t Exponent11, uint16_t Mantissa12, uint8_t Exponent12,
-		                                              uint16_t Mantissa13, uint8_t Exponent13, uint16_t Mantissa14, uint8_t Exponent14,
-		                                              uint16_t Mantissa15, uint8_t Exponent15)
+static int sendSetSensorOneDistortionCorrectionCoefficientTc(uint16_t Mantissa11, uint8_t Exponent11, uint16_t Mantissa12, uint8_t Exponent12,
+		                                                     uint16_t Mantissa13, uint8_t Exponent13, uint16_t Mantissa14, uint8_t Exponent14,
+		                                                     uint16_t Mantissa15, uint8_t Exponent15)
 {
-// determine size of telecommand
-uint8_t setSensorOneDistortionCorrectionCoefficientTcSize = TELECOMMAND_OVERHEAD + setSensorOneDistortionCorrectionCoefficient.paramLength;
+      // determine size of telecommand
+      uint8_t setSensorOneDistortionCorrectionCoefficientTcSize = TELECOMMAND_OVERHEAD + setSensorOneDistortionCorrectionCoefficient.paramLength;
 
-// build  camera capture telecommand
-uint8_t commandBuffer[setSensorOneDistortionCorrectionCoefficientTcSize];
+      // build  camera capture telecommand
+      uint8_t commandBuffer[setSensorOneDistortionCorrectionCoefficientTcSize];
 
-// start of message identifiers
-memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
+      // start of message identifiers
+      memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 54
-commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid54;
+      // telecommand ID 54
+      commandBuffer[TELECOMMAND_ID_INDEX] = setSensorOneDistortionCorrectionCoefficient.ID;
 
-//telecommand parameters- Interface control document. Page:29
-_tc_set_SensorOne_distortionCorrectionCoefficient_params_t params = {
-		   .Mantissa11=Mantissa11Value,
-		   .Exponent11=Exponent11Value,
-		   .Mantissa12=Mantissa12Value,
-		   .Exponent12=Exponent12Value,
-		   .Mantissa13=Mantissa13Value,
-		   .Exponent13=Exponent13Value,
-		   .Mantissa14=Mantissa14Value,
-		   .Exponent14=Exponent14Value,
-		   .Mantissa15=Mantissa15Value,
-		   .Exponent15=Exponent15Value,
-};
+      //telecommand parameters- Interface control document. Page:29
+      tc_set_SensorOne_distortionCorrectionCoefficient_params_t params;
+                params.Mantissa11=MANTISSA11_VALUE;
+                params.Exponent11=EXPONENT11_VALUE;
+                params.Mantissa12=MANTISSA12_VALUE;
+                params.Exponent12=EXPONENT12_VALUE;
+                params.Mantissa13=MANTISSA13_VALUE;
+                params.Exponent13=EXPONENT13_VALUE;
+                params.Mantissa14=MANTISSA14_VALUE;
+                params.Exponent14=EXPONENT14_VALUE;
+                params.Mantissa15=MANTISSA15_VALUE;
+                params.Exponent15=EXPONENT15_VALUE;
 
-		memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
+	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-		// end of message identifiers
-		memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorOneDistortionCorrectionCoefficient.paramLength)],
-			   &trailer,
-			   sizeof(trailer));
+	// end of message identifiers
+	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorOneDistortionCorrectionCoefficient.paramLength)],
+			  &trailer,
+			  sizeof(trailer));
 
-		int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-		// return 0 if an error occurs
-		if (error != 0)
+	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
+	// return 0 if an error occurs
+	if (error != 0)
 			return 0;
 }
 //*****************************************************************************************************************
-int sendSetSensorTwoDistortionCorrectionCoefficientTc(uint16_t Mantissa21, uint8_t Exponent21, uint16_t Mantissa22, uint8_t Exponent22,
-								                          uint16_t Mantissa23, uint8_t Exponent23, uint16_t Mantissa24, uint8_t Exponent24,
-								                          uint16_t Mantissa25, uint8_t Exponent25)
+static int sendSetSensorTwoDistortionCorrectionCoefficientTc(uint16_t Mantissa21, uint8_t Exponent21, uint16_t Mantissa22, uint8_t Exponent22,
+								                             uint16_t Mantissa23, uint8_t Exponent23, uint16_t Mantissa24, uint8_t Exponent24,
+								                             uint16_t Mantissa25, uint8_t Exponent25)
 	{
-// determine size of telecommand
+    // determine size of telecommand
 	uint8_t setSensorTwoDistortionCorrectionCoefficientTcSize = TELECOMMAND_OVERHEAD + setSensorTwoDistortionCorrectionCoefficient.paramLength;
 
-// build  camera capture telecommand
-		uint8_t commandBuffer[setSensorTwoDistortionCorrectionCoefficientTcSize];
+    // build  camera capture telecommand
+	uint8_t commandBuffer[setSensorTwoDistortionCorrectionCoefficientTcSize];
 
-// start of message identifiers
-		memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
+    // start of message identifiers
+	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 55
-		commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid55;
+    // telecommand ID 55
+	commandBuffer[TELECOMMAND_ID_INDEX] = setSensorTwoDistortionCorrectionCoefficient.ID;
 
-//telecommand parameters- Interface control document. Page:30
-_tc_set_SensorTwo_distortionCorrectionCoefficient_t params = {
-		   .Mantissa21=Mantissa21Value,
-		   .Exponent21=Exponent21Value,
-		   .Mantissa22=Mantissa22Value,
-		   .Exponent22=Exponent22Value,
-		   .Mantissa23=Mantissa23Value,
-		   .Exponent23=Exponent23Value,
-		   .Mantissa24=Mantissa24Value,
-		   .Exponent24=Exponent24Value,
-		   .Mantissa25=Mantissa25Value,
-		   .Exponent25=Exponent25Value,
-};
+    //telecommand parameters- Interface control document. Page:30
+    tc_set_SensorTwo_distortionCorrectionCoefficient_t params;
+           params.Mantissa21=MANTISSA21_VALUE;
+           params.Exponent21=EXPONENT21_VALUE;
+           params.Mantissa22=MANTISSA22_VALUE;
+           params.Exponent22=EXPONENT22_VALUE;
+           params.Mantissa23=MANTISSA23_VALUE;
+           params.Exponent23=EXPONENT23_VALUE;
+           params.Mantissa24=MANTISSA24_VALUE;
+           params.Exponent24=EXPONENT24_VALUE;
+           params.Mantissa25=MANTISSA25_VALUE;
+           params.Exponent25=EXPONENT25_VALUE;
 
-		memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
+	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
+    // end of message identifiers
 	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(setSensorTwoDistortionCorrectionCoefficient.paramLength)],
 	 &trailer,
 	 sizeof(trailer));
 
 	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
 		return 0;
 	}
 //******************************************************************************************************************
-int sendInitializeImageDownloadTc(uint8_t sramSelection, uint8_t sramLocation, uint16_t sizeSelection)
+static int sendInitializeImageDownloadTc(uint8_t sramSelection, uint8_t sramLocation, uint16_t sizeSelection)
 	{
-// determine size of telecommand
-		uint8_t initializeImageDownloadTcSize = TELECOMMAND_OVERHEAD + initializeImageDownload.paramLength;
+    // determine size of telecommand
+	uint8_t initializeImageDownloadTcSize = TELECOMMAND_OVERHEAD + initializeImageDownload.paramLength;
 
-// build  camera capture telecommand
-		uint8_t commandBuffer[initializeImageDownloadTcSize];
+    // build  camera capture telecommand
+	uint8_t commandBuffer[initializeImageDownloadTcSize];
 
-// start of message identifiers
-		memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
+    // start of message identifiers
+	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 64
-		commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid64;
+    // telecommand ID 64
+	commandBuffer[TELECOMMAND_ID_INDEX] = initializeImageDownload.ID;
 
-//telecommand parameters- Interface control document. Page:31
-		_tc_initialize_imageDownload_params_t params = {
-				   .sramSelection=SRAM1,
-				   .sramLocation =TOP_HALVE,
-				   .sizeSelection=ImageSize1024,
-		};
+    //telecommand parameters- Interface control document. Page:31
+	tc_initialize_imageDownload_params_t params;
+		params.sramSelection=SRAM1;
+		params.sramLocation =TOP_HALVE;
+		params.sizeSelection=IMAGE_SIZE_1024;
 
 		memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
-		memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(initializeImageDownload.paramLength)],
+    // end of message identifiers
+	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(initializeImageDownload.paramLength)],
 			   &trailer,
 			   sizeof(trailer));
 
-		int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
+	int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
+    // return 0 if an error occurs
 		if (error != 0)
 			return 0;
 	}
 //******************************************************************************************************************
-int sendAdvanceimageDownloadTc(uint16_t nextFrameNumber)
+static int sendAdvanceimageDownloadTc(uint16_t nextFrameNumber)
 {
-// determine size of telecommand
-		uint8_t advanceimageDownloadTcSize = TELECOMMAND_OVERHEAD + advanceimageDownload.paramLength;
+    // determine size of telecommand
+	uint8_t advanceimageDownloadTcSize = TELECOMMAND_OVERHEAD + advanceimageDownload.paramLength;
 
-// build  camera capture telecommand
-		uint8_t commandBuffer[advanceimageDownloadTcSize];
+    // build  camera capture telecommand
+	uint8_t commandBuffer[advanceimageDownloadTcSize];
 
-// start of message identifiers
-		memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
+    // start of message identifiers
+	memcpy(&commandBuffer[TELECOMMAND_HEADER_INDEX], &header, sizeof(header));
 
-// telecommand ID 65
-		commandBuffer[TELECOMMAND_ID_INDEX] = telecommandid65;
+    // telecommand ID 65
+	commandBuffer[TELECOMMAND_ID_INDEX] = advanceimageDownload.ID;
 
-//telecommand parameters- Interface control document. Page:31
-		_tc_advance_imageDownload_params_t params = {
-							   .nextFrameNumber=nextFrameNumberValue,
-		};
+    // telecommand parameters- Interface control document. Page:31
+	tc_advance_imageDownload_params_t params;
+	    params.nextFrameNumber=NEXT_FRAME_NUMBER_VALUE;
 
-		memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
+	memcpy(&commandBuffer[TELECOMMAND_PARAM_INDEX], &params, sizeof(params));
 
-// end of message identifiers
-		memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(advanceimageDownload.paramLength)],
-				&trailer,
-			    sizeof(trailer));
+    // end of message identifiers
+	memcpy(&commandBuffer[TELECOMMAND_TRAILER_INDEX(advanceimageDownload.paramLength)],
+			&trailer,
+			sizeof(trailer));
 
-int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
-// return 0 if an error occurs
-if (error != 0)
+    int error = uartTransmit(UART_CAMERA_BUS, commandBuffer, sizeof(commandBuffer));
+    // return 0 if an error occurs
+    if (error != 0)
 	return 0;
 }
 
 //********************************************Telemetry request*************************************************************************
- int requestTelecommandAcknowledgeTm(void)
+static int requestTelecommandAcknowledgeTm(void)
 {
 	uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
+    // start of message identifiers
 	memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
 
-// telemetry frame id 3
-	telemetryBuffer[2] =telemetryid3;
+    // telemetry frame id 3
+	telemetryBuffer[TELEMETRY_ID_INDEX]=TELEMETRY_ID_3;
 
-// end of message identifiers
-	memcpy(&telemetryBuffer[TELECOMMAND_TRAILER_INDEX(advanceimageDownload.paramLength)],
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
 			&trailer,
 		    sizeof(trailer));
 
-//Send to UART
+    //Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
-		return 0;
+		return error;
 
-//Receive from UART
+    //Receive from UART
 	uint8_t acknowledgeBuffer[TELEMETRY_ACK_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, acknowledgeBuffer, TELEMETRY_ACK_SIZE);
 
 	/*if (memcmp(acknowledgeBuffer, ackResponse, sizeof(acknowledgeBuffer)))*/
 
-//Telemetry parameters- Interface control document. Page:19
+  // Telemetry parameters- Interface control document. Page:19
 	if ((acknowledgeBuffer && 0x00F00) == 1) {
-//message fails
+  // message fails
 	   return ERROR_INVALID_PARAM;
 	}
 	else if ((acknowledgeBuffer && 0x00F00) == 0) {
-//no errors
+  // no errors
 		return 0;
 	}
 }
 /************************************************************************************************************/
-int requeststatusTm(void)
+static int requeststatusTm(void)
 {
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
+    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 0
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid0;
+    // telemetry frame id 0
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_0;
 
-//Send to UART
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    //Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
 		return 0;
-//Receive from UART
+
+    // Receive from UART
     uint8_t statusTm[STATUS_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, statusTm, STATUS_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:17
+    // Telemetry parameters- Interface control document. Page:17
 	uint8_t nodeType             = statusTm  &&  ((unsigned int)0x0000000F);
 	uint8_t interfaceVersion     = statusTm  &&  ((unsigned int)0x000000F0);
 	uint8_t firmWareVersionMajor = statusTm  &&  ((unsigned int)0x00000F00);
@@ -1120,27 +1020,32 @@ telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid0;
 	uint8_t runTime_MilliSeconds = statusTm  &&  ((unsigned int)0xFF000000);
 }
 /************************************************************************************************************/
-int requestCommunicationStatusTm(void)
+static int requestCommunicationStatusTm(void)
 {
 uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // Start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 2
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid2;
+    // Telemetry frame id 2
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_2;
 
-//Send to UART
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    // Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
-	// return 0 if an error occurs
+	// Return 0 if an error occurs
 	if (error != 0)
 		return 0;
-//Receive from UART
+    // Receive from UART
     uint8_t communicationStatusTm[COMMUNICATION_STATUS_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, communicationStatusTm, COMMUNICATION_STATUS_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:18
+    // Telemetry parameters- Interface control document. Page:18
 	uint8_t tcCounter               = communicationStatusTm && ((unsigned int)0x000000FF);
 	uint8_t tlmCounter              = communicationStatusTm && ((unsigned int)0x0000FF00);
 	uint8_t tcBufferOverRunFlag     = communicationStatusTm && ((unsigned int)0x000F0000);
@@ -1149,53 +1054,63 @@ telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid2;
 	uint8_t uartIncompleteErrorFlag = communicationStatusTm && ((unsigned int)0xF0000000);
 }
 /************************************************************************************************************/
-int requestSerialNumberTm(void)
+static int requestSerialNumberTm(void)
 {
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
+    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 1
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid1;
+    // telemetry frame id 1
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_1;
 
-//Send to UART
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    // Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
 	// return 0 if an error occurs
 	if (error != 0)
 		return 0;
-//Receive from UART
+    // Receive from UART
     uint8_t serialNumberTm[SERIAL_NUMBER_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, serialNumberTm, SERIAL_NUMBER_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:18
+    // Telemetry parameters- Interface control document. Page:18
 	uint8_t nodeTypeSerialNumber = serialNumberTm;
 }
 
 // TODO: Read about telemetry 20-25
 /************************************************************************************************************/
-int requestPowerTm(void)
+static int requestPowerTm(void)
 {
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
+    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 26
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid26;
+    // telemetry frame id 26
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_26;
 
-//Send to UART
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    // Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
 	// return 0 if an error occurs
 	if (error != 0)
 		return 0;
-//Receive from UART
+    // Receive from UART
     uint8_t powerTm[POWER_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, powerTm, POWER_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:20
+    // Telemetry parameters- Interface control document. Page:20
 	uint8_t voltage3v3Current = powerTm && ((unsigned int)0x00000000FF);
 	uint8_t sram1Current      = powerTm && ((unsigned int)0x000000FF00);
 	uint8_t sram2Current      = powerTm && ((unsigned int)0x0000FF0000);
@@ -1204,27 +1119,32 @@ telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid26;
 	uint8_t sram2OverCurrent  = powerTm && ((unsigned int)0xF000000000);
 }
 /************************************************************************************************************/
-int requestConfigurationTm(void)
+static int requestConfigurationTm(void)
 {
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
+    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 40
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid40;
+    // telemetry frame id 40
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_40;
 
-//Send to UART
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    //Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
 	// return 0 if an error occurs
 	if (error != 0)
 		return 0;
-//Receive from UART
+    // Receive from UART
     uint8_t configurationTm[CONFIGURATION_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, configurationTm, CONFIGURATION_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:21
+    // Telemetry parameters- Interface control document. Page:21
 	uint8_t camera1DetectionThreshold = configurationTm && ((unsigned int)0x0000000000000F);
 	uint8_t camera2DetectionThreshold = configurationTm && ((unsigned int)0x000000000000F0);
 	uint8_t camera1AutoAdjustMode     = configurationTm && ((unsigned int)0x00000000000F00);
@@ -1239,196 +1159,237 @@ telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid40;
 	uint8_t camera2RedGain            = configurationTm && ((unsigned int)0xF0000000000000);
 }
 /************************************************************************************************************/
-int requestImageFrameTm(void)
+static int requestImageFrameTm(void)
 {
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
+    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 64
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid64;
+    // Telemetry frame id 64
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_64;
 
-//Send to UART
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    // Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
 	// return 0 if an error occurs
 	if (error != 0)
 		return 0;
-//Receive from UART
+    // Receive from UART
     uint8_t imageFrameTm[IMAGE_FRAME_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, imageFrameTm, IMAGE_FRAME_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:21
+    // Telemetry parameters- Interface control document. Page:21
 	uint8_t imageBytes = imageFrameTm;
 
 }
 /************************************************************************************************************/
-int requestImageFrameInfoTm(void)
+static int requestImageFrameInfoTm(void)
 {
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
+    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 65
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid65;
+    // telemetry frame id 65
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_65;
 
-//Send to UART
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    //Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
-		return 0;;
-//Receive from UART
+		return 0;
+
+    //Receive from UART
     uint8_t imageFrameInfoTm[IMAGE_FRAME_INFO_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, imageFrameInfoTm, IMAGE_FRAME_INFO_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:22
+    //Telemetry parameters- Interface control document. Page:22
 	uint8_t imageFrameNumber = imageFrameInfoTm && ((unsigned int)0x0FF);
 	uint8_t checksum         = imageFrameInfoTm && ((unsigned int)0xF00);
 }
 /************************************************************************************************************/
-int requestFullImageSram1Location1Tm(void)
+static int requestFullImageSram1Location1Tm(void)
 {
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
+    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 66
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid66;
+    // telemetry frame id 66
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_66;
 
-//Send to UART
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    // Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
-// return 0 if an error occurs
+    // Return 0 if an error occurs
 	if (error != 0)
 		return 0;
-//Receive from UART
+    // Receive from UART
     uint8_t fullImageSram1Location1Tm[FULL_IMAGE_SRAM1_LOCATION1_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, fullImageSram1Location1Tm, FULL_IMAGE_SRAM1_LOCATION1_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:22
+    // Telemetry parameters- Interface control document. Page:22
 	uint8_t fullImageSram1Location1Bytes = fullImageSram1Location1Tm;
 }
 /************************************************************************************************************/
-int requestFullImageSram1Location2Tm(void)
+static int requestFullImageSram1Location2Tm(void)
 {
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
+    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 67
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid67;
+    // telemetry frame id 67
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_67;
 
-//Send to UART
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    //Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
 		return 0;
-//Receive from UART
+    // Receive from UART
     uint8_t fullImageSram1Location2Tm[FULL_IMAGE_SRAM1_LOCATION2_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, fullImageSram1Location2Tm, FULL_IMAGE_SRAM1_LOCATION2_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:22
+    // Telemetry parameters- Interface control document. Page:22
 	uint8_t fullImageSram1Location2Bytes = fullImageSram1Location2Tm;
 }
 /************************************************************************************************************/
-int requestFullImageSram2Location1Tm(void)
+static int requestFullImageSram2Location1Tm(void)
 {
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
+    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 68
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid68;
+    // telemetry frame id 68
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_68;
 
-//Send to UART
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    // Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
 		return 0;
-//Receive from UART
+    // Receive from UART
     uint8_t fullImageSram2Location1Tm[FULL_IMAGE_SRAM2_LOCATION1_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, fullImageSram2Location1Tm, FULL_IMAGE_SRAM2_LOCATION1_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:22
+    // Telemetry parameters- Interface control document. Page:22
 	uint8_t fullImageSram2Location1Bytes = fullImageSram2Location1Tm;
 }
 /************************************************************************************************************/
-int requestFullImageSram2Location2Tm(void)
+static int requestFullImageSram2Location2Tm(void)
 {
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
+    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 69
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid69;
+    // telemetry frame id 69
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_69;
 
-//Send to UART
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    //Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
 		return 0;
-//Receive from UART
+    // Receive from UART
     uint8_t fullImageSram2Location2Tm[FULL_IMAGE_SRAM2_LOCATION2_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, fullImageSram2Location2Tm, FULL_IMAGE_SRAM2_LOCATION2_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:22
+    // Telemetry parameters- Interface control document. Page:22
 	uint8_t  fullImageSram2Location2Bytes = fullImageSram2Location2Tm;
 }
 /************************************************************************************************************/
-int requestReadSensor1MaskTm(void)
+static int requestReadSensor1MaskTm(void)
 {
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
+    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 72
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid72;
+    // telemetry frame id 72
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_72;
 
-//Send to UART
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    // Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
-// return 0 if an error occurs
+    // return 0 if an error occurs
 	if (error != 0)
 		return 0;
-//Receive from UART
+    // Receive from UART
     uint8_t readSensor1MaskTm[READ_SENSOR1_MASK_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, readSensor1MaskTm, READ_SENSOR1_MASK_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:23
+    // Telemetry parameters- Interface control document. Page:23
 	//TODO complete this part. Maybe by using counter.
 }
 /************************************************************************************************************/
-int requestReadSensor2MaskTm(void)
+static int requestReadSensor2MaskTm(void)
 {
 uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-// start of message identifiers
-memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+    // start of message identifiers
+    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
 
-// telemetry frame id 73
-telemetryBuffer[TELEMETRY_ID_INDEX] =telemetryid73;
+    // telemetry frame id 73
+    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_73;
 
-//Send to UART
+    //Send to UART
 	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
 
-// return 0 if an error occurs
+    // end of message identifiers
+	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
+			&trailer,
+		    sizeof(trailer));
+
+    // return 0 if an error occurs
 	if (error != 0)
 		return 0;
-//Receive from UART
+    // Receive from UART
     uint8_t readSensor2MaskTm[READ_SENSOR1_MASK_TELEMETRY_SIZE] = { 0 };
 	error = uartReceive(UART_CAMERA_BUS, readSensor2MaskTm, READ_SENSOR2_MASK_TELEMETRY_SIZE);
 
-//Telemetry parameters- Interface control document. Page:24
-	//TODO complete this part. Maybe by using counter.
+    // Telemetry parameters- Interface control document. Page:24
+	//TODO Define Bytes parameters.Maybe by using counter
 }
