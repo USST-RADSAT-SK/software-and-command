@@ -35,6 +35,8 @@ void ImageCaptureTask(void* parameters) {
 
 		// TODO: implement image capture
 
+		debugPrint("ImageCaptureTask(): About to capture an image.\n");
+
 		vTaskDelay(IMAGE_CAPURE_TASK_DELAY_MS);
 	}
 }

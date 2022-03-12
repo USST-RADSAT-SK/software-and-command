@@ -35,6 +35,8 @@ void AdcsCaptureTask(void* parameters) {
 
 		// TODO: implement ADCS capture
 
+		debugPrint("AdcsCaptureTask(): About to capture ADCS data.\n");
+
 		vTaskDelay(ADCS_CAPURE_TASK_DELAY_MS);
 	}
 }

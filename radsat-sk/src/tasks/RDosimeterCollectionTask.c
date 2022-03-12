@@ -38,6 +38,8 @@ void DosimeterCollectionTask(void* parameters) {
 
 		// TODO: check flags (once they exist) to prevent running this task during communication mode
 
+		debugPrint("DosimeterCollectionTask(): About to collect Dosimeter payload data.\n");
+
 		// collect all readings from dosimeter
 		error = dosimeterCollectData();
 

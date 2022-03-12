@@ -35,6 +35,8 @@ void TelemetryCollectionTask(void* parameters) {
 
 		// TODO: implement telemetry collection
 
+		debugPrint("TelemetryCollectionTask(): About to collect satellite telemetry data.\n");
+
 		vTaskDelay(TELEMETRY_COLLECTION_TASK_DELAY_MS);
 	}
 }
