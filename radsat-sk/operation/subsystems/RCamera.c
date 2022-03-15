@@ -9,6 +9,7 @@
 #include <hal/errors.h>
 #include <string.h>
 #include <stdio.h>
+#include <stdlib.h>
 
 /***************************************************************************************************
                                             DEFINITIONS
@@ -26,8 +27,11 @@ typedef struct __attribute__((__packed__)) _tc_trailer_t {
 
 typedef uint8_t telecommand_id_t;
 
-#define START_IDENTIFIER1              ((uint8_t) 0x1F)
-#define START_IDENTIFIER2              ((uint8_t) 0x7F)
+#define START_IDENTIFIER1               ((uint16_t) 0x1F)
+#define START_IDENTIFIER2               ((uint16_t) 0x7F)
+#define FILLER							((uint16_t) 0x00)
+#define END_IDENTIFIER1                 ((uint16_t) 0x1F)
+#define END_IDENTIFIER2                 ((uint16_t) 0xFF)
 
 #define TELECOMMAND_ID_0                ((uint8_t) 0x00)
 #define TELECOMMAND_ID_11               ((uint8_t) 0x0B)
@@ -50,7 +54,7 @@ typedef uint8_t telecommand_id_t;
 
 #define CAPTURE_IMAGE_CMD_SIZE	        ((uint8_t) 3)
 #define CAPTURE_IMAGE_TC_SIZE	        ((uint8_t) 8)
-#define REQUEST_TELEMETRY_SIZE	        ((uint8_t) 5)
+#define REQUEST_TELEMETRY_SIZE	        ((uint16_t) 5)
 #define TELEMETRY_ACK_SIZE	            ((uint8_t) 5)
 
 #define TELECOMMAND_OVERHEAD	                ((uint8_t) (sizeof(tc_header_t) + sizeof(tc_trailer_t) + sizeof(telecommand_id_t)))
@@ -143,14 +147,12 @@ typedef uint8_t telecommand_id_t;
 
 #define NEXT_FRAME_NUMBER_VALUE         ((uint8_t) 4)
 
-#define END_IDENTIFIER1                 ((uint8_t) 0x1F)
-#define END_IDENTIFIER2                 ((uint8_t) 0xFF)
-
 //Telemetry define
 #define TELEMETRY_ID_0                  ((uint8_t) 0x80)
 #define TELEMETRY_ID_1                  ((uint8_t) 0x81)
 #define TELEMETRY_ID_2                  ((uint8_t) 0x82)
 #define TELEMETRY_ID_3                  ((uint8_t) 0x83)
+#define TELEMETRY_ID_3_SIZE				((uint16_t) 7 )
 #define TELEMETRY_ID_19                 ((uint8_t) 0x93)
 #define TELEMETRY_ID_20                 ((uint8_t) 0x94)
 #define TELEMETRY_ID_21                 ((uint8_t) 0x95)
@@ -169,9 +171,18 @@ typedef uint8_t telecommand_id_t;
 #define TELEMETRY_ID_72                 ((uint8_t) 0xC8)
 #define TELEMETRY_ID_73                 ((uint8_t) 0xC9)
 
+#define TLM_REPLY_SIZE_1  				((uint8_t) 1)
+#define TLM_REPLY_SIZE_2  				((uint8_t) 2)
+#define TLM_REPLY_SIZE_3  				((uint8_t) 3)
+#define TLM_REPLY_SIZE_4  				((uint8_t) 4)
+#define TLM_REPLY_SIZE_6  				((uint8_t) 6)
+#define TLM_REPLY_SIZE_12  				((uint8_t) 12)
+#define TLM_REPLY_SIZE_20  				((uint8_t) 20)
+
 #define TELEMETRY_OVERHEAD	            ((uint8_t) (sizeof(TELECOMMAND_OVERHEAD))
 #define TELEMETRY_HEADER_INDEX	        ((uint8_t)  0)
-#define TELEMETRY_ID_INDEX		        ((uint8_t)  sizeof(tc_header_t))
+#define REQUESTING_TLM_ID_INDEX	        (2)
+#define TELEMETRY_FRAME_ID_SIZE			(1)
 #define TELEMETRY_PARAM_INDEX		    ((uint8_t)  (TELEMETRY_ID_INDEX + sizeof(telecommand_id_t)))
 #define TELEMETRY_TRAILER_INDEX(paramLength)  ((uint8_t)  (TELEMETRY_PARAM_INDEX + paramLength))
 
@@ -189,6 +200,8 @@ typedef uint8_t telecommand_id_t;
 #define READ_SENSOR1_MASK_TELEMETRY_SIZE            ((uint8_t) 40)
 #define READ_SENSOR2_MASK_TELEMETRY_SIZE            ((uint8_t) 40)
 
+#define BASE_MESSAGE_SIZE 	((uint8_t) 4)
+
 /** Invalid input parameters to the Camera module. */
 #define ERROR_INVALID_PARAM		(-36)
 
@@ -196,6 +209,19 @@ static const uint8_t ackResponse[TELEMETRY_ACK_SIZE] = { 0x1F, 0x7F, 0x00, 0x1F,
 
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
+***************************************************************************************************/
+/** Used to build buffers */
+static uint8_t * telemetryMessageBuilder(uint8_t response_size);
+
+/** Sends Telemetry ID 3 and receives feedback from Camera */
+static int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply);
+
+/***************************************************************************************************
+                                       PUBLIC FUNCTION STUBS
+***************************************************************************************************/
+
+/***************************************************************************************************
+                                      FUNCTION DECLARATIONS
 ***************************************************************************************************/
 // ResetTelecommand
 camera_telecommand_t resetTelecommand = {
@@ -317,7 +343,7 @@ tc_trailer_t trailer = {
 };
 /***************************************************************************************************
                                              PRIVATE API
-***************************************************************************************************/
+****************************************************************************************************/
 static int sendResetTc(uint8_t RresetType)
 {
     // determine size of telecommand
@@ -352,7 +378,7 @@ static int sendResetTc(uint8_t RresetType)
 
 	return 0;
 }
-/**************************************************************************************************************************/
+/***************************************************************************************************/
 static int sendClearSramOverCurrentFlagTc(uint8_t SRAMOverCurrentFlag)
 {
    // determine size of telecommand
@@ -384,7 +410,7 @@ static int sendClearSramOverCurrentFlagTc(uint8_t SRAMOverCurrentFlag)
 
 	return 0;
 }
-/**************************************************************************************************/
+/***************************************************************************************************/
 static int sendCameraCaptureImageTc(uint8_t sensor, uint8_t sram, uint8_t half)
 {
     // determine size of telecommand
@@ -419,7 +445,7 @@ static int sendCameraCaptureImageTc(uint8_t sensor, uint8_t sram, uint8_t half)
 
 	return 0;
 }
-/******************************************************************************************************/
+/***************************************************************************************************/
 static int sendImageAndCaptureDetectionTc(uint8_t camera, uint8_t sram)
 {
     // determine size of telecommand
@@ -453,11 +479,10 @@ static int sendImageAndCaptureDetectionTc(uint8_t camera, uint8_t sram)
 
 	return 0;
 }
-/**********************************************************************************************/
+/***************************************************************************************************/
 /*The threshold is set to a default value calculated for robustness.
 If the user wishes to change the threshold values, telecommands 40
 and 41 can be used. It is however recommended that the default values be used.*/
-
 static int sendSetSensorOneDetectionThresholdTc(uint8_t detectionThreshold1)
 {
     // determine size of telecommand
@@ -488,8 +513,7 @@ static int sendSetSensorOneDetectionThresholdTc(uint8_t detectionThreshold1)
 	if (error != 0)
 		return 0;
 }
-
-/****************************************************************************************************/
+/***************************************************************************************************/
 static int sendSetSensorTwoDetectionThresholdTc(uint8_t detectionThreshold2)
 {
     // determine size of telecommand
@@ -520,14 +544,12 @@ static int sendSetSensorTwoDetectionThresholdTc(uint8_t detectionThreshold2)
 	if (error != 0)
 		return 0;
 }
-
-/**************************************************************************************************************/
+/***************************************************************************************************/
 /*The default exposure setting for the sun sensor is set to a fixed calculated value. It is recommended that the
 client does not alter this value. The Nadir sensor uses an auto-exposure algorithm to adjust the changing
 brightness of the earth in the sensor’s image. These values are calibrated for robust sensor operation.
 If, however the client wishes to use the Nadir sensor as a greyscale imager, the exposure can be set by using
 telecommands 42 – 45.*/
-
 static int sendSetSensorOneAutoadjustTc(uint8_t autoadjustenable1)
 {
    // determine size of telecommand
@@ -558,9 +580,7 @@ static int sendSetSensorOneAutoadjustTc(uint8_t autoadjustenable1)
 	if (error != 0)
 		return 0;
 }
-
-/*************************************************************************************************************/
-
+/***************************************************************************************************/
 static int sendSetSensorOneSettingTc(uint16_t exposureTime1, uint8_t AGC1, uint8_t blueGain1, uint8_t redGain1)
 {
    // determine size of telecommand
@@ -594,7 +614,7 @@ static int sendSetSensorOneSettingTc(uint16_t exposureTime1, uint8_t AGC1, uint8
 	if (error != 0)
 		return 0;
 }
-/********************************************************************************************************/
+/***************************************************************************************************/
 static int sendSetSensorTwoAutoadjustTc(uint8_t autoadjustenable2)
 {
     // determine size of telecommand
@@ -625,7 +645,7 @@ static int sendSetSensorTwoAutoadjustTc(uint8_t autoadjustenable2)
 	if (error != 0)
 		return 0;
 }
-/********************************************************************************************************************/
+/***************************************************************************************************/
 static int sendSetSensorTwoSettingTc(uint16_t exposureTime2, uint8_t AGC2,uint8_t blueGain2,uint8_t redGain2)
 {
     // determine size of telecommand
@@ -659,7 +679,7 @@ static int sendSetSensorTwoSettingTc(uint16_t exposureTime2, uint8_t AGC2,uint8_
 	if (error != 0)
 		return 0;
 }
-/*******************************************************************************************************************/
+/***************************************************************************************************/
 static int sendSetSensorOneBoresightPixelLocationTc(uint16_t Y_pixel1, uint16_t X_pixel1)
 	{
     // determine size of telecommand
@@ -691,7 +711,7 @@ static int sendSetSensorOneBoresightPixelLocationTc(uint16_t Y_pixel1, uint16_t 
 		if (error != 0)
 			return 0;
    }
-/****************************************************************************************************/
+/***************************************************************************************************/
 static int sendSetSensorTwoBoresightPixelLocationTc(uint16_t X_pixel2, uint16_t Y_pixel2)
 		{
     // determine size of telecommand
@@ -724,7 +744,7 @@ static int sendSetSensorTwoBoresightPixelLocationTc(uint16_t X_pixel2, uint16_t 
 	if (error != 0)
 		return 0;
 		}
-/********************************************************************************************************************/
+/***************************************************************************************************/
 static int sendSetSensorOneMaskTc(uint8_t maskNumber1, uint16_t xMinimum1, uint16_t xMaximum1,uint16_t yMinimum1, uint16_t yMaximum1)
 			{
     // determine size of telecommand
@@ -759,7 +779,7 @@ static int sendSetSensorOneMaskTc(uint8_t maskNumber1, uint16_t xMinimum1, uint1
 			if (error != 0)
 			return 0;
 			}
-/****************************************************************************************************************/
+/***************************************************************************************************/
 static int sendSetSensorTwoMaskTc(uint8_t maskNumber2, uint16_t xMinimum2, uint16_t xMaximum2,uint16_t yMinimum2, uint16_t yMaximum2)
 		{
         // determine size of telecommand
@@ -795,7 +815,7 @@ static int sendSetSensorTwoMaskTc(uint8_t maskNumber2, uint16_t xMinimum2, uint1
         if (error != 0)
 	    return 0;
 		}
-/**********************************************************************************************************/
+/***************************************************************************************************/
 static int sendSetSensorOneDistortionCorrectionCoefficientTc(uint16_t Mantissa11, uint8_t Exponent11, uint16_t Mantissa12, uint8_t Exponent12,
 		                                                     uint16_t Mantissa13, uint8_t Exponent13, uint16_t Mantissa14, uint8_t Exponent14,
 		                                                     uint16_t Mantissa15, uint8_t Exponent15)
@@ -837,7 +857,7 @@ static int sendSetSensorOneDistortionCorrectionCoefficientTc(uint16_t Mantissa11
 	if (error != 0)
 			return 0;
 }
-//*****************************************************************************************************************
+/***************************************************************************************************/
 static int sendSetSensorTwoDistortionCorrectionCoefficientTc(uint16_t Mantissa21, uint8_t Exponent21, uint16_t Mantissa22, uint8_t Exponent22,
 								                             uint16_t Mantissa23, uint8_t Exponent23, uint16_t Mantissa24, uint8_t Exponent24,
 								                             uint16_t Mantissa25, uint8_t Exponent25)
@@ -879,7 +899,7 @@ static int sendSetSensorTwoDistortionCorrectionCoefficientTc(uint16_t Mantissa21
 	if (error != 0)
 		return 0;
 	}
-//******************************************************************************************************************
+/***************************************************************************************************/
 static int sendInitializeImageDownloadTc(uint8_t sramSelection, uint8_t sramLocation, uint16_t sizeSelection)
 	{
     // determine size of telecommand
@@ -912,7 +932,7 @@ static int sendInitializeImageDownloadTc(uint8_t sramSelection, uint8_t sramLoca
 		if (error != 0)
 			return 0;
 	}
-//******************************************************************************************************************
+/***************************************************************************************************/
 static int sendAdvanceimageDownloadTc(uint16_t nextFrameNumber)
 {
     // determine size of telecommand
@@ -945,44 +965,48 @@ static int sendAdvanceimageDownloadTc(uint16_t nextFrameNumber)
 }
 
 //********************************************Telemetry request*************************************************************************
-static int requestTelecommandAcknowledgeTm(void)
-{
-	uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
+static int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
 
-    // start of message identifiers
-	memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	uint8_t* telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
 
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_3;
 
-    // telemetry frame id 3
-	telemetryBuffer[TELEMETRY_ID_INDEX]=TELEMETRY_ID_3;
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
 
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
 
-    //Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-    // return 0 if an error occurs
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
 	if (error != 0)
 		return error;
 
-    //Receive from UART
-	uint8_t acknowledgeBuffer[TELEMETRY_ACK_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, acknowledgeBuffer, TELEMETRY_ACK_SIZE);
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_3);
 
-	/*if (memcmp(acknowledgeBuffer, ackResponse, sizeof(acknowledgeBuffer)))*/
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_3_SIZE);
 
-  // Telemetry parameters- Interface control document. Page:19
-	if ((acknowledgeBuffer && 0x00F00) == 1) {
-  // message fails
-	   return ERROR_INVALID_PARAM;
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
 	}
-	else if ((acknowledgeBuffer && 0x00F00) == 0) {
-  // no errors
-		return 0;
-	}
+
+	// Fill telemetry reply
+	telemetry_reply->last_tc_id = telemetryBuffer[2];
+	telemetry_reply->processed_flag = telemetryBuffer[3];
+	telemetry_reply->tc_error_flag = telemetryBuffer[4];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
 }
 /************************************************************************************************************/
 static int requeststatusTm(void)
@@ -1392,4 +1416,48 @@ uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
     // Telemetry parameters- Interface control document. Page:24
 	//TODO Define Bytes parameters.Maybe by using counter
+}
+
+/*
+ * Used to dynamically allocated buffer sizes as each telemetry and telecommand
+ * require different sizes
+ *
+ * @note must use Free() to free the allocated memory when finished using the buffer
+ * @param response_size defines how many data bytes are required in the buffer
+ * @return dynamically allocated buffer
+ * */
+static uint8_t * telemetryMessageBuilder(uint8_t response_size){
+
+	// Define the total size the buffer should be
+    uint8_t total_buffer_length = response_size + BASE_MESSAGE_SIZE;
+
+    // Dynamically Allocate a Buffer for telemetry response
+    uint8_t* tlmBuffer = (uint8_t*) malloc(total_buffer_length * sizeof(uint8_t));
+
+    // Initialize all elements in the buffer with zero
+    for (int i = 0; i < sizeof(tlmBuffer); i++){
+    	tlmBuffer[i] = 0;
+    }
+
+    // Fill Buffer with default values
+    for(uint8_t i = 0; i<total_buffer_length;i++){
+        if (i == 0){
+        	tlmBuffer[i] = START_IDENTIFIER1;
+        }
+        else if (i == 1){
+            tlmBuffer[i] = START_IDENTIFIER2;
+        }
+        else if (i == total_buffer_length-2) {
+        	tlmBuffer[i] = END_IDENTIFIER1;
+        }
+        else if (i == total_buffer_length-1) {
+        	tlmBuffer[i] = END_IDENTIFIER2;
+        }
+        else{
+        	tlmBuffer[i] = FILLER;
+        }
+    }
+
+    return tlmBuffer;
+
 }

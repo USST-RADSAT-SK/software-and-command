@@ -148,6 +148,12 @@ typedef struct _tc_initialize_imageDownload_params_t {
 typedef struct _tc_advance_imageDownload_params_t {
 	   uint16_t nextFrameNumber;
 } tc_advance_imageDownload_params_t;
+
+typedef struct _tlm_telecommand_ack_t {
+	uint8_t last_tc_id;
+	uint8_t processed_flag;
+	uint8_t tc_error_flag;
+} tlm_telecommand_ack_t;
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
