@@ -47,8 +47,8 @@ typedef struct _PdbStatus {
                                              PUBLIC API
 ***************************************************************************************************/
 
-SunSensorStatus getSunSensorData(void);
-PdbStatus getPdbTelemetry(void);
+int getSunSensorData(SunSensorStatus*);
+int getPdbTelemetry(PdbStatus*);
 int petPdbWatchdog(void);
 
 #endif /* RPdb_H_ */

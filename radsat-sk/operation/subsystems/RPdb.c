@@ -126,14 +126,12 @@ static uint16_t PdbI2cTalk(uint32_t command);
                                              PUBLIC API
 ***************************************************************************************************/
 /**
- * Get the Irradiance value from the sun sensor on each face of the CubeSat
+ * Get the Irradiance (W/m^2) value from the sun sensor on each face of the CubeSat
  *
- * @return A pointer to a SunSensorStatus object containing the converted ADC data for each sun sensor
+ * @param A pointer to a SunSensorStatus object, which will be filled with the converted ADC data for each sun sensor
+ * @return an error code, or 0 if no error
  */
-SunSensorStatus getSunSensorData(void) {
-
-	// Create a new SunSensorStatus Structure
-	SunSensorStatus sunData;
+int getSunSensorData(SunSensorStatus* sunData) {
 
 	// Create a temporary variable for receiving I2C data
 	uint16_t i2c_received;
@@ -148,15 +146,15 @@ SunSensorStatus getSunSensorData(void) {
 	}
 
 	// Now store all of the calculated data into the proper slot in the sunData structure
-	sunData.xPos = convertedData[3];
-	sunData.xNeg = convertedData[2];
-	sunData.yPos = convertedData[0];
-	sunData.yNeg = convertedData[1];
-	sunData.zPos = convertedData[4];
-	sunData.zNeg = convertedData[5];
+	sunData->xPos = convertedData[3];
+	sunData->xNeg = convertedData[2];
+	sunData->yPos = convertedData[0];
+	sunData->yNeg = convertedData[1];
+	sunData->zPos = convertedData[4];
+	sunData->zNeg = convertedData[5];
 	// Could change these numbers into an ENUM with the names of the connections
 
-	return sunData;
+	return 0;
 }
 
 
@@ -165,15 +163,18 @@ SunSensorStatus getSunSensorData(void) {
  * Request and store all of the relevant data (voltage, current, temperature, sun sensor data)
  *  	from the PDB board
  *
- * @return A pointer to an PDBStatus object containing all of the telemetry for the PDB system
+ * @param A pointer to an PDBStatus object containing all of the telemetry for the PDB system
+ * @return either 0 or an error code
  */
-PdbStatus getPdbTelemetry(void) {
+int getPdbTelemetry(PdbStatus* dataStorage) {
 
-	// Create a new PDBStatus Structure
-	PdbStatus dataStorage;
+	// Create an empty sunSensorData structure
+	SunSensorStatus sunSensorData;
 
 	// Get sun sensor data and store it in the new PDBStatus Structure
-	dataStorage.sunSensorData = getSunSensorData();
+	getSunSensorData(&sunSensorData);
+
+	dataStorage->sunSensorData = sunSensorData;
 
 	// Create a temporary variable for receiving I2C data
 	uint16_t i2c_received;
@@ -181,38 +182,38 @@ PdbStatus getPdbTelemetry(void) {
 
 	// Get ADC output voltage readings from the PDB
 	i2c_received = PdbI2cTalk(PdbVoltageCommandBytes[0]);
-	dataStorage.outputVoltageBCR = ADC_COUNT_TO_BCR_OUTPUT_VOLTAGE * i2c_received;
+	dataStorage->outputVoltageBCR = ADC_COUNT_TO_BCR_OUTPUT_VOLTAGE * i2c_received;
 
 	i2c_received = PdbI2cTalk(PdbVoltageCommandBytes[1]);
-	dataStorage.outputVoltageBatteryBus = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE * i2c_received;
+	dataStorage->outputVoltageBatteryBus = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE * i2c_received;
 
 	i2c_received = PdbI2cTalk(PdbVoltageCommandBytes[2]);
-	dataStorage.outputVoltage5VBus = ADC_COUNT_TO_5V_BUS_OUTPUT_VOLTAGE * i2c_received;
+	dataStorage->outputVoltage5VBus = ADC_COUNT_TO_5V_BUS_OUTPUT_VOLTAGE * i2c_received;
 
 	i2c_received = PdbI2cTalk(PdbVoltageCommandBytes[3]);
-	dataStorage.outputVoltage3V3Bus = ADC_COUNT_TO_3V3_BUS_OUTPUT_VOLTAGE * i2c_received;
+	dataStorage->outputVoltage3V3Bus = ADC_COUNT_TO_3V3_BUS_OUTPUT_VOLTAGE * i2c_received;
 
 
 	// Get ADC Output current readings from the PDB
 	i2c_received = PdbI2cTalk(PdbCurrentCommandBytes[0]);
-	dataStorage.outputCurrentBCR_mA = ADC_COUNT_TO_BCR_OUTPUT_CURRENT * i2c_received;
+	dataStorage->outputCurrentBCR_mA = ADC_COUNT_TO_BCR_OUTPUT_CURRENT * i2c_received;
 
 	i2c_received = PdbI2cTalk(PdbCurrentCommandBytes[1]);
-	dataStorage.outputCurrentBatteryBus = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_CURRENT * i2c_received;
+	dataStorage->outputCurrentBatteryBus = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_CURRENT * i2c_received;
 
 	i2c_received = PdbI2cTalk(PdbCurrentCommandBytes[2]);
-	dataStorage.outputCurrent5VBus = ADC_COUNT_TO_5V_BUS_OUTPUT_CURRENT * i2c_received;
+	dataStorage->outputCurrent5VBus = ADC_COUNT_TO_5V_BUS_OUTPUT_CURRENT * i2c_received;
 
 	i2c_received = PdbI2cTalk(PdbCurrentCommandBytes[3]);
-	dataStorage.outputCurrent3V3Bus = ADC_COUNT_TO_3V3_BUS_OUTPUT_CURRENT * i2c_received;
+	dataStorage->outputCurrent3V3Bus = ADC_COUNT_TO_3V3_BUS_OUTPUT_CURRENT * i2c_received;
 
 
 	// Get ADC temperature reading from the PDB
 	i2c_received = PdbI2cTalk(0x10E308);	// Telemetry code for motherboard temperature
-	dataStorage.PdbTemperature = (ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE * i2c_received)
+	dataStorage->PdbTemperature = (ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE * i2c_received)
 										- ADC_COUNT_TO_MOTHERBOARD_TEMP_SHIFT ;
 
-	return dataStorage;
+	return 0;
 }
 
 
