@@ -39,6 +39,7 @@
 
 /** Used in: (Temp in Deg C = (Scale * ADC Count) - Shift) */
 #define ADC_COUNT_TO_SOLAR_ARRAY_TEMP_SCALE	((float) 0.4963)
+
 // Can use this \/ interchangeably between solar array and motherboard temp shift
 #define ADC_COUNT_TO_MOTHERBOARD_TEMP_SHIFT ((float) 273.15)
 #define ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE ((float) 0.372434)
@@ -53,14 +54,19 @@
  */
 /** I2C Slave Address for PDB */
 #define PDB_I2C_SLAVE_ADDR 			(0x2B)
+
 /** Data Sent to the PDB via I2C for telemetry commands is 6 Bytes, 2 for the command, 4 for data*/
 #define PDB_TELEM_COMMAND_LENGTH	(6)
+
 /** Data sent to the PDB via I2C for all other commands is 4 Bytes, 2 for the command, 2 for data*/
 #define PDB_COMMAND_LENGTH			(4)
+
 /** Data Returned from the PDB via I2C is 4 Bytes */
 #define PDB_RESPONSE_LENGTH			(4)
+
 /** Delay between telemetry read/write operations with the PDB on I2C is 5ms */
 #define PDB_I2C_TELEM_DELAY			(5)
+
 /** Delay between other read/write operations with the PDB on I2C is 1ms */
 #define PDB_I2C_DELAY				(1)
 
@@ -72,8 +78,6 @@
 #define NUM_SUN_SENSORS		(6)
 
 
-
-
 /***************************************************************************************************
                                           PRIVATE GLOBALS
 ***************************************************************************************************/
@@ -82,12 +86,12 @@
  *	located on each face of the CubeSat Solar Arrays.
  */
 static uint32_t PdbSunSensorCommandBytes[6] = {
-	0x10E11C,     // SA1A - xPos? TODO: Fill out which side is which connection
-	0x10E11D,     // SA1B -
-	0x10E12C,     // SA2A -
-	0x10E12D,     // SA2B -
-	0x10E13C,     // SA3A -
-	0x10E13D      // SA3B -
+	0x10E11C,     // SA1A - yPos
+	0x10E11D,     // SA1B - yNeg
+	0x10E12C,     // SA2A - xNeg
+	0x10E12D,     // SA2B - xPos
+	0x10E13C,     // SA3A - zPos
+	0x10E13D      // SA3B - zNeg
 };
 
 /**
@@ -144,14 +148,13 @@ SunSensorStatus getSunSensorData(void) {
 	}
 
 	// Now store all of the calculated data into the proper slot in the sunData structure
-	sunData.xPos = convertedData[0];
-	sunData.xNeg = convertedData[1];
-	sunData.yPos = convertedData[2];
-	sunData.yNeg = convertedData[3];
+	sunData.xPos = convertedData[3];
+	sunData.xNeg = convertedData[2];
+	sunData.yPos = convertedData[0];
+	sunData.yNeg = convertedData[1];
 	sunData.zPos = convertedData[4];
 	sunData.zNeg = convertedData[5];
 	// Could change these numbers into an ENUM with the names of the connections
-	/** TODO: Add Timestamp data into sunData  */
 
 	return sunData;
 }
