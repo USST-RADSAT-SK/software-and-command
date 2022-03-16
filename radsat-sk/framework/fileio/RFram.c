@@ -32,6 +32,9 @@ int framInit(void) {
 		return E_IS_INITIALIZED;
 
 	int error = FRAM_start();
+
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }
 
@@ -52,6 +55,9 @@ int framRead(uint8_t* data, uint32_t address, uint32_t size) {
 		return E_NOT_INITIALIZED;
 
 	int error = FRAM_read(data, address, size);
+
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }
 
@@ -72,5 +78,8 @@ int framWrite(uint8_t* data, uint32_t address, uint32_t size) {
 		return E_NOT_INITIALIZED;
 
 	int error = FRAM_writeAndVerify(data, address, size);
+
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }
