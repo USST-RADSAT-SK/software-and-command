@@ -18,7 +18,12 @@
 #include <at91/commons.h>
 #include <stdlib.h>
 
+
 #include <satellite-subsystems/IsisTRXVU.h>
+
+#ifdef TEST
+#include <RTestSuite.h>
+#endif /* TEST */
 
 #define ENABLE_MAIN_TRACES 1
 #if ENABLE_MAIN_TRACES
@@ -72,11 +77,29 @@ int main(void)
 
 	// The actual watchdog has already started, this only initializes the watchdog-kick interface.
 	WDT_start();
-	int res = IsisTrxvu_tcClearBeacon((unsigned char)8);
 	LED_wave(1);
 	LED_waveReverse(1);
 	LED_wave(1);
 	LED_waveReverse(1);
+
+	// TODO: System Initialization (HAL, SSI, other low-level initializations, etc.)
+	// TODO: Subsystem Initialization (Transceiver, Downlink Manager, etc. if necessary)
+
+#ifdef TEST
+
+	// run unit test suite
+	testSuiteRunAll();
+
+	// TODO: Initialize FreeRTOS Tasks for Integration Testing
+
+#else /* TEST */
+
+	// TODO: Antenna Diagnostic & Deployment (if necessary)
+	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
+
+	// TODO: Initialize FreeRTOS Tasks
+
+#endif /* TEST */
 
 	printf("\t main: Starting main task.. \n\r");
 	xTaskGenericCreate(taskMain, (const signed char*)"taskMain", 1024, NULL, configMAX_PRIORITIES-2, &taskMainHandle, NULL, NULL);

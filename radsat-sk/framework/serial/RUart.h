@@ -15,8 +15,8 @@
                                             DEFINITIONS
 ***************************************************************************************************/
 
-#define CAMERA_UART_BUS		((UARTbus) bus0_uart)
-#define DEBUG_UART_BUS		((UARTbus) bus2_uart)
+#define UART_CAMERA_BUS		((UARTbus) bus0_uart)
+#define UART_DEBUG_BUS		((UARTbus) bus2_uart)
 
 
 /***************************************************************************************************

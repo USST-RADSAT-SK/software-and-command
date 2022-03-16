@@ -36,11 +36,13 @@ static int initialized = 0;
  */
 int i2cInit(void) {
 
-	// only allow initialization once
+	// only allow initialization once (exit gracefully)
 	if (initialized)
-		return E_IS_INITIALIZED;
+		return 0;
 
 	int error = I2C_start(I2C_BUS_SPEED_HZ, I2C_TRANSFER_TIMEOUT);
+
+	// TODO: record errors (if present) to System Manager
 
 	if (error == 0)
 		initialized = 1;
@@ -67,6 +69,9 @@ int i2cTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_t size) {
 		return E_NOT_INITIALIZED;
 
 	int error = I2C_write(slaveAddress, data, size);
+
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }
 
@@ -89,6 +94,9 @@ int i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size) {
 		return E_NOT_INITIALIZED;
 
 	int error = I2C_read(slaveAddress, data, size);
+
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }
 
@@ -124,5 +132,8 @@ int i2cTalk(uint16_t slaveAddress, uint16_t writeSize, uint16_t readSize, uint8_
 	transfer.writeReadDelay = delay;
 
 	int error = I2C_writeRead(&transfer);
+
+	// TODO: record errors (if present) to System Manager
+
 	return error;
 }

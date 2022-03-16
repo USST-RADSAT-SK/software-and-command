@@ -9,16 +9,23 @@
 PB_BIND(TelecommandMessage, TelecommandMessage, AUTO)
 
 
-PB_BIND(TelecommandResponse, TelecommandResponse, AUTO)
+PB_BIND(BeginPass, BeginPass, AUTO)
 
 
-PB_BIND(TelecommandBegin, TelecommandBegin, AUTO)
+PB_BIND(BeginFileTransfer, BeginFileTransfer, AUTO)
 
 
 PB_BIND(CeaseTransmission, CeaseTransmission, AUTO)
 
 
-PB_BIND(UpdatePassTime, UpdatePassTime, AUTO)
+PB_BIND(ResumeTransmission, ResumeTransmission, AUTO)
+
+
+PB_BIND(UpdateTime, UpdateTime, AUTO)
+
+
+PB_BIND(Reset, Reset, AUTO)
+
 
 
 

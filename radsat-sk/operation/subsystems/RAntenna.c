@@ -18,7 +18,7 @@
 ISISantsI2Caddress RAntennaI2Caddress = {ANTENNA_I2C_SLAVE_ADDR_PRIMARY,ANTENNA_I2C_SLAVE_ADDR_REDUNANT};
 
 /** Struct that holds the current deployment status of the antenna*/
-antenna_deployment_status_t RAntennaStatus;
+antenna_deployment_status_t RAntennaStatus = { 0 };
 
 /** Track whether the antenna has been initialized yet */
 static int antennaInitialized = 0;
@@ -46,7 +46,7 @@ int antennaInit(void) {
 	int error = IsisAntS_initialize(&RAntennaI2Caddress, ANTENNAS_ON_BOARD);
 
 	// Update flag if successfully initialized
-	if (!error)
+	if (error == 0)
 		antennaInitialized = 1;
 
 	// TODO: record errors (if present) to System Manager
@@ -69,7 +69,7 @@ int antennaDeploymentAttempt(void) {
 	// A Side deployment Attempt
 	while ( antennaDeploymentAttempts < MAX_DEPLOYMENT_ATTEMPTS ) {
 
-		// Get status of the antenna
+		// Get status of the A side antenna
 		error = IsisAntS_getStatusData(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,&RISISantsStatus);
 
 		// Error check for requesting antenna status
@@ -279,15 +279,6 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	telemetry->sideB.deployStatus.AntennaArmed = !RISISantsTelemetry.fields.ants_deployment.fields.armed;
 	telemetry->sideB.board_temp = 0.00322581 * RISISantsTelemetry.fields.ants_temperature;
 	telemetry->sideB.uptime = RISISantsTelemetry.fields.ants_uptime;
-
-	//create timestamp
-	error = Time_getUnixEpoch((unsigned int*)&(telemetry->timestamp));
-
-	if(error != 0) {
-
-		// TODO: record errors (if present) to System Manager
-		return error;
-	}
 
 	return 0;
 }

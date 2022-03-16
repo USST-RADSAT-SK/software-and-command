@@ -48,7 +48,6 @@ typedef struct _antenna_telemetry_side_t {
 typedef struct _antenna_telemetry_t {
 	antenna_telemetry_side_t sideA;	///< Antenna Telemetry for side A.
 	antenna_telemetry_side_t sideB; ///< Antenna Telemetry for side B.
-	uint32_t timestamp; 			///> The time (in seconds since Unix Epoch) that the message was formatted
 } antenna_telemetry_t;
 
 
