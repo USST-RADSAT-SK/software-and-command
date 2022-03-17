@@ -155,15 +155,13 @@ typedef struct _tlm_status_t {
 	uint8_t  interfaceVersion;
 	uint8_t  firmwareVersionMajor;
 	uint8_t  firmwareVersionMinor;
-	uint8_t runtimeSecondsLSB;
-	uint8_t runtimeSecondsMSB;
-	uint8_t runtimeMSecondsLSB;
-	uint8_t runtimeMSecondsMSB;
+	uint16_t runtimeSeconds;
+	uint16_t runtimeMSeconds;
 } tlm_status_t;
 
 /* Struct for telmetry Serial number, ID 1 */
 typedef struct _tlm_serial_number_t {
-	uint8_t nodeType;
+	uint64_t Nodetype;
 } tlm_serial_number_t;
 
 /* Struct for telmetry Serial number, ID 2 */
@@ -176,7 +174,6 @@ typedef struct _tlm_communication_status_t {
 	uint8_t  uartIncompleteMsgFlag;
 } tlm_communication_status_t;
 
-
 /* Struct for telemetry telecommand acknowledege, ID 3*/
 typedef struct _tlm_telecommand_ack_t {
 	uint8_t last_tc_id;
@@ -185,9 +182,78 @@ typedef struct _tlm_telecommand_ack_t {
 } tlm_telecommand_ack_t;
 
 /* Struct for telemetry Detection result and Trigger, ID 20-25 */
-typedef struct _tlm_detection_result_and_trigger_t{
-
+typedef struct _tlm_detection_result_and_trigger_t {
+	uint16_t alpha;
+	uint16_t beta;
+	uint8_t captureResult;
+	uint8_t detectionResult;
 } tlm_detection_result_and_trigger_t;
+
+/* Struct for telemetry power, ID 26 */
+typedef struct _tlm_power_t {
+	uint16_t threeVcurrent;
+	uint16_t sramOneCurrent;
+	uint16_t sramTwoCurrent;
+	uint16_t fiveVcurrent;
+	uint8_t sramOneOverCurrent;
+	uint8_t sramTwoOverCurrent;
+} tlm_power_t;
+
+/* Struct for telemetry configuration, ID 40 */
+typedef struct _tlm_config_t{
+	uint8_t cameraOneDetectionThrshld;
+	uint8_t cameraTwoDetectionThrshld;
+	uint8_t cameraOneAutoAdjustMode;
+	uint16_t cameraOneExposure;
+	uint8_t cameraOneAGC;
+	uint8_t cameraOneBlueGain;
+	uint8_t cameraOneRedGain;
+	uint8_t cameraTwoAutoAdjustMode;
+	uint16_t cameraTwoExposure;
+	uint8_t cameraTwoAGC;
+	uint8_t cameraTwoBlueGain;
+	uint8_t cameraTwoRedGain;
+} tlm_config_t;
+
+/* Struct for telemetry image frame, ID 64 */
+typedef struct _tlm_image_frame_t {
+	uint8_t image_bytes[128];
+} tlm_image_frame_t;
+
+/* Struct for telemetry image frame info, ID 65 */
+typedef struct _tlm_image_frame_info_t {
+	uint16_t imageFrameNumber;
+	uint8_t checksum;
+} tlm_image_frame_info_t;
+
+/* Struct for telemetry full image, ID 66-69 */
+typedef struct _tlm_full_image_t {
+	uint8_t imageBytes[1048576];
+} tlm_full_image_t;
+
+/* struct for telemetry read sensor masks ID 72-73 */
+typedef struct _tlm_read_sensor_mask_t {
+	uint16_t MinXAreaOne;
+	uint16_t MaxXAreaOne;
+	uint16_t MinYAreaOne;
+	uint16_t MaxYAreaOne;
+	uint16_t MinXAreaTwo;
+	uint16_t MaxXAreaTwo;
+	uint16_t MinYAreaTwo;
+	uint16_t MaxYAreaTwo;
+	uint16_t MinXAreaThree;
+	uint16_t MaxXAreaThree;
+	uint16_t MinYAreaThree;
+	uint16_t MaxYAreaThree;
+	uint16_t MinXAreaFourth;
+	uint16_t MaxXAreaFourth;
+	uint16_t MinYAreaFourth;
+	uint16_t MaxYAreaFourth;
+	uint16_t MinXAreaFifth;
+	uint16_t MaxXAreaFifth;
+	uint16_t MinYAreaFifth;
+	uint16_t MaxYAreaFifth;
+} tlm_read_sensor_mask_t;
 
 /***************************************************************************************************
                                              PUBLIC API

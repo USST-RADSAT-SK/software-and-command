@@ -192,26 +192,42 @@ typedef uint8_t telecommand_id_t;
 #define TELEMETRY_ID_1                  ((uint8_t) 0x81)
 #define TELEMETRY_ID_1_SIZE				((uint16_t) 10)
 #define TELEMETRY_ID_2                  ((uint8_t) 0x82)
-#define TELEMETRY_ID_2_SIZE				((uint16_t) 10)
+#define TELEMETRY_ID_2_SIZE				((uint16_t) 12)
 #define TELEMETRY_ID_3                  ((uint8_t) 0x83)
 #define TELEMETRY_ID_3_SIZE				((uint16_t) 7 )
 #define TELEMETRY_ID_19                 ((uint8_t) 0x93)
 #define TELEMETRY_ID_20                 ((uint8_t) 0x94)
+#define TELEMETRY_ID_20_SIZE			((uint8_t) 10)
 #define TELEMETRY_ID_21                 ((uint8_t) 0x95)
+#define TELEMETRY_ID_21_SIZE			((uint8_t) 10)
 #define TELEMETRY_ID_22                 ((uint8_t) 0x96)
+#define TELEMETRY_ID_22_SIZE			((uint8_t) 10)
 #define TELEMETRY_ID_23                 ((uint8_t) 0x97)
+#define TELEMETRY_ID_23_SIZE			((uint8_t) 10)
 #define TELEMETRY_ID_24                 ((uint8_t) 0x98)
+#define TELEMETRY_ID_24_SIZE			((uint8_t) 10)
 #define TELEMETRY_ID_25                 ((uint8_t) 0x99)
+#define TELEMETRY_ID_25_SIZE			((uint8_t) 10)
 #define TELEMETRY_ID_26                 ((uint8_t) 0x9A)
+#define TELEMETRY_ID_26_SIZE			((uint8_t) 14)
 #define TELEMETRY_ID_40                 ((uint8_t) 0xA8)
+#define TELEMETRY_ID_40_SIZE			((uint8_t) 14)
 #define TELEMETRY_ID_64                 ((uint8_t) 0xC0)
+#define TELEMETRY_ID_64_SIZE			((uint8_t) 132)
 #define TELEMETRY_ID_65                 ((uint8_t) 0xC1)
+#define TELEMETRY_ID_65_SIZE			((uint8_t) 7)
 #define TELEMETRY_ID_66                 ((uint8_t) 0xC2)
+#define TELEMETRY_ID_66_SIZE			((uint8_t) 1048580)
 #define TELEMETRY_ID_67                 ((uint8_t) 0xC3)
+#define TELEMETRY_ID_67_SIZE			((uint8_t) 1048580)
 #define TELEMETRY_ID_68                 ((uint8_t) 0xC4)
+#define TELEMETRY_ID_68_SIZE			((uint8_t) 1048580)
 #define TELEMETRY_ID_69                 ((uint8_t) 0xC5)
+#define TELEMETRY_ID_69_SIZE			((uint8_t) 1048580)
 #define TELEMETRY_ID_72                 ((uint8_t) 0xC8)
+#define TELEMETRY_ID_72_SIZE			((uint8_t) 44)
 #define TELEMETRY_ID_73                 ((uint8_t) 0xC9)
+#define TELEMETRY_ID_73_SIZE			((uint8_t) 44)
 
 #define TLM_REPLY_SIZE_1  				((uint8_t) 1)
 #define TLM_REPLY_SIZE_2  				((uint8_t) 2)
@@ -219,8 +235,13 @@ typedef uint8_t telecommand_id_t;
 #define TLM_REPLY_SIZE_4  				((uint8_t) 4)
 #define TLM_REPLY_SIZE_6  				((uint8_t) 6)
 #define TLM_REPLY_SIZE_8  				((uint8_t) 8)
+#define TLM_REPLY_SIZE_10  				((uint8_t) 10)
 #define TLM_REPLY_SIZE_12  				((uint8_t) 12)
+#define TLM_REPLY_SIZE_14  				((uint8_t) 14)
 #define TLM_REPLY_SIZE_20  				((uint8_t) 20)
+#define TLM_REPLY_SIZE_40  				((uint8_t) 40)
+#define TLM_REPLY_SIZE_128  			((uint8_t) 128)
+#define TLM_REPLY_SIZE_1048576  		(1048576)
 
 #define TELEMETRY_OVERHEAD	            ((uint8_t) (sizeof(TELECOMMAND_OVERHEAD))
 #define TELEMETRY_HEADER_INDEX	        ((uint8_t)  0)
@@ -1008,8 +1029,12 @@ static int sendAdvanceimageDownloadTc(uint16_t nextFrameNumber)
 }
 
 //********************************************Telemetry request*************************************************************************
+
+//TODO: Implement null pointer check for all tlm funcitons
+//TODO: Make function docstrings for tlm functions
+
 static int tlmStatus(tlm_status_t *telemetry_reply) {
-	uint8_t telemetryBuffer;
+	uint8_t *telemetryBuffer;
 
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
 	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
@@ -1046,10 +1071,8 @@ static int tlmStatus(tlm_status_t *telemetry_reply) {
 	telemetry_reply->interfaceVersion = telemetryBuffer[TELEMETRY_OFFSET_1];
 	telemetry_reply->firmwareVersionMajor = telemetryBuffer[TELEMETRY_OFFSET_2];
 	telemetry_reply->firmwareVersionMinor = telemetryBuffer[TELEMETRY_OFFSET_3];
-	telemetry_reply->runtimeSecondsLSB = telemetryBuffer[TELEMETRY_OFFSET_4];
-	telemetry_reply->runtimeSecondsMSB = telemetryBuffer[TELEMETRY_OFFSET_5];
-	telemetry_reply->runtimeMSecondsLSB = telemetryBuffer[TELEMETRY_OFFSET_6];
-	telemetry_reply->runtimeMSecondsLSB = telemetryBuffer[TELEMETRY_OFFSET_7];
+	memcpy(&telemetry_reply->runtimeSeconds, &telemetryBuffer[TELEMETRY_OFFSET_4], sizeof(telemetry_reply->runtimeSeconds));
+	memcpy(&telemetry_reply->runtimeMSeconds, &telemetryBuffer[TELEMETRY_OFFSET_6], sizeof(telemetry_reply->runtimeMSeconds));
 
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
@@ -1060,7 +1083,7 @@ static int tlmStatus(tlm_status_t *telemetry_reply) {
 }
 
 static int tlmSerialNumber(tlm_serial_number_t *telemetry_reply) {
-	uint8_t telemetryBuffer;
+	uint8_t *telemetryBuffer;
 
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
 	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
@@ -1093,7 +1116,7 @@ static int tlmSerialNumber(tlm_serial_number_t *telemetry_reply) {
 	}
 
 	// Fill telemetry reply, data from uart read starts at index two
-	telemetry_reply->nodeType = telemetryBuffer[2];
+	memcpy(&telemetry_reply->Nodetype, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->Nodetype));
 
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
@@ -1103,7 +1126,7 @@ static int tlmSerialNumber(tlm_serial_number_t *telemetry_reply) {
 }
 
 static int tlmCommunicationStatus(tlm_communication_status_t *telemetry_reply) {
-	uint8_t telemetryBuffer;
+	uint8_t *telemetryBuffer;
 
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
 	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
@@ -1112,7 +1135,7 @@ static int tlmCommunicationStatus(tlm_communication_status_t *telemetry_reply) {
 	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_2;
 
     // Send Telemetry Request
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_2_SIZE);
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
 
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
@@ -1123,7 +1146,7 @@ static int tlmCommunicationStatus(tlm_communication_status_t *telemetry_reply) {
 		return error;
 
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
-	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_6);
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_8);
 
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
 	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_2_SIZE);
@@ -1136,12 +1159,12 @@ static int tlmCommunicationStatus(tlm_communication_status_t *telemetry_reply) {
 	}
 
 	// Fill telemetry reply, data from uart read starts at index two
-	telemetry_reply->tcCounter = telemetryBuffer[2];
-	telemetry_reply->tlmCounter = telemetryBuffer[3];
-	telemetry_reply->tcBufferOverunFlag = telemetryBuffer[4];
-	telemetry_reply->i2ctlmReadErrorFlag = telemetryBuffer[5];
-	telemetry_reply->uarttlmProtocolErrorFlag = telemetryBuffer[6];
-	telemetry_reply->uartIncompleteMsgFlag = telemetryBuffer[7];
+	memcpy(&telemetry_reply->tcCounter, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->tcCounter));
+	memcpy(&telemetry_reply->tlmCounter, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->tlmCounter));
+	telemetry_reply->tcBufferOverunFlag = telemetryBuffer[TELEMETRY_OFFSET_4];
+	telemetry_reply->i2ctlmReadErrorFlag = telemetryBuffer[TELEMETRY_OFFSET_5];
+	telemetry_reply->uarttlmProtocolErrorFlag = telemetryBuffer[TELEMETRY_OFFSET_6];
+	telemetry_reply->uartIncompleteMsgFlag = telemetryBuffer[TELEMETRY_OFFSET_7];
 
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
@@ -1161,7 +1184,7 @@ static int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
 	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_3;
 
     // Send Telemetry Request
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_3_SIZE);
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
 
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
@@ -1185,9 +1208,9 @@ static int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
 	}
 
 	// Fill telemetry reply, data from uart read starts at index two
-	telemetry_reply->last_tc_id = telemetryBuffer[2];
-	telemetry_reply->processed_flag = telemetryBuffer[3];
-	telemetry_reply->tc_error_flag = telemetryBuffer[4];
+	telemetry_reply->last_tc_id = telemetryBuffer[TELEMETRY_OFFSET_0];
+	telemetry_reply->processed_flag = telemetryBuffer[TELEMETRY_OFFSET_1];
+	telemetry_reply->tc_error_flag = telemetryBuffer[TELEMETRY_OFFSET_2];
 
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
@@ -1196,9 +1219,769 @@ static int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
 	return 0;
 }
 
-static int tlmSensorOneResult(){
+static int tlmSensorOneResult(tlm_detection_result_and_trigger_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
 
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_20;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_6);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_20_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->alpha, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->alpha));
+	memcpy(&telemetry_reply->beta, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->beta));
+	telemetry_reply->captureResult = telemetryBuffer[TELEMETRY_OFFSET_4];
+	telemetry_reply->detectionResult = telemetryBuffer[TELEMETRY_OFFSET_5];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
 }
+
+static int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_21;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_6);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_21_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->alpha, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->alpha));
+	memcpy(&telemetry_reply->beta, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->beta));
+	telemetry_reply->captureResult = telemetryBuffer[TELEMETRY_OFFSET_4];
+	telemetry_reply->detectionResult = telemetryBuffer[TELEMETRY_OFFSET_5];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmSensorOneResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_22;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_6);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_22_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->alpha, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->alpha));
+	memcpy(&telemetry_reply->beta, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->beta));
+	telemetry_reply->captureResult = telemetryBuffer[TELEMETRY_OFFSET_4];
+	telemetry_reply->detectionResult = telemetryBuffer[TELEMETRY_OFFSET_5];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmSensorTwoResultAndDetectionSRAMTwo(tlm_detection_result_and_trigger_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_23;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_6);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_23_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->alpha, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->alpha));
+	memcpy(&telemetry_reply->beta, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->beta));
+	telemetry_reply->captureResult = telemetryBuffer[TELEMETRY_OFFSET_4];
+	telemetry_reply->detectionResult = telemetryBuffer[TELEMETRY_OFFSET_5];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmSensorOneResultAndDetectionSRAMTwo(tlm_detection_result_and_trigger_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_24;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_6);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_24_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->alpha, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->alpha));
+	memcpy(&telemetry_reply->beta, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->beta));
+	telemetry_reply->captureResult = telemetryBuffer[TELEMETRY_OFFSET_4];
+	telemetry_reply->detectionResult = telemetryBuffer[TELEMETRY_OFFSET_5];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmSensorTwoResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_25;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_6);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_25_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->alpha, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->alpha));
+	memcpy(&telemetry_reply->beta, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->beta));
+	telemetry_reply->captureResult = telemetryBuffer[TELEMETRY_OFFSET_4];
+	telemetry_reply->detectionResult = telemetryBuffer[TELEMETRY_OFFSET_5];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmPower(tlm_power_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_26;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_10);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_26_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->threeVcurrent, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->threeVcurrent));
+	memcpy(&telemetry_reply->sramOneCurrent, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->sramOneCurrent));
+	memcpy(&telemetry_reply->sramTwoCurrent, &telemetryBuffer[TELEMETRY_OFFSET_4], sizeof(telemetry_reply->sramTwoCurrent));
+	memcpy(&telemetry_reply->fiveVcurrent, &telemetryBuffer[TELEMETRY_OFFSET_6], sizeof(telemetry_reply->fiveVcurrent));
+	telemetry_reply->sramOneOverCurrent = telemetryBuffer[TELEMETRY_OFFSET_8];
+	telemetry_reply->sramTwoOverCurrent = telemetryBuffer[TELEMETRY_OFFSET_9];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmConfig(tlm_config_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_40;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_14);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_40_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	telemetry_reply->cameraOneDetectionThrshld = telemetryBuffer[TELEMETRY_OFFSET_0];
+	telemetry_reply->cameraTwoDetectionThrshld = telemetryBuffer[TELEMETRY_OFFSET_1];
+	telemetry_reply->cameraOneAutoAdjustMode = telemetryBuffer[TELEMETRY_OFFSET_2];
+	memcpy(&telemetry_reply->cameraOneExposure, &telemetryBuffer[TELEMETRY_OFFSET_3], sizeof(telemetry_reply->cameraOneExposure));
+	telemetry_reply->cameraOneAGC = telemetryBuffer[TELEMETRY_OFFSET_5];
+	telemetry_reply->cameraOneBlueGain = telemetryBuffer[TELEMETRY_OFFSET_6];
+	telemetry_reply->cameraOneRedGain = telemetryBuffer[TELEMETRY_OFFSET_7];
+	telemetry_reply->cameraTwoAutoAdjustMode = telemetryBuffer[TELEMETRY_OFFSET_8];
+	memcpy(&telemetry_reply->cameraTwoExposure, &telemetryBuffer[TELEMETRY_OFFSET_9], sizeof(telemetry_reply->cameraTwoExposure));
+	telemetry_reply->cameraTwoAGC = telemetryBuffer[TELEMETRY_OFFSET_11];
+	telemetry_reply->cameraTwoBlueGain = telemetryBuffer[TELEMETRY_OFFSET_12];
+	telemetry_reply->cameraTwoRedGain = telemetryBuffer[TELEMETRY_OFFSET_13];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmImageFrame(tlm_image_frame_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_64;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_128);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_64_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->image_bytes, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->image_bytes));
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_65;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_3);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_65_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->imageFrameNumber, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->imageFrameNumber));
+	telemetry_reply->checksum = telemetryBuffer[TELEMETRY_OFFSET_2];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmFullImageSRAMOneLocationOne(tlm_full_image_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_66;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_1048576);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_66_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->imageBytes, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->imageBytes));
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmFullImageSRAMOneLocationTwo(tlm_full_image_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_67;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_1048576);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_67_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->imageBytes, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->imageBytes));
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmFullImageSRAMTwoLocationOne(tlm_full_image_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_68;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_1048576);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_68_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->imageBytes, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->imageBytes));
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmFullImageSRAMTwoLocationTwo(tlm_full_image_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_69;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_1048576);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_69_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->imageBytes, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->imageBytes));
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmReadSensorOneMask(tlm_read_sensor_mask_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_72;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_40);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_72_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->MinXAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->MinXAreaOne));
+	memcpy(&telemetry_reply->MaxXAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->MaxXAreaOne));
+	memcpy(&telemetry_reply->MinYAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_4], sizeof(telemetry_reply->MinYAreaOne));
+	memcpy(&telemetry_reply->MaxYAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_6], sizeof(telemetry_reply->MaxYAreaOne));
+	memcpy(&telemetry_reply->MinXAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_8], sizeof(telemetry_reply->MinXAreaTwo));
+	memcpy(&telemetry_reply->MaxXAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_10], sizeof(telemetry_reply->MaxXAreaTwo));
+	memcpy(&telemetry_reply->MinYAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_12], sizeof(telemetry_reply->MinYAreaTwo));
+	memcpy(&telemetry_reply->MaxYAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_14], sizeof(telemetry_reply->MaxYAreaTwo));
+	memcpy(&telemetry_reply->MinXAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_16], sizeof(telemetry_reply->MinXAreaThree));
+	memcpy(&telemetry_reply->MaxXAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_18], sizeof(telemetry_reply->MaxXAreaThree));
+	memcpy(&telemetry_reply->MinYAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_20], sizeof(telemetry_reply->MinYAreaThree));
+	memcpy(&telemetry_reply->MaxYAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_22], sizeof(telemetry_reply->MaxYAreaThree));
+	memcpy(&telemetry_reply->MinXAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_24], sizeof(telemetry_reply->MinXAreaFourth));
+	memcpy(&telemetry_reply->MaxXAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_26], sizeof(telemetry_reply->MaxXAreaFourth));
+	memcpy(&telemetry_reply->MinYAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_28], sizeof(telemetry_reply->MinYAreaFourth));
+	memcpy(&telemetry_reply->MaxYAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_30], sizeof(telemetry_reply->MaxYAreaFourth));
+	memcpy(&telemetry_reply->MinXAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_32], sizeof(telemetry_reply->MinXAreaFifth));
+	memcpy(&telemetry_reply->MaxXAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_34], sizeof(telemetry_reply->MaxXAreaFifth));
+	memcpy(&telemetry_reply->MinYAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_36], sizeof(telemetry_reply->MinYAreaFifth));
+	memcpy(&telemetry_reply->MaxYAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_38], sizeof(telemetry_reply->MaxYAreaFifth));
+
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmReadSensorTwoMask(tlm_read_sensor_mask_t *telemetry_reply){
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_73;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_40);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_73_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->MinXAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->MinXAreaOne));
+	memcpy(&telemetry_reply->MaxXAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->MaxXAreaOne));
+	memcpy(&telemetry_reply->MinYAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_4], sizeof(telemetry_reply->MinYAreaOne));
+	memcpy(&telemetry_reply->MaxYAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_6], sizeof(telemetry_reply->MaxYAreaOne));
+	memcpy(&telemetry_reply->MinXAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_8], sizeof(telemetry_reply->MinXAreaTwo));
+	memcpy(&telemetry_reply->MaxXAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_10], sizeof(telemetry_reply->MaxXAreaTwo));
+	memcpy(&telemetry_reply->MinYAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_12], sizeof(telemetry_reply->MinYAreaTwo));
+	memcpy(&telemetry_reply->MaxYAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_14], sizeof(telemetry_reply->MaxYAreaTwo));
+	memcpy(&telemetry_reply->MinXAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_16], sizeof(telemetry_reply->MinXAreaThree));
+	memcpy(&telemetry_reply->MaxXAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_18], sizeof(telemetry_reply->MaxXAreaThree));
+	memcpy(&telemetry_reply->MinYAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_20], sizeof(telemetry_reply->MinYAreaThree));
+	memcpy(&telemetry_reply->MaxYAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_22], sizeof(telemetry_reply->MaxYAreaThree));
+	memcpy(&telemetry_reply->MinXAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_24], sizeof(telemetry_reply->MinXAreaFourth));
+	memcpy(&telemetry_reply->MaxXAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_26], sizeof(telemetry_reply->MaxXAreaFourth));
+	memcpy(&telemetry_reply->MinYAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_28], sizeof(telemetry_reply->MinYAreaFourth));
+	memcpy(&telemetry_reply->MaxYAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_30], sizeof(telemetry_reply->MaxYAreaFourth));
+	memcpy(&telemetry_reply->MinXAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_32], sizeof(telemetry_reply->MinXAreaFifth));
+	memcpy(&telemetry_reply->MaxXAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_34], sizeof(telemetry_reply->MaxXAreaFifth));
+	memcpy(&telemetry_reply->MinYAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_36], sizeof(telemetry_reply->MinYAreaFifth));
+	memcpy(&telemetry_reply->MaxYAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_38], sizeof(telemetry_reply->MaxYAreaFifth));
+
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
 /*
  * Used to dynamically allocated buffer sizes as each telemetry and telecommand
  * require different sizes
@@ -1216,7 +1999,7 @@ static uint8_t * telemetryMessageBuilder(uint8_t response_size){
     uint8_t* tlmBuffer = (uint8_t*) malloc(total_buffer_length * sizeof(uint8_t));
 
     // Initialize all elements in the buffer with zero
-    for (int i = 0; i < sizeof(tlmBuffer); i++){
+    for (uint8_t i = 0; i < total_buffer_length; i++){
     	tlmBuffer[i] = 0;
     }
 
