@@ -79,7 +79,7 @@ static const int missionInitTaskPriority = configMAX_PRIORITIES - 4;
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
 
-static void initBoard(void);
+static int initBoard(void);
 static int initDrivers(void);
 static int initTime(void);
 static int initSubsystems(void);
@@ -100,17 +100,24 @@ void MissionInitTask(void* parameters);
  */
 int main(void) {
 
+	int error = SUCCESS;
+
 	// initialize internal OBC board settings
-	initBoard();
+	error += initBoard();
 
 	// initialize the Hardware Abstraction Library (HAL) drivers
-	initDrivers();
+	error += initDrivers();
 
 	// initialize external components and the Satellite Subsystem Interface (SSI)
-	initSubsystems();
+	error += initSubsystems();
 
 	// initialize the internal OBC watchdog, and start a task that automatically pets it
-	initObcWatchdog();
+	error += initObcWatchdog();
+
+	if (error != SUCCESS) {
+		debugPrint("main(): failed during system initialization.\n");
+		// TODO: report to system manager
+	}
 
 #ifdef TEST
 
@@ -123,22 +130,26 @@ int main(void) {
 	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
 
 	// initialize the Mission Initialization Task
-	int error = xTaskCreate(MissionInitTask,
-							(const signed char*)"Mission Initialization Task",
-							DEFAULT_TASK_STACK_SIZE,
-							NULL,
-							missionInitTaskPriority,
-							&missionInitTaskHandle);
+	error = xTaskCreate(MissionInitTask,
+						(const signed char*)"Mission Initialization Task",
+						DEFAULT_TASK_STACK_SIZE,
+						NULL,
+						missionInitTaskPriority,
+						&missionInitTaskHandle);
 
-	if (error != pdPASS)
+	if (error != pdPASS) {
 		debugPrint("main(): failed to create MissionInitTask.\n");
+		// TODO: report to system manager
+	}
 
 #endif	/* TEST */
 
 	// start the FreeRTOS Scheduler - NEVER GETS PAST THIS LINE
 	vTaskStartScheduler();
 
-	// this function should never get here, nevertheless, please make sure that this last call doesn't get optimized away
+	debugPrint("main(): failed to start the FreeRTOS Scheduler.\n");
+
+	// should never get here
 	exit(0);
 }
 
@@ -150,11 +161,12 @@ int main(void) {
 /**
  * Initialize low-level MCU/OBC configuration settings.
  */
-static void initBoard(void) {
+static int initBoard(void) {
 
 	// Enable the Instruction cache of the ARM9 core. Keep the MMU and Data Cache disabled.
 	CP15_Enable_I_Cache();
 
+	return SUCCESS;
 }
 
 
@@ -167,23 +179,31 @@ static int initDrivers(void) {
 
 	// initialize the Debug UART port for debugging to a PC
 	error = uartInit(UART_DEBUG_BUS);
-	if (error != SUCCESS)
+	if (error != SUCCESS) {
 		debugPrint("initDriver(): failed to initialize Debug UART.\n");
+		return error;
+	}
 
 	// initialize the Auxillary Camera UART port for communication with Camera
 	error = uartInit(UART_CAMERA_BUS);
-	if (error != SUCCESS)
+	if (error != SUCCESS) {
 		debugPrint("initDriver(): failed to initialize Camera UART.\n");
+		return error;
+	}
 
 	// initialize the FRAM memory module for safe persistent storage
 	error = framInit();
-	if (error != SUCCESS)
+	if (error != SUCCESS) {
 		debugPrint("initDriver(): failed to initialize FRAM.\n");
+		return error;
+	}
 
 	// initialize the I2C bus for general inter-component communication
 	error = i2cInit();
-	if (error != SUCCESS)
+	if (error != SUCCESS) {
 		debugPrint("initDriver(): failed to initialize I2C.\n");
+		return error;
+	}
 
 	return error;
 }
@@ -211,10 +231,8 @@ static int initTime(void) {
 
 	// initilize the RTC and RTT and set the default time
 	error = Time_start(&time, syncInterval);
-	if (error != SUCCESS) {
-		// TODO: report to system manager
+	if (error != SUCCESS)
 		debugPrint("initTime(): failed to initialize RTC and RTT.\n");
-	}
 
 	return error;
 }
@@ -229,8 +247,12 @@ static int initSubsystems(void) {
 
 	// initialize the Transceiver module
 	error = transceiverInit();
-	if (error != SUCCESS)
+	if (error != SUCCESS) {
 		debugPrint("initSubsystems(): failed to initialize Transceiver subsystem.\n");
+		return error;
+	}
+
+	// TODO: initialize the other subsystems that require explicit initialization
 
 	return error;
 }
@@ -254,10 +276,8 @@ static int initObcWatchdog(void) {
 	error = WDT_startWatchdogKickTask(OBC_WDOG_KICK_PERIOD_MS, TRUE);
 #endif
 
-	if (error != SUCCESS) {
-		// TODO: report to system manager
+	if (error != SUCCESS)
 		debugPrint("initObcWatchdog(): failed to start background OBC WDOG task.\n");
-	}
 
 	return error;
 }
@@ -278,8 +298,10 @@ static int initMissionTasks(void) {
 						communicationRxTaskPriority,
 						&communicationRxTaskHandle);
 
-	if (error != pdPASS)
+	if (error != pdPASS) {
 		debugPrint("initMissionTasks(): failed to create CommunicationRxTask.\n");
+		return E_GENERIC;
+	}
 
 	// initialize the Communication Transmit Task
 	error = xTaskCreate(CommunicationTxTask,
@@ -289,8 +311,10 @@ static int initMissionTasks(void) {
 						communicationTxTaskPriority,
 						&communicationTxTaskHandle);
 
-	if (error != pdPASS)
+	if (error != pdPASS) {
 		debugPrint("initMissionTasks(): failed to create CommunicationTxTask.\n");
+		return E_GENERIC;
+	}
 
 	// initialize the Dosimeter Collection Task
 	error = xTaskCreate(DosimeterCollectionTask,
@@ -300,8 +324,10 @@ static int initMissionTasks(void) {
 						dosimeterCollectionTaskPriority,
 						&dosimeterCollectionTaskHandle);
 
-	if (error != pdPASS)
+	if (error != pdPASS) {
 		debugPrint("initMissionTasks(): failed to create DosimeterCollectionTask.\n");
+		return E_GENERIC;
+	}
 
 	// initialize the Image Capture Task
 	error = xTaskCreate(ImageCaptureTask,
@@ -311,10 +337,12 @@ static int initMissionTasks(void) {
 						imageCaptureTaskPriority,
 						&imageCaptureTaskHandle);
 
-	if (error != pdPASS)
+	if (error != pdPASS) {
 		debugPrint("initMissionTasks(): failed to create ImageCaptureTask.\n");
+		return E_GENERIC;
+	}
 
-	// initialize the Image Capture Task
+	// initialize the ADCS Capture Task
 	error = xTaskCreate(AdcsCaptureTask,
 						(const signed char*)"ADCS Capture Task",
 						DEFAULT_TASK_STACK_SIZE,
@@ -322,8 +350,10 @@ static int initMissionTasks(void) {
 						adcsCaptureTaskPriority,
 						&adcsCaptureTaskHandle);
 
-	if (error != pdPASS)
+	if (error != pdPASS) {
 		debugPrint("initMissionTasks(): failed to create AdcsCaptureTask.\n");
+		return E_GENERIC;
+	}
 
 	// initialize the Telemetry Collection Task
 	error = xTaskCreate(TelemetryCollectionTask,
@@ -333,8 +363,10 @@ static int initMissionTasks(void) {
 						telemetryCollectionTaskPriority,
 						&telemetryCollectionTaskHandle);
 
-	if (error != pdPASS)
+	if (error != pdPASS) {
 		debugPrint("initMissionTasks(): failed to create TelemetryCollectionTask.\n");
+		return E_GENERIC;
+	}
 
 	// initialize the Satellite Watchdog Task
 	error = xTaskCreate(SatelliteWatchdogTask,
@@ -344,13 +376,12 @@ static int initMissionTasks(void) {
 						satelliteWatchdogTaskPriority,
 						&satelliteWatchdogTaskHandle);
 
-	if (error != pdPASS)
+	if (error != pdPASS) {
 		debugPrint("initMissionTasks(): failed to create SatelliteWatchdogTask.\n");
+		return E_GENERIC;
+	}
 
-	if (error == pdPASS)
-		return SUCCESS;
-
-	return error;
+	return SUCCESS;
 }
 
 
@@ -362,7 +393,7 @@ static int initMissionTasks(void) {
  * Initialize FreeRTOS Tasks and other mission related modules.
  *
  * This functionality was placed into a FreeRTOS Task as some of the functionality and
- * initializations require the FreeRTOS Scheduler
+ * initializations require the FreeRTOS Scheduler to already be running.
  *
  * @param parameters
  */
@@ -371,11 +402,21 @@ void MissionInitTask(void* parameters) {
 	// ignore the input parameter
 	(void)parameters;
 
+	int error = SUCCESS;
+
 	// initialize the RTC and RTT to the default time
-	initTime();
+	error = initTime();
+	if (error != SUCCESS) {
+		// TODO: report to system manager
+		debugPrint("MissionInitTask(): failed to initialize the time.\n");
+	}
 
 	// initialize the FreeRTOS Tasks used for typical mission operation
 	initMissionTasks();
+	if (error != SUCCESS) {
+		// TODO: report to system manager
+		debugPrint("MissionInitTask(): failed to initialize FreeRTOS Mission Tasks.\n");
+	}
 
 	// let this task delete itself
 	vTaskDelete(NULL);
