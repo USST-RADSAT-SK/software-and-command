@@ -1032,6 +1032,7 @@ static int sendAdvanceimageDownloadTc(uint16_t nextFrameNumber)
 
 //TODO: Implement null pointer check for all tlm funcitons
 //TODO: Make function docstrings for tlm functions
+//TODO: Make function stubs for all telemetry functions
 
 static int tlmStatus(tlm_status_t *telemetry_reply) {
 	uint8_t *telemetryBuffer;
