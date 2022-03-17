@@ -149,11 +149,46 @@ typedef struct _tc_advance_imageDownload_params_t {
 	   uint16_t nextFrameNumber;
 } tc_advance_imageDownload_params_t;
 
+/* Struct for telmetry status, ID 0*/
+typedef struct _tlm_status_t {
+	uint8_t  nodeType;
+	uint8_t  interfaceVersion;
+	uint8_t  firmwareVersionMajor;
+	uint8_t  firmwareVersionMinor;
+	uint8_t runtimeSecondsLSB;
+	uint8_t runtimeSecondsMSB;
+	uint8_t runtimeMSecondsLSB;
+	uint8_t runtimeMSecondsMSB;
+} tlm_status_t;
+
+/* Struct for telmetry Serial number, ID 1 */
+typedef struct _tlm_serial_number_t {
+	uint8_t nodeType;
+} tlm_serial_number_t;
+
+/* Struct for telmetry Serial number, ID 2 */
+typedef struct _tlm_communication_status_t {
+	uint16_t tcCounter;
+	uint16_t tlmCounter;
+	uint8_t  tcBufferOverunFlag;
+	uint8_t  i2ctlmReadErrorFlag;
+	uint8_t	 uarttlmProtocolErrorFlag;
+	uint8_t  uartIncompleteMsgFlag;
+} tlm_communication_status_t;
+
+
+/* Struct for telemetry telecommand acknowledege, ID 3*/
 typedef struct _tlm_telecommand_ack_t {
 	uint8_t last_tc_id;
 	uint8_t processed_flag;
 	uint8_t tc_error_flag;
 } tlm_telecommand_ack_t;
+
+/* Struct for telemetry Detection result and Trigger, ID 20-25 */
+typedef struct _tlm_detection_result_and_trigger_t{
+
+} tlm_detection_result_and_trigger_t;
+
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/

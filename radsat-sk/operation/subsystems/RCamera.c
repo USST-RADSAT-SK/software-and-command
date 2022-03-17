@@ -1,5 +1,5 @@
 /**
- * @file RCamera.c
+\ * @file RCamera.c
  * @date December 23, 2021
  * @author Shiva Moghtaderi (shm153)
  */
@@ -54,7 +54,6 @@ typedef uint8_t telecommand_id_t;
 
 #define CAPTURE_IMAGE_CMD_SIZE	        ((uint8_t) 3)
 #define CAPTURE_IMAGE_TC_SIZE	        ((uint8_t) 8)
-#define REQUEST_TELEMETRY_SIZE	        ((uint16_t) 5)
 #define TELEMETRY_ACK_SIZE	            ((uint8_t) 5)
 
 #define TELECOMMAND_OVERHEAD	                ((uint8_t) (sizeof(tc_header_t) + sizeof(tc_trailer_t) + sizeof(telecommand_id_t)))
@@ -148,9 +147,52 @@ typedef uint8_t telecommand_id_t;
 #define NEXT_FRAME_NUMBER_VALUE         ((uint8_t) 4)
 
 //Telemetry define
+#define REQUEST_TELEMETRY_SIZE	        ((uint16_t) 5)
+#define TELEMETRY_OFFSET_0              ((uint8_t) 2)
+#define TELEMETRY_OFFSET_1              ((uint8_t) 3)
+#define TELEMETRY_OFFSET_2              ((uint8_t) 4)
+#define TELEMETRY_OFFSET_3              ((uint8_t) 5)
+#define TELEMETRY_OFFSET_4              ((uint8_t) 6)
+#define TELEMETRY_OFFSET_5              ((uint8_t) 7)
+#define TELEMETRY_OFFSET_6              ((uint8_t) 8)
+#define TELEMETRY_OFFSET_7              ((uint8_t) 9)
+#define TELEMETRY_OFFSET_8              ((uint8_t) 10)
+#define TELEMETRY_OFFSET_9              ((uint8_t) 11)
+#define TELEMETRY_OFFSET_10             ((uint8_t) 12)
+#define TELEMETRY_OFFSET_11             ((uint8_t) 13)
+#define TELEMETRY_OFFSET_12             ((uint8_t) 14)
+#define TELEMETRY_OFFSET_13             ((uint8_t) 15)
+#define TELEMETRY_OFFSET_14             ((uint8_t) 16)
+#define TELEMETRY_OFFSET_15             ((uint8_t) 17)
+#define TELEMETRY_OFFSET_16             ((uint8_t) 18)
+#define TELEMETRY_OFFSET_17             ((uint8_t) 19)
+#define TELEMETRY_OFFSET_18             ((uint8_t) 20)
+#define TELEMETRY_OFFSET_19             ((uint8_t) 21)
+#define TELEMETRY_OFFSET_20             ((uint8_t) 22)
+#define TELEMETRY_OFFSET_21             ((uint8_t) 23)
+#define TELEMETRY_OFFSET_22             ((uint8_t) 24)
+#define TELEMETRY_OFFSET_23             ((uint8_t) 25)
+#define TELEMETRY_OFFSET_24             ((uint8_t) 26)
+#define TELEMETRY_OFFSET_25             ((uint8_t) 27)
+#define TELEMETRY_OFFSET_26             ((uint8_t) 28)
+#define TELEMETRY_OFFSET_27             ((uint8_t) 29)
+#define TELEMETRY_OFFSET_28             ((uint8_t) 30)
+#define TELEMETRY_OFFSET_29             ((uint8_t) 31)
+#define TELEMETRY_OFFSET_30             ((uint8_t) 32)
+#define TELEMETRY_OFFSET_31             ((uint8_t) 33)
+#define TELEMETRY_OFFSET_32             ((uint8_t) 34)
+#define TELEMETRY_OFFSET_33             ((uint8_t) 35)
+#define TELEMETRY_OFFSET_34             ((uint8_t) 36)
+#define TELEMETRY_OFFSET_35             ((uint8_t) 37)
+#define TELEMETRY_OFFSET_36             ((uint8_t) 38)
+#define TELEMETRY_OFFSET_37             ((uint8_t) 39)
+#define TELEMETRY_OFFSET_38             ((uint8_t) 40)
 #define TELEMETRY_ID_0                  ((uint8_t) 0x80)
+#define TELEMETRY_ID_0_SIZE				((uint16_t) 12)
 #define TELEMETRY_ID_1                  ((uint8_t) 0x81)
+#define TELEMETRY_ID_1_SIZE				((uint16_t) 10)
 #define TELEMETRY_ID_2                  ((uint8_t) 0x82)
+#define TELEMETRY_ID_2_SIZE				((uint16_t) 10)
 #define TELEMETRY_ID_3                  ((uint8_t) 0x83)
 #define TELEMETRY_ID_3_SIZE				((uint16_t) 7 )
 #define TELEMETRY_ID_19                 ((uint8_t) 0x93)
@@ -176,6 +218,7 @@ typedef uint8_t telecommand_id_t;
 #define TLM_REPLY_SIZE_3  				((uint8_t) 3)
 #define TLM_REPLY_SIZE_4  				((uint8_t) 4)
 #define TLM_REPLY_SIZE_6  				((uint8_t) 6)
+#define TLM_REPLY_SIZE_8  				((uint8_t) 8)
 #define TLM_REPLY_SIZE_12  				((uint8_t) 12)
 #define TLM_REPLY_SIZE_20  				((uint8_t) 20)
 
@@ -965,16 +1008,160 @@ static int sendAdvanceimageDownloadTc(uint16_t nextFrameNumber)
 }
 
 //********************************************Telemetry request*************************************************************************
-static int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
+static int tlmStatus(tlm_status_t *telemetry_reply) {
+	uint8_t telemetryBuffer;
 
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
-	uint8_t* telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_0;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_8);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_0_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	telemetry_reply->nodeType = telemetryBuffer[TELEMETRY_OFFSET_0];
+	telemetry_reply->interfaceVersion = telemetryBuffer[TELEMETRY_OFFSET_1];
+	telemetry_reply->firmwareVersionMajor = telemetryBuffer[TELEMETRY_OFFSET_2];
+	telemetry_reply->firmwareVersionMinor = telemetryBuffer[TELEMETRY_OFFSET_3];
+	telemetry_reply->runtimeSecondsLSB = telemetryBuffer[TELEMETRY_OFFSET_4];
+	telemetry_reply->runtimeSecondsMSB = telemetryBuffer[TELEMETRY_OFFSET_5];
+	telemetry_reply->runtimeMSecondsLSB = telemetryBuffer[TELEMETRY_OFFSET_6];
+	telemetry_reply->runtimeMSecondsLSB = telemetryBuffer[TELEMETRY_OFFSET_7];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+
+}
+
+static int tlmSerialNumber(tlm_serial_number_t *telemetry_reply) {
+	uint8_t telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_1;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_6);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_1_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	telemetry_reply->nodeType = telemetryBuffer[2];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmCommunicationStatus(tlm_communication_status_t *telemetry_reply) {
+	uint8_t telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_2;
+
+    // Send Telemetry Request
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_2_SIZE);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TLM_REPLY_SIZE_6);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_2_SIZE);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	telemetry_reply->tcCounter = telemetryBuffer[2];
+	telemetry_reply->tlmCounter = telemetryBuffer[3];
+	telemetry_reply->tcBufferOverunFlag = telemetryBuffer[4];
+	telemetry_reply->i2ctlmReadErrorFlag = telemetryBuffer[5];
+	telemetry_reply->uarttlmProtocolErrorFlag = telemetryBuffer[6];
+	telemetry_reply->uartIncompleteMsgFlag = telemetryBuffer[7];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	//TODO: Change 0 to SUCCESS when merged with alpha branch
+	return 0;
+}
+
+static int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
+
+	uint8_t* telemetryBuffer;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_FRAME_ID_SIZE);
 
     // Fill buffer with telemetry ID
 	telemetryBuffer[REQUESTING_TLM_ID_INDEX] = TELEMETRY_ID_3;
 
     // Send Telemetry Request
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, REQUEST_TELEMETRY_SIZE);
+	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_ID_3_SIZE);
 
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
@@ -997,7 +1184,7 @@ static int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
 		return error;
 	}
 
-	// Fill telemetry reply
+	// Fill telemetry reply, data from uart read starts at index two
 	telemetry_reply->last_tc_id = telemetryBuffer[2];
 	telemetry_reply->processed_flag = telemetryBuffer[3];
 	telemetry_reply->tc_error_flag = telemetryBuffer[4];
@@ -1008,416 +1195,10 @@ static int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
 	//TODO: Change 0 to SUCCESS when merged with alpha branch
 	return 0;
 }
-/************************************************************************************************************/
-static int requeststatusTm(void)
-{
-    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
 
-    // start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // telemetry frame id 0
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_0;
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    //Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-    // return 0 if an error occurs
-	if (error != 0)
-		return 0;
-
-    // Receive from UART
-    uint8_t statusTm[STATUS_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, statusTm, STATUS_TELEMETRY_SIZE);
-
-    // Telemetry parameters- Interface control document. Page:17
-	uint8_t nodeType             = statusTm  &&  ((unsigned int)0x0000000F);
-	uint8_t interfaceVersion     = statusTm  &&  ((unsigned int)0x000000F0);
-	uint8_t firmWareVersionMajor = statusTm  &&  ((unsigned int)0x00000F00);
-	uint8_t firmWareVersionMinor = statusTm  &&  ((unsigned int)0x0000F000);
-	uint8_t runTime_Seconds      = statusTm  &&  ((unsigned int)0x00FF0000);
-	uint8_t runTime_MilliSeconds = statusTm  &&  ((unsigned int)0xFF000000);
-}
-/************************************************************************************************************/
-static int requestCommunicationStatusTm(void)
-{
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
-
-    // Start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // Telemetry frame id 2
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_2;
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    // Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-	// Return 0 if an error occurs
-	if (error != 0)
-		return 0;
-    // Receive from UART
-    uint8_t communicationStatusTm[COMMUNICATION_STATUS_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, communicationStatusTm, COMMUNICATION_STATUS_TELEMETRY_SIZE);
-
-    // Telemetry parameters- Interface control document. Page:18
-	uint8_t tcCounter               = communicationStatusTm && ((unsigned int)0x000000FF);
-	uint8_t tlmCounter              = communicationStatusTm && ((unsigned int)0x0000FF00);
-	uint8_t tcBufferOverRunFlag     = communicationStatusTm && ((unsigned int)0x000F0000);
-	uint8_t i2cTlmReadErrorFlag     = communicationStatusTm && ((unsigned int)0x00F00000);
-	uint8_t uartProtocolErrorFlag   = communicationStatusTm && ((unsigned int)0x0F000000);
-	uint8_t uartIncompleteErrorFlag = communicationStatusTm && ((unsigned int)0xF0000000);
-}
-/************************************************************************************************************/
-static int requestSerialNumberTm(void)
-{
-    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
-
-    // start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // telemetry frame id 1
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_1;
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    // Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-	// return 0 if an error occurs
-	if (error != 0)
-		return 0;
-    // Receive from UART
-    uint8_t serialNumberTm[SERIAL_NUMBER_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, serialNumberTm, SERIAL_NUMBER_TELEMETRY_SIZE);
-
-    // Telemetry parameters- Interface control document. Page:18
-	uint8_t nodeTypeSerialNumber = serialNumberTm;
-}
-
-// TODO: Read about telemetry 20-25
-/************************************************************************************************************/
-static int requestPowerTm(void)
-{
-    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
-
-    // start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // telemetry frame id 26
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_26;
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    // Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-	// return 0 if an error occurs
-	if (error != 0)
-		return 0;
-    // Receive from UART
-    uint8_t powerTm[POWER_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, powerTm, POWER_TELEMETRY_SIZE);
-
-    // Telemetry parameters- Interface control document. Page:20
-	uint8_t voltage3v3Current = powerTm && ((unsigned int)0x00000000FF);
-	uint8_t sram1Current      = powerTm && ((unsigned int)0x000000FF00);
-	uint8_t sram2Current      = powerTm && ((unsigned int)0x0000FF0000);
-	uint8_t voltage5Current   = powerTm && ((unsigned int)0x00FF000000);
-	uint8_t sram1OverCurrent  = powerTm && ((unsigned int)0x0F00000000);
-	uint8_t sram2OverCurrent  = powerTm && ((unsigned int)0xF000000000);
-}
-/************************************************************************************************************/
-static int requestConfigurationTm(void)
-{
-    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
-
-    // start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // telemetry frame id 40
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_40;
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    //Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-	// return 0 if an error occurs
-	if (error != 0)
-		return 0;
-    // Receive from UART
-    uint8_t configurationTm[CONFIGURATION_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, configurationTm, CONFIGURATION_TELEMETRY_SIZE);
-
-    // Telemetry parameters- Interface control document. Page:21
-	uint8_t camera1DetectionThreshold = configurationTm && ((unsigned int)0x0000000000000F);
-	uint8_t camera2DetectionThreshold = configurationTm && ((unsigned int)0x000000000000F0);
-	uint8_t camera1AutoAdjustMode     = configurationTm && ((unsigned int)0x00000000000F00);
-	uint8_t camera1Exposure           = configurationTm && ((unsigned int)0x0000000000F000);
-	uint8_t camera1AGC                = configurationTm && ((unsigned int)0x00000000F00000);
-	uint8_t camera1BlueGain           = configurationTm && ((unsigned int)0x0000000F000000);
-	uint8_t camera1RedGain            = configurationTm && ((unsigned int)0x000000F0000000);
-	uint8_t camera2AutoAdjustMode     = configurationTm && ((unsigned int)0x00000F00000000);
-	uint8_t camera2Exposure           = configurationTm && ((unsigned int)0x0000F000000000);
-	uint8_t camera2AGC                = configurationTm && ((unsigned int)0x00F00000000000);
-	uint8_t camera2BlueGain           = configurationTm && ((unsigned int)0x0F000000000000);
-	uint8_t camera2RedGain            = configurationTm && ((unsigned int)0xF0000000000000);
-}
-/************************************************************************************************************/
-static int requestImageFrameTm(void)
-{
-    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
-
-    // start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // Telemetry frame id 64
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_64;
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    // Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-	// return 0 if an error occurs
-	if (error != 0)
-		return 0;
-    // Receive from UART
-    uint8_t imageFrameTm[IMAGE_FRAME_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, imageFrameTm, IMAGE_FRAME_TELEMETRY_SIZE);
-
-    // Telemetry parameters- Interface control document. Page:21
-	uint8_t imageBytes = imageFrameTm;
+static int tlmSensorOneResult(){
 
 }
-/************************************************************************************************************/
-static int requestImageFrameInfoTm(void)
-{
-    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
-
-    // start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // telemetry frame id 65
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_65;
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    //Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-    // return 0 if an error occurs
-	if (error != 0)
-		return 0;
-
-    //Receive from UART
-    uint8_t imageFrameInfoTm[IMAGE_FRAME_INFO_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, imageFrameInfoTm, IMAGE_FRAME_INFO_TELEMETRY_SIZE);
-
-    //Telemetry parameters- Interface control document. Page:22
-	uint8_t imageFrameNumber = imageFrameInfoTm && ((unsigned int)0x0FF);
-	uint8_t checksum         = imageFrameInfoTm && ((unsigned int)0xF00);
-}
-/************************************************************************************************************/
-static int requestFullImageSram1Location1Tm(void)
-{
-    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
-
-    // start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // telemetry frame id 66
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_66;
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    // Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-    // Return 0 if an error occurs
-	if (error != 0)
-		return 0;
-    // Receive from UART
-    uint8_t fullImageSram1Location1Tm[FULL_IMAGE_SRAM1_LOCATION1_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, fullImageSram1Location1Tm, FULL_IMAGE_SRAM1_LOCATION1_TELEMETRY_SIZE);
-
-    // Telemetry parameters- Interface control document. Page:22
-	uint8_t fullImageSram1Location1Bytes = fullImageSram1Location1Tm;
-}
-/************************************************************************************************************/
-static int requestFullImageSram1Location2Tm(void)
-{
-    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
-
-    // start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // telemetry frame id 67
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_67;
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    //Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-    // return 0 if an error occurs
-	if (error != 0)
-		return 0;
-    // Receive from UART
-    uint8_t fullImageSram1Location2Tm[FULL_IMAGE_SRAM1_LOCATION2_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, fullImageSram1Location2Tm, FULL_IMAGE_SRAM1_LOCATION2_TELEMETRY_SIZE);
-
-    // Telemetry parameters- Interface control document. Page:22
-	uint8_t fullImageSram1Location2Bytes = fullImageSram1Location2Tm;
-}
-/************************************************************************************************************/
-static int requestFullImageSram2Location1Tm(void)
-{
-    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
-
-    // start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // telemetry frame id 68
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_68;
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    // Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-    // return 0 if an error occurs
-	if (error != 0)
-		return 0;
-    // Receive from UART
-    uint8_t fullImageSram2Location1Tm[FULL_IMAGE_SRAM2_LOCATION1_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, fullImageSram2Location1Tm, FULL_IMAGE_SRAM2_LOCATION1_TELEMETRY_SIZE);
-
-    // Telemetry parameters- Interface control document. Page:22
-	uint8_t fullImageSram2Location1Bytes = fullImageSram2Location1Tm;
-}
-/************************************************************************************************************/
-static int requestFullImageSram2Location2Tm(void)
-{
-    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
-
-    // start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // telemetry frame id 69
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_69;
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    //Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-    // return 0 if an error occurs
-	if (error != 0)
-		return 0;
-    // Receive from UART
-    uint8_t fullImageSram2Location2Tm[FULL_IMAGE_SRAM2_LOCATION2_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, fullImageSram2Location2Tm, FULL_IMAGE_SRAM2_LOCATION2_TELEMETRY_SIZE);
-
-    // Telemetry parameters- Interface control document. Page:22
-	uint8_t  fullImageSram2Location2Bytes = fullImageSram2Location2Tm;
-}
-/************************************************************************************************************/
-static int requestReadSensor1MaskTm(void)
-{
-    uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
-
-    // start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // telemetry frame id 72
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_72;
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    // Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-    // return 0 if an error occurs
-	if (error != 0)
-		return 0;
-    // Receive from UART
-    uint8_t readSensor1MaskTm[READ_SENSOR1_MASK_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, readSensor1MaskTm, READ_SENSOR1_MASK_TELEMETRY_SIZE);
-
-    // Telemetry parameters- Interface control document. Page:23
-	//TODO complete this part. Maybe by using counter.
-}
-/************************************************************************************************************/
-static int requestReadSensor2MaskTm(void)
-{
-uint8_t telemetryBuffer[REQUEST_TELEMETRY_SIZE];
-
-    // start of message identifiers
-    memcpy(&telemetryBuffer[REQUEST_TELEMETRY_SIZE], &header, sizeof(header));
-
-    // telemetry frame id 73
-    telemetryBuffer[TELEMETRY_ID_INDEX] =TELEMETRY_ID_73;
-
-    //Send to UART
-	int error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer , REQUEST_TELEMETRY_SIZE);
-
-    // end of message identifiers
-	memcpy(&telemetryBuffer[TELEMETRY_TRAILER_INDEX(REQUEST_TELEMETRY_SIZE)],
-			&trailer,
-		    sizeof(trailer));
-
-    // return 0 if an error occurs
-	if (error != 0)
-		return 0;
-    // Receive from UART
-    uint8_t readSensor2MaskTm[READ_SENSOR1_MASK_TELEMETRY_SIZE] = { 0 };
-	error = uartReceive(UART_CAMERA_BUS, readSensor2MaskTm, READ_SENSOR2_MASK_TELEMETRY_SIZE);
-
-    // Telemetry parameters- Interface control document. Page:24
-	//TODO Define Bytes parameters.Maybe by using counter
-}
-
 /*
  * Used to dynamically allocated buffer sizes as each telemetry and telecommand
  * require different sizes
