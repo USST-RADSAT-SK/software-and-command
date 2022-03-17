@@ -114,6 +114,11 @@ static uint32_t PdbCurrentCommandBytes[4] = {
 		0x10E204		// Output Current of 3.3V Bus
 };
 
+/**
+ * Global variable for detecting when there is an error in PdbI2cTalk()
+ */
+uint8_t i2cErrorFlag = 0;
+
 
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
@@ -142,6 +147,11 @@ int getSunSensorData(SunSensorStatus* sunData) {
 	// Send 6 commands to get each of the sun sensor's data
 	for(int i = 0; i < NUM_SUN_SENSORS; i = i + 1){
 		i2c_received = PdbI2cTalk(PdbSunSensorCommandBytes[i]);
+		if(i2cErrorFlag == 1){
+			// Do some error raising here?
+			// return the error
+			return i2c_received;
+		}
 		convertedData[i] = ADC_COUNT_TO_IRRADIANCE * i2c_received;
 	}
 
@@ -156,7 +166,6 @@ int getSunSensorData(SunSensorStatus* sunData) {
 
 	return 0;
 }
-
 
 
 /**
@@ -182,6 +191,7 @@ int getPdbTelemetry(PdbStatus* dataStorage) {
 
 	// Get ADC output voltage readings from the PDB
 	i2c_received = PdbI2cTalk(PdbVoltageCommandBytes[0]);
+	// If error checking method works in getSunSensorData(), implement the same checks for each of the below calls
 	dataStorage->outputVoltageBCR = ADC_COUNT_TO_BCR_OUTPUT_VOLTAGE * i2c_received;
 
 	i2c_received = PdbI2cTalk(PdbVoltageCommandBytes[1]);
@@ -267,9 +277,11 @@ static uint16_t PdbI2cTalk(uint32_t command) {
 	// return error? if an error occurs, else send the data back
 	// TODO: Make this return 0 on a failure? Printf the error instead? Get advice for this
 	if (error != 0) {
+		i2cErrorFlag = 1;
 		return error;
 	}
 	else {
+		i2cErrorFlag = 0;
 		return i2c_data;
 	}
 
