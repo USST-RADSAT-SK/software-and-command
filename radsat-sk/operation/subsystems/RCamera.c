@@ -266,6 +266,25 @@ typedef uint8_t telecommand_id_t;
 
 #define BASE_MESSAGE_SIZE 	((uint8_t) 4)
 
+#define IMAGE_1                                     ((uint8_t) 4)
+#define IMAGE_2                                     ((uint8_t) 4)
+#define IMAGE_3                                     ((uint8_t) 4)
+
+#define ret                                         ((uint8_t) 4)
+
+#define DOWNLOAD_INDEX1                             ((uint8_t) 4)
+#define DOWNLOAD_INDEX2                             ((uint8_t) 4)
+#define DOWNLOAD_INDEX3                             ((uint8_t) 4)
+
+
+int SRAM_FLAG_1=0;   //0 for empty, 1 for full
+int SRAM_FLAG_2=0;
+int SRAM_FLAG_3=0;
+
+
+
+
+
 /** Invalid input parameters to the Camera module. */
 #define ERROR_INVALID_PARAM		(-36)
 
@@ -964,7 +983,7 @@ static int sendSetSensorTwoDistortionCorrectionCoefficientTc(uint16_t Mantissa21
 		return 0;
 	}
 /***************************************************************************************************/
-static int sendInitializeImageDownloadTc(uint8_t sramSelection, uint8_t sramLocation, uint16_t sizeSelection)
+static int sendInitializeImageDownloadTc(uint8_t sramSelection, uint8_t sramLocation, uint8_t sizeSelection)
 	{
     // determine size of telecommand
 	uint8_t initializeImageDownloadTcSize = TELECOMMAND_OVERHEAD + initializeImageDownload.paramLength;
@@ -2025,4 +2044,99 @@ static uint8_t * telemetryMessageBuilder(uint8_t response_size){
 
     return tlmBuffer;
 
+}
+
+/************************************************Calculate the mean***********************************************/
+//  Calculate mean
+/* For the filtering first we should download the image. Its better to download size 64 of the image.
+ So the image size is 64*64. It is constant.*/
+
+static int calculateMeanOfTheImage(uint8_t DOWNLOADED64IMAGE)
+{
+
+	uint8_t  i = 64;
+	uint8_t  j = 64;
+	uint8_t  a = 0;
+	uint8_t  b = 0;
+	uint8_t  sum=0;
+	uint8_t  n = i*j;
+	uint8_t  IMAGE_MEAN  =0;
+
+for (a = 0 ; a < i; ++a){
+	for (b = 0; b < j; ++b){
+		sum = sum + DOWNLOADED64IMAGE[a][b];
+		//TODO: replace the DOWNLOADED64IMAGE with the correct name. It is received from tlm image frame.
+	  }
+   }
+
+IMAGE_MEAN= sum / n;
+
+ 	return IMAGE_MEAN;
+
+}
+
+/***************************************************************************************************
+
+****************************************************************************************************/
+
+int main(){
+
+//  Capture 3 images
+
+ret= sendCameraCaptureImageTc(uint8_t CAMERA_TWO, uint8_t SRAM1, uint8_t BOTTOM_HALVE);
+tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply);
+
+if (tc_error_flag = 0)
+{
+	SRAM_FLAG_1=1;
+}
+
+ret = sendCameraCaptureImageTc(uint8_t CAMERA_TWO, uint8_t SRAM2, uint8_t TOP_HALVE);
+tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply);
+
+if (tc_error_flag = 0)
+{
+	SRAM_FLAG_2=1;
+}
+
+ret = sendCameraCaptureImageTc(uint8_t CAMERA_TWO, uint8_t SRAM2, uint8_t BOTTOM_HALVE);
+tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply);
+
+if (tc_error_flag = 0)
+{
+	SRAM_FLAG_3=1;
+}
+
+//  Check all the flags. All falgs are 1= all SRAM locations are full. So the image download will be started.
+if (SRAM_FLAG_1=1 && SRAM_FLAG_2=1 && SRAM_FLAG_2=1)
+{
+ DOWNLOAD_INDEX1 = sendInitializeImageDownloadTc(uint8_t SRAM1, uint8_t BOTTOM_HALVE, uint8_t IMAGE_SIZE_64);
+ IMAGE_1 = tlmImageFrame(tlm_image_frame_t *telemetry_reply);
+ DOWNLOAD_INDEX1 =sendInitializeImageDownloadTc(uint8_t SRAM2, uint8_t TOP_HALVE, uint8_t IMAGE_SIZE_64);
+ IMAGE_2 = tlmImageFrame(tlm_image_frame_t *telemetry_reply);
+ DOWNLOAD_INDEX1 =sendInitializeImageDownloadTc(uint8_t SRAM2, uint8_t BOTTOM_HALVE, uint8_t IMAGE_SIZE_64);
+ IMAGE_3 = tlmImageFrame(tlm_image_frame_t *telemetry_reply);
+}
+
+// Check all the images are downloaded. So image filtering can be started.
+if (IMAGE_1 != 0 && IMAGE_2 != 0 && IMAGE_3 != 0)
+{
+
+IMAGE_MEAN = calculateMeanOfTheImage(uint8_t IMAGE_1);
+  if(IMAGE_MEAN< 100 || IMAGE_MEAN> 900000)
+  {
+     SRAM_FLAG_1=0;
+  }
+
+IMAGE_MEAN = calculateMeanOfTheImage(uint8_t IMAGE_2);
+  if(IMAGE_MEAN< 100 || IMAGE_MEAN> 900000)
+  {
+     SRAM_FLAG_2=0;
+  }
+
+IMAGE_MEAN = calculateMeanOfTheImage(uint8_t IMAGE_3);
+  if(IMAGE_MEAN< 100 || IMAGE_MEAN> 900000)
+   {
+     SRAM_FLAG_3=0;
+   }
 }
