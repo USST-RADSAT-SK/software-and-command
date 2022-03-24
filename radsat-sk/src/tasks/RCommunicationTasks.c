@@ -1,20 +1,20 @@
 /**
- * @file RCommunicationTask.c
- * @date January 30, 2021
+ * @file RCommunicationTasks.c
+ * @date January 30, 2022
  * @author Tyrel Kostyk (tck290) and Matthew Buglass (mab839)
  */
 
-#include <RTransceiver.h>
 #include <RCommunicationTasks.h>
+#include <RTransceiver.h>
 #include <RProtocolService.h>
 #include <RTelecommandService.h>
 #include <RFileTransferService.h>
 
-#include <string.h>
-
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/timers.h>
+
+#include <string.h>
 
 
 /***************************************************************************************************
@@ -30,11 +30,20 @@
 /** Maximum amount of consecutive NACKs before transmission is aborted. */
 #define NACK_ERROR_LIMIT		((uint8_t)15)
 
+
+/** Communication Receive Task delay (in ms). */
+#define COMMUNICATION_RX_TASK_DELAY_MS			((portTickType)1)
+
+/** Communication Transmit Task delay (in ms) during typical operation. */
+#define COMMUNICATION_TX_TASK_SHORT_DELAY_MS	((portTickType)1)
+
 /**
- * Delay duration (in ms) when the transmitter's buffer is full.
- * Transmission speed: 9600 bps = 1 byte per ms; This delays long enough to transmit 1 full frame.
+ * Communication Transmit Task delay (in ms) when the transmitter's buffer is full.
+ *
+ * Transmission speed: 9600 bps => roughly 1 byte per ms; This delay should long enough to transmit
+ * one full frame.
  */
-#define TRANSMITTER_LONG_DELAY	((uint8_t)TRANCEIVER_TX_MAX_FRAME_SIZE)
+#define COMMUNICATION_TX_TASK_LONG_DELAY_MS		((portTickType)TRANCEIVER_TX_MAX_FRAME_SIZE)
 
 
 /** Abstraction of the response states */
@@ -111,7 +120,7 @@ static void resumeTransmission(void);
 
 
 /***************************************************************************************************
-											 PUBLIC API
+                                           FREERTOS TASKS
 ***************************************************************************************************/
 
 /**
@@ -129,7 +138,9 @@ static void resumeTransmission(void);
  * 			(e.g. the Transceiver) are responsible for reporting those errors to the system.
  * @param	parameters Unused.
  */
-void communicationRxTask(void* parameters) {
+void CommunicationRxTask(void* parameters) {
+
+	// ignore the input parameter
 	(void)parameters;
 
 	int error = 0;				// error detection
@@ -216,7 +227,7 @@ void communicationRxTask(void* parameters) {
 			}
 		}
 
-		vTaskDelay(1);
+		vTaskDelay(COMMUNICATION_RX_TASK_DELAY_MS);
 	}
 }
 
@@ -237,7 +248,9 @@ void communicationRxTask(void* parameters) {
  * 			(e.g. the Transceiver) are responsible for reporting these errors to the system.
  * @param	parameters Unused.
  */
-void communicationTxTask(void* parameters) {
+void CommunicationTxTask(void* parameters) {
+
+	// ignore the input parameter
 	(void)parameters;
 
 	int error = 0;												// error detection
@@ -312,12 +325,16 @@ void communicationTxTask(void* parameters) {
 
 		// increase Task delay time when the Transmitter's buffer is full to give it time to transmit
 		if (txSlotsRemaining > 0)
-			vTaskDelay(1);
+			vTaskDelay(COMMUNICATION_TX_TASK_SHORT_DELAY_MS);
 		else
-			vTaskDelay(TRANSMITTER_LONG_DELAY);
+			vTaskDelay(COMMUNICATION_TX_TASK_LONG_DELAY_MS);
 	}
 }
 
+
+/***************************************************************************************************
+                                             PUBLIC API
+***************************************************************************************************/
 
 /**
  * Indicate if the Satellite is currently in a communications mode.
