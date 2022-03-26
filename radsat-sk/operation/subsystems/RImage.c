@@ -432,6 +432,36 @@ int tcAdcvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
 
 }
 
+
+/************************************************Calculate the mean***********************************************/
+//  Calculate mean
+/* For the filtering first we should download the image. Its better to download size 64 of the image.
+ So the image size is 64*64. It is constant.
+ Thresholds should be then set to determine which image should be ignored.*/
+
+static int calculateMeanOfTheImage(uint8_t DOWNLOADED64IMAGE)
+{
+
+	uint8_t  i = 64;
+	uint8_t  j = 64;
+	uint8_t  a = 0;
+	uint8_t  b = 0;
+	uint8_t  sum=0;
+	uint8_t  n = i*j;
+	uint8_t  IMAGE_MEAN  =0;
+
+for (a = 0 ; a < i; ++a){
+	for (b = 0; b < j; ++b){
+		sum = sum + DOWNLOADED64IMAGE[a][b];
+		//TODO: replace the DOWNLOADED64IMAGE with the correct name. It is received from tlm image frame.
+	  }
+   }
+
+IMAGE_MEAN= sum / n;
+
+ 	return IMAGE_MEAN;
+
+}
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
 ***************************************************************************************************/
