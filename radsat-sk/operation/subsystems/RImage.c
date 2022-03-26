@@ -5,7 +5,10 @@
  */
 
 #include <RUart.h>
+#include <RImage.h>
 #include <RCommon.h>
+#include <stdlib.h>
+#include <string.h>
 
 /***************************************************************************************************
                                             DEFINITIONS
@@ -117,7 +120,7 @@ int tcImageCaputre(uint8_t SRAM, uint8_t location) {
 	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
 
 	// Read automatically reply to telecommand
-	error = uartRecieve(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
+	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0){
 		return E_GENERIC;
@@ -240,7 +243,7 @@ int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size) {
 	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
 
 	// Read automatically reply to telecommand
-	error = uartRecieve(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
+	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0){
 		return E_GENERIC;
@@ -409,7 +412,7 @@ int tcAdcvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
 	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
 
 	// Read automatically reply to telecommand
-	error = uartRecieve(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
+	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0){
 		return E_GENERIC;
