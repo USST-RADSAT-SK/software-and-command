@@ -7,104 +7,417 @@
 #include <freertos/task.h>
 
 #include <hal/Timing/WatchDogTimer.h>
+#include <hal/Timing/Time.h>
 #include <hal/Drivers/LED.h>
+
 #include <hal/boolean.h>
 #include <hal/Utility/util.h>
 #include <hal/version/version.h>
 
-#include <at91/utility/trace.h>
 #include <at91/peripherals/cp15/cp15.h>
 #include <at91/utility/exithandler.h>
 #include <at91/commons.h>
 #include <stdlib.h>
 
-#ifdef TEST
-#include <RTestSuite.h>
-#endif /* TEST */
+#include <RDebug.h>
+#include <RFram.h>
+#include <RI2c.h>
+#include <RUart.h>
 
-#define ENABLE_MAIN_TRACES 1
-#if ENABLE_MAIN_TRACES
-	#define MAIN_TRACE_INFO			TRACE_INFO
-	#define MAIN_TRACE_DEBUG		TRACE_DEBUG
-	#define MAIN_TRACE_WARNING		TRACE_WARNING
-	#define MAIN_TRACE_ERROR		TRACE_ERROR
-	#define MAIN_TRACE_FATAL		TRACE_FATAL
-#else
-	#define MAIN_TRACE_INFO(...)	{ }
-	#define MAIN_TRACE_DEBUG(...)	{ }
-	#define MAIN_TRACE_WARNING(...)	{ }
-	#define MAIN_TRACE_ERROR		TRACE_ERROR
-	#define MAIN_TRACE_FATAL		TRACE_FATAL
-#endif
+#include <RTransceiver.h>
+#include <RCommon.h>
+
+#include <RCommunicationTasks.h>
+#include <RDosimeterCollectionTask.h>
+#include <RImageCaptureTask.h>
+#include <RAdcsCaptureTask.h>
+#include <RTelemetryCollectionTask.h>
+#include <RSatelliteWatchdogTask.h>
 
 
-void taskMain(void* parameters)
-{
-	(void)parameters;
+/***************************************************************************************************
+                                   DEFINITIONS AND PRIVATE GLOBALS
+***************************************************************************************************/
 
-	WDT_startWatchdogKickTask(10 / portTICK_RATE_MS, FALSE);
+/** How often the internal OBC Watchdog is kicked (i.e. pet, i.e. reset) in ms. */
+#define OBC_WDOG_KICK_PERIOD_MS	(15 / portTICK_RATE_MS)
 
-	while(1) {
-		LED_wave(1);
-		LED_waveReverse(1);
-		LED_wave(1);
-		LED_waveReverse(1);
+/** Default stack size (in bytes) allotted to each FreeRTOS Task. */
+#define DEFAULT_TASK_STACK_SIZE	(4096)
 
-		vTaskDelay(500 / portTICK_RATE_MS);
+/** FreeRTOS Task Handles. */
+static xTaskHandle missionInitTaskHandle;
+static xTaskHandle communicationRxTaskHandle;
+static xTaskHandle communicationTxTaskHandle;
+static xTaskHandle dosimeterCollectionTaskHandle;
+static xTaskHandle imageCaptureTaskHandle;
+static xTaskHandle adcsCaptureTaskHandle;
+static xTaskHandle telemetryCollectionTaskHandle;
+static xTaskHandle satelliteWatchdogTaskHandle;
+
+/** Communication Transmit Task Priority. Downlinks messages when necessary; very high priority task. */
+static const int communicationTxTaskPriority = configMAX_PRIORITIES - 1;
+/** Communication Receive Task Priority. Constantly listening for messages; high priority task. */
+static const int communicationRxTaskPriority = configMAX_PRIORITIES - 2;
+
+/** Dosimeter Collection Task Priority. Periodically collects payload data; medium priority task. */
+static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
+/** Image Capture Task Priority. Periodically collects image data; medium priority task. */
+static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
+/** ADCS Capture Task Priority. Periodically collects ADCS data; medium priority task. */
+static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
+
+/** Telemetry Collection Task Priority. Periodically collects satellite telemetry; low priority task. */
+static const int telemetryCollectionTaskPriority = configMAX_PRIORITIES - 4;
+/** Satellite Watchdog Task Priority. Routinely pets (resets) satellite subsystem watchdogs; low priority task. */
+static const int satelliteWatchdogTaskPriority = configMAX_PRIORITIES - 4;
+/** Mission Init Task Priority. Does initializations that need to be ran post-scheduler; low priority task. */
+static const int missionInitTaskPriority = configMAX_PRIORITIES - 4;
+
+
+/***************************************************************************************************
+                                       PRIVATE FUNCTION STUBS
+***************************************************************************************************/
+
+static int initBoard(void);
+static int initDrivers(void);
+static int initTime(void);
+static int initSubsystems(void);
+
+static int initObcWatchdog(void);
+static int initMissionTasks(void);
+
+void MissionInitTask(void* parameters);
+
+
+/***************************************************************************************************
+                                                MAIN
+***************************************************************************************************/
+
+/**
+ * The main application entry point.
+ * @return Never returns.
+ */
+int main(void) {
+
+	int error = SUCCESS;
+
+	// initialize internal OBC board settings
+	error += initBoard();
+
+	// initialize the Hardware Abstraction Library (HAL) drivers
+	error += initDrivers();
+
+	// initialize external components and the Satellite Subsystem Interface (SSI)
+	error += initSubsystems();
+
+	// initialize the internal OBC watchdog, and start a task that automatically pets it
+	error += initObcWatchdog();
+
+	if (error != SUCCESS) {
+		debugPrint("main(): failed during system initialization.\n");
+		// TODO: report to system manager
 	}
+
+#ifdef TEST
+
+	// TODO: run tests
+
+#else	/* TEST */
+
+	// TODO: Antenna Diagnostic & Deployment (if necessary)
+
+	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
+
+	// initialize the Mission Initialization Task
+	error = xTaskCreate(MissionInitTask,
+						(const signed char*)"Mission Initialization Task",
+						DEFAULT_TASK_STACK_SIZE,
+						NULL,
+						missionInitTaskPriority,
+						&missionInitTaskHandle);
+
+	if (error != pdPASS) {
+		debugPrint("main(): failed to create MissionInitTask.\n");
+		// TODO: report to system manager
+	}
+
+#endif	/* TEST */
+
+	// start the FreeRTOS Scheduler - NEVER GETS PAST THIS LINE
+	vTaskStartScheduler();
+
+	debugPrint("main(): failed to start the FreeRTOS Scheduler.\n");
+
+	// should never get here
+	exit(0);
 }
 
-int main(void)
-{
-	xTaskHandle taskMainHandle;
 
-	TRACE_CONFIGURE_ISP(DBGU_STANDARD, 2000000, BOARD_MCK);
+/***************************************************************************************************
+                                         PRIVATE FUNCTIONS
+***************************************************************************************************/
+
+/**
+ * Initialize low-level MCU/OBC configuration settings.
+ */
+static int initBoard(void) {
+
 	// Enable the Instruction cache of the ARM9 core. Keep the MMU and Data Cache disabled.
 	CP15_Enable_I_Cache();
 
-	printf("\n\r -- ISIS-OBC First Project Program Booted --\n\r");
-#ifdef __OPTIMIZE__
-	printf("\n\r -- Compiled on  %s %s in release mode --\n\r", __DATE__, __TIME__);
+	return SUCCESS;
+}
+
+
+/**
+ * Initialize the low-level peripheral drivers used on the OBC.
+ */
+static int initDrivers(void) {
+
+	int error = SUCCESS;
+
+	// initialize the Debug UART port for debugging to a PC
+	error = uartInit(UART_DEBUG_BUS);
+	if (error != SUCCESS) {
+		debugPrint("initDriver(): failed to initialize Debug UART.\n");
+		return error;
+	}
+
+	// initialize the Auxillary Camera UART port for communication with Camera
+	error = uartInit(UART_CAMERA_BUS);
+	if (error != SUCCESS) {
+		debugPrint("initDriver(): failed to initialize Camera UART.\n");
+		return error;
+	}
+
+	// initialize the FRAM memory module for safe persistent storage
+	error = framInit();
+	if (error != SUCCESS) {
+		debugPrint("initDriver(): failed to initialize FRAM.\n");
+		return error;
+	}
+
+	// initialize the I2C bus for general inter-component communication
+	error = i2cInit();
+	if (error != SUCCESS) {
+		debugPrint("initDriver(): failed to initialize I2C.\n");
+		return error;
+	}
+
+	return error;
+}
+
+
+/**
+ * Initialize the RTC and RTT, setting the default time in the process.
+ */
+static int initTime(void) {
+
+	int error = SUCCESS;
+
+	// create Time struct with default times (estimated Launch date)
+	Time time = { 0 };
+	time.year = 22;		// 2022
+	time.month = 8;		// August
+	time.date = 1;		// the 1st
+	time.day = 2;		// Monday
+	time.hours = 12;	// 12:00:00
+	time.minutes = 0;	// 12:00:00
+	time.seconds = 0;	// 12:00:00
+
+	// the time (in seconds) between RTC and RTT synchronizations
+	const unsigned int syncInterval = 120;
+
+	// initilize the RTC and RTT and set the default time
+	error = Time_start(&time, syncInterval);
+	if (error != SUCCESS)
+		debugPrint("initTime(): failed to initialize RTC and RTT.\n");
+
+	return error;
+}
+
+
+/**
+ * Initialize external subsystem modules and the Satellite Subsystem Interface library.
+ */
+static int initSubsystems(void) {
+
+	int error = SUCCESS;
+
+	// initialize the Transceiver module
+	error = transceiverInit();
+	if (error != SUCCESS) {
+		debugPrint("initSubsystems(): failed to initialize Transceiver subsystem.\n");
+		return error;
+	}
+
+	// TODO: initialize the other subsystems that require explicit initialization
+
+	return error;
+}
+
+
+/**
+ * Initialize a low-priority task that automatically resets the OBC's internal Watchdog.
+ *
+ * On all builds except for Release, this will also enable an LED that blink every time that the
+ * Watchdog timer is reset, allowing for a simple heartbeat to show proper OBC operation.
+ *
+ * @note This also initializes the Watchdog API.
+ */
+static int initObcWatchdog(void) {
+
+	int error = SUCCESS;
+
+#ifdef RELEASE
+	error = WDT_startWatchdogKickTask(OBC_WDOG_KICK_PERIOD_MS, FALSE);
 #else
-	printf("\n\r -- Compiled on  %s %s in debug mode --\n\r", __DATE__, __TIME__);
+	error = WDT_startWatchdogKickTask(OBC_WDOG_KICK_PERIOD_MS, TRUE);
 #endif
-	printf("\n\r -- Using HAL version %s.%s.%s --\n\r", HalVersionMajor, HalVersionMinor, HalVersionRevision);
 
-	LED_start();
+	if (error != SUCCESS)
+		debugPrint("initObcWatchdog(): failed to start background OBC WDOG task.\n");
 
-	// The actual watchdog has already started, this only initializes the watchdog-kick interface.
-	WDT_start();
+	return error;
+}
 
-	LED_wave(1);
-	LED_waveReverse(1);
-	LED_wave(1);
-	LED_waveReverse(1);
 
-	// TODO: System Initialization (HAL, SSI, other low-level initializations, etc.)
-	// TODO: Subsystem Initialization (Transceiver, Downlink Manager, etc. if necessary)
+/**
+ * Initialize all of the FreeRTOS tasks used during typical mission operation.
+ */
+static int initMissionTasks(void) {
 
-#ifdef TEST
+	int error = pdPASS;
 
-	// run unit test suite
-	testSuiteRunAll();
+	// initialize the Communication Receive Task
+	error = xTaskCreate(CommunicationRxTask,
+						(const signed char*)"Communication Receive Task",
+						DEFAULT_TASK_STACK_SIZE,
+						NULL,
+						communicationRxTaskPriority,
+						&communicationRxTaskHandle);
 
-	// TODO: Initialize FreeRTOS Tasks for Integration Testing
+	if (error != pdPASS) {
+		debugPrint("initMissionTasks(): failed to create CommunicationRxTask.\n");
+		return E_GENERIC;
+	}
 
-#else /* TEST */
+	// initialize the Communication Transmit Task
+	error = xTaskCreate(CommunicationTxTask,
+						(const signed char*)"Communication Transmit Task",
+						DEFAULT_TASK_STACK_SIZE,
+						NULL,
+						communicationTxTaskPriority,
+						&communicationTxTaskHandle);
 
-	// TODO: Antenna Diagnostic & Deployment (if necessary)
-	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
+	if (error != pdPASS) {
+		debugPrint("initMissionTasks(): failed to create CommunicationTxTask.\n");
+		return E_GENERIC;
+	}
 
-	// TODO: Initialize FreeRTOS Tasks
+	// initialize the Dosimeter Collection Task
+	error = xTaskCreate(DosimeterCollectionTask,
+						(const signed char*)"Dosimeter Collection Task",
+						DEFAULT_TASK_STACK_SIZE,
+						NULL,
+						dosimeterCollectionTaskPriority,
+						&dosimeterCollectionTaskHandle);
 
-#endif /* TEST */
+	if (error != pdPASS) {
+		debugPrint("initMissionTasks(): failed to create DosimeterCollectionTask.\n");
+		return E_GENERIC;
+	}
 
-	printf("\t main: Starting main task.. \n\r");
-	xTaskGenericCreate(taskMain, (const signed char*)"taskMain", 1024, NULL, configMAX_PRIORITIES-2, &taskMainHandle, NULL, NULL);
+	// initialize the Image Capture Task
+	error = xTaskCreate(ImageCaptureTask,
+						(const signed char*)"Image Capture Task",
+						DEFAULT_TASK_STACK_SIZE,
+						NULL,
+						imageCaptureTaskPriority,
+						&imageCaptureTaskHandle);
 
-	printf("\t main: Starting scheduler.. \n\r");
-	vTaskStartScheduler();
+	if (error != pdPASS) {
+		debugPrint("initMissionTasks(): failed to create ImageCaptureTask.\n");
+		return E_GENERIC;
+	}
 
-	// This function should never get here, nevertheless, please make sure that this last call doesn't get optimized away
-	exit(0);
+	// initialize the ADCS Capture Task
+	error = xTaskCreate(AdcsCaptureTask,
+						(const signed char*)"ADCS Capture Task",
+						DEFAULT_TASK_STACK_SIZE,
+						NULL,
+						adcsCaptureTaskPriority,
+						&adcsCaptureTaskHandle);
+
+	if (error != pdPASS) {
+		debugPrint("initMissionTasks(): failed to create AdcsCaptureTask.\n");
+		return E_GENERIC;
+	}
+
+	// initialize the Telemetry Collection Task
+	error = xTaskCreate(TelemetryCollectionTask,
+						(const signed char*)"Telemetry Collection Task",
+						DEFAULT_TASK_STACK_SIZE,
+						NULL,
+						telemetryCollectionTaskPriority,
+						&telemetryCollectionTaskHandle);
+
+	if (error != pdPASS) {
+		debugPrint("initMissionTasks(): failed to create TelemetryCollectionTask.\n");
+		return E_GENERIC;
+	}
+
+	// initialize the Satellite Watchdog Task
+	error = xTaskCreate(SatelliteWatchdogTask,
+						(const signed char*)"Satellite Watchdog Task",
+						DEFAULT_TASK_STACK_SIZE,
+						NULL,
+						satelliteWatchdogTaskPriority,
+						&satelliteWatchdogTaskHandle);
+
+	if (error != pdPASS) {
+		debugPrint("initMissionTasks(): failed to create SatelliteWatchdogTask.\n");
+		return E_GENERIC;
+	}
+
+	return SUCCESS;
+}
+
+
+/***************************************************************************************************
+                                           FREERTOS TASKS
+***************************************************************************************************/
+
+/**
+ * Initialize FreeRTOS Tasks and other mission related modules.
+ *
+ * This functionality was placed into a FreeRTOS Task as some of the functionality and
+ * initializations require the FreeRTOS Scheduler to already be running.
+ *
+ * @param parameters
+ */
+void MissionInitTask(void* parameters) {
+
+	// ignore the input parameter
+	(void)parameters;
+
+	int error = SUCCESS;
+
+	// initialize the RTC and RTT to the default time
+	error = initTime();
+	if (error != SUCCESS) {
+		// TODO: report to system manager
+		debugPrint("MissionInitTask(): failed to initialize the time.\n");
+	}
+
+	// initialize the FreeRTOS Tasks used for typical mission operation
+	initMissionTasks();
+	if (error != SUCCESS) {
+		// TODO: report to system manager
+		debugPrint("MissionInitTask(): failed to initialize FreeRTOS Mission Tasks.\n");
+	}
+
+	// let this task delete itself
+	vTaskDelete(NULL);
 }

@@ -8,8 +8,9 @@
 #ifndef RPAYLOADCOLLECTIONTASK_H_
 #define RPAYLOADCOLLECTIONTASK_H_
 
+
 /***************************************************************************************************
-                                             PUBLIC API
+                                           FREERTOS TASKS
 ***************************************************************************************************/
 
 void DosimeterCollectionTask(void* parameters);
