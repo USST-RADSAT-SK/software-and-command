@@ -36,7 +36,7 @@ typedef uint8_t telecommand_id_t;
 #define TELECOMMAND_ID_0                ((uint8_t) 0x00)
 #define TELECOMMAND_ID_11               ((uint8_t) 0x0B)
 #define TELECOMMAND_ID_20               ((uint8_t) 0x14)
-#define TELECOMMAND_ID_21               ((uint8_t) 0x15)
+#define TELECOMMAND_ID_21               ((uint8_t) 0x15) //In RImage.c
 #define TELECOMMAND_ID_40               ((uint8_t) 0x28)
 #define TELECOMMAND_ID_41               ((uint8_t) 0x29)
 #define TELECOMMAND_ID_42               ((uint8_t) 0x2A)
@@ -49,8 +49,8 @@ typedef uint8_t telecommand_id_t;
 #define TELECOMMAND_ID_53               ((uint8_t) 0x35)
 #define TELECOMMAND_ID_54               ((uint8_t) 0x36)
 #define TELECOMMAND_ID_55               ((uint8_t) 0x37)
-#define TELECOMMAND_ID_64               ((uint8_t) 0x40)
-#define TELECOMMAND_ID_65               ((uint8_t) 0x41)
+#define TELECOMMAND_ID_64               ((uint8_t) 0x40) //In RImage.c
+#define TELECOMMAND_ID_65               ((uint8_t) 0x41) //In RImage.c
 
 #define CAPTURE_IMAGE_CMD_SIZE	        ((uint8_t) 3)
 #define CAPTURE_IMAGE_TC_SIZE	        ((uint8_t) 8)
@@ -196,10 +196,10 @@ typedef uint8_t telecommand_id_t;
 #define TELEMETRY_ID_3                  ((uint8_t) 0x83)
 #define TELEMETRY_ID_3_SIZE				((uint16_t) 7 )
 #define TELEMETRY_ID_19                 ((uint8_t) 0x93)
-#define TELEMETRY_ID_20                 ((uint8_t) 0x94)
-#define TELEMETRY_ID_20_SIZE			((uint8_t) 10)
-#define TELEMETRY_ID_21                 ((uint8_t) 0x95)
-#define TELEMETRY_ID_21_SIZE			((uint8_t) 10)
+#define TELEMETRY_ID_20                 ((uint8_t) 0x94) 	//In RImage.c
+#define TELEMETRY_ID_20_SIZE			((uint8_t) 10)		//In RImage.c
+#define TELEMETRY_ID_21                 ((uint8_t) 0x95)	//In RImage.c
+#define TELEMETRY_ID_21_SIZE			((uint8_t) 10)		//In RImage.c
 #define TELEMETRY_ID_22                 ((uint8_t) 0x96)
 #define TELEMETRY_ID_22_SIZE			((uint8_t) 10)
 #define TELEMETRY_ID_23                 ((uint8_t) 0x97)
@@ -212,10 +212,10 @@ typedef uint8_t telecommand_id_t;
 #define TELEMETRY_ID_26_SIZE			((uint8_t) 14)
 #define TELEMETRY_ID_40                 ((uint8_t) 0xA8)
 #define TELEMETRY_ID_40_SIZE			((uint8_t) 14)
-#define TELEMETRY_ID_64                 ((uint8_t) 0xC0)
-#define TELEMETRY_ID_64_SIZE			((uint8_t) 132)
-#define TELEMETRY_ID_65                 ((uint8_t) 0xC1)
-#define TELEMETRY_ID_65_SIZE			((uint8_t) 7)
+#define TELEMETRY_ID_64                 ((uint8_t) 0xC0) 	//In RImage.c
+#define TELEMETRY_ID_64_SIZE			((uint8_t) 132) 	//In RImage.c
+#define TELEMETRY_ID_65                 ((uint8_t) 0xC1)	//In RImage.c
+#define TELEMETRY_ID_65_SIZE			((uint8_t) 7)		//In RImage.c
 #define TELEMETRY_ID_66                 ((uint8_t) 0xC2)
 #define TELEMETRY_ID_66_SIZE			((uint8_t) 1048580)
 #define TELEMETRY_ID_67                 ((uint8_t) 0xC3)
