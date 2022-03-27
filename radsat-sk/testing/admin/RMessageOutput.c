@@ -13,13 +13,6 @@
 #include <RUart.h>
 #include <RRadsat.pb.h>
 
-
-/***************************************************************************************************
-                                             DEFINITIONS
-***************************************************************************************************/
-
-
-
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
@@ -66,7 +59,7 @@ void sendFileTransferMessages(void) {
 
 	// Dosimeter data Message
 	RadsatMessage mockDosimeterData = { 0 };
-	mockDosimeterData.which_service = RadsatMessage_service_fileTransferMessage_MSGTYPE;
+	mockDosimeterData.which_service = RadsatMessage_fileTransferMessage_tag;
 
 	mockDosimeterData.fileTransferMessage.dosimeterData.boardOne.voltageChannelZero = 1.0;
 	mockDosimeterData.fileTransferMessage.dosimeterData.boardOne.voltageChannelOne = 1.1;
@@ -96,7 +89,7 @@ void sendFileTransferMessages(void) {
 	if (dosimiterSize != 0) {
 		uint8_t dosimeterFrame[RADSAT_SK_MAX_MESSAGE_SIZE] = { 0 };
 
-		int dosimeterFrameSize = fileTransferNextFrame(&dosimeterFrame);
+		int dosimeterFrameSize = fileTransferNextFrame(dosimeterFrame);
 
 		if (dosimeterFrameSize != 0) {
 			uartTransmit(UART_DEBUG_BUS, dosimeterFrame, dosimeterFrameSize);
@@ -112,6 +105,7 @@ void sendFileTransferMessages(void) {
 
 	// OBC Telemetry
 	RadsatMessage mockObcTelemetry;
+	mockObcTelemetry.which_service = RadsatMessage_fileTransferMessage_tag;
 
 	mockObcTelemetry.fileTransferMessage.obcTelemetry.mode = 0;
 	mockObcTelemetry.fileTransferMessage.obcTelemetry.uptime = 1;
@@ -128,7 +122,7 @@ void sendFileTransferMessages(void) {
 	if (obcTelemetrySize != 0) {
 		uint8_t obcTelemetryFrame[RADSAT_SK_MAX_MESSAGE_SIZE] = { 0 };
 
-		int obcTelemetryFrameSize = fileTransferNextFrame(&obcTelemetryFrame);
+		int obcTelemetryFrameSize = fileTransferNextFrame(obcTelemetryFrame);
 
 		if (obcTelemetryFrameSize != 0) {
 			uartTransmit(UART_DEBUG_BUS, obcTelemetryFrame, obcTelemetryFrameSize);
@@ -145,6 +139,7 @@ void sendFileTransferMessages(void) {
 
 	// Transceiver Telemetry
 	RadsatMessage mockTransceiverTelemetry;
+	mockTransceiverTelemetry.which_service = RadsatMessage_fileTransferMessage_tag;
 
 	mockTransceiverTelemetry.fileTransferMessage.transceiverTelemetry.receiver.rx_doppler = 1.0;
 	mockTransceiverTelemetry.fileTransferMessage.transceiverTelemetry.receiver.rx_rssi = 1.1;
@@ -180,7 +175,7 @@ void sendFileTransferMessages(void) {
 	if (transceiverTelemetrySize != 0) {
 		uint8_t transceiverFrame[RADSAT_SK_MAX_MESSAGE_SIZE] = { 0 };
 
-		int transceiverTelemetryFrameSize = fileTransferNextFrame(&transceiverFrame);
+		int transceiverTelemetryFrameSize = fileTransferNextFrame(transceiverFrame);
 
 		if (transceiverTelemetryFrameSize != 0) {
 			uartTransmit(UART_DEBUG_BUS, transceiverFrame, transceiverTelemetryFrameSize);
