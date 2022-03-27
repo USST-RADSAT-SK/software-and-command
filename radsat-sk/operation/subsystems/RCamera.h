@@ -36,13 +36,6 @@ typedef struct _tc_image_capture_anddetect_params_t {
 	uint8_t sram;
 } tc_image_capture_anddetect_params_t ;
 
-// Capture Image Telecommand
-typedef struct _tc_capture_image_params_t {
-	uint8_t camera;
-	uint8_t sram;
-	uint8_t whichHalf;
-} tc_capture_image_params_t;
-
 //Set sensor 1 detection threshold Telecommand
 typedef struct _tc_set_sensor_one_detection_threshold_t {
 	uint8_t detectionThreshold1;
@@ -137,17 +130,6 @@ typedef struct _tc_set_SensorTwo_distortionCorrectionCoefficient_t {
 	   uint8_t  Exponent25;
 } tc_set_SensorTwo_distortionCorrectionCoefficient_t;
 
-//Initialize image download Telecommand
-typedef struct _tc_initialize_imageDownload_params_t {
-	   uint8_t sramSelection;
-	   uint8_t sramLocation;
-	   uint8_t sizeSelection;
-} tc_initialize_imageDownload_params_t;
-
-//Advance image download Telecommand
-typedef struct _tc_advance_imageDownload_params_t {
-	   uint16_t nextFrameNumber;
-} tc_advance_imageDownload_params_t;
 
 /* Struct for telmetry status, ID 0*/
 typedef struct _tlm_status_t {
@@ -181,13 +163,6 @@ typedef struct _tlm_telecommand_ack_t {
 	uint8_t tc_error_flag;
 } tlm_telecommand_ack_t;
 
-/* Struct for telemetry Detection result and Trigger, ID 20-25 */
-typedef struct _tlm_detection_result_and_trigger_t {
-	uint16_t alpha;
-	uint16_t beta;
-	uint8_t captureResult;
-	uint8_t detectionResult;
-} tlm_detection_result_and_trigger_t;
 
 /* Struct for telemetry power, ID 26 */
 typedef struct _tlm_power_t {
@@ -215,16 +190,6 @@ typedef struct _tlm_config_t{
 	uint8_t cameraTwoRedGain;
 } tlm_config_t;
 
-/* Struct for telemetry image frame, ID 64 */
-typedef struct _tlm_image_frame_t {
-	uint8_t image_bytes[128];
-} tlm_image_frame_t;
-
-/* Struct for telemetry image frame info, ID 65 */
-typedef struct _tlm_image_frame_info_t {
-	uint16_t imageFrameNumber;
-	uint8_t checksum;
-} tlm_image_frame_info_t;
 
 /* Struct for telemetry full image, ID 66-69 */
 typedef struct _tlm_full_image_t {

@@ -46,6 +46,9 @@
 #define TELEMETRY_OFFSET_5              ((uint8_t) 7)
 #define TELEMETRY_ID_OFFSET		        ((uint8_t) 2)
 
+#define SIZE_OF_THUMBNAIL				((uint8_t) 64)
+#define SIZE_OF_BITMAP					((uint8_t) 4096)
+
 #define BASE_MESSAGE_LEN				((uint8_t) 4)
 #define START_IDENTIFIER1               ((uint16_t) 0x1F)
 #define START_IDENTIFIER2               ((uint16_t) 0x7F)
@@ -71,9 +74,6 @@ static uint8_t * MessageBuilder(uint8_t response_size);
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
-
-//TODO: Shiva -> Review all functions
-//TODO: Shiva -> Add your image processing code here
 
 /*
  * Used to send image capture telecommand (TC ID 21) to image sensor
@@ -146,7 +146,7 @@ int tcImageCaputre(uint8_t SRAM, uint8_t location) {
  * @param telemetry_reply struct that holds all the information from the telemetry response
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
-int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply){
+int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply) {
 	uint8_t* telemetryBuffer;
 	uint16_t sizeOfBuffer;
 	int error;
@@ -269,7 +269,7 @@ int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size) {
  * @param telemetry_reply struct that holds all the information from the telemetry response
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
-int tlmImageFrame(tlm_image_frame_t *telemetry_reply){
+int tlmImageFrame(tlm_image_frame_t *telemetry_reply) {
 	uint8_t* telemetryBuffer;
 	uint16_t sizeOfBuffer;
 	int error;
@@ -322,7 +322,7 @@ int tlmImageFrame(tlm_image_frame_t *telemetry_reply){
  * @param telemetry_reply struct that holds all the information from the telemetry response
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
-int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply){
+int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply) {
 	uint8_t* telemetryBuffer;
 	uint16_t sizeOfBuffer;
 	int error;
@@ -433,34 +433,25 @@ int tcAdcvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
 }
 
 
-/************************************************Calculate the mean***********************************************/
-//  Calculate mean
-/* For the filtering first we should download the image. Its better to download size 64 of the image.
- So the image size is 64*64. It is constant.
- Thresholds should be then set to determine which image should be ignored.*/
+/*
+ * Used to calculate the mean value of bit map
+ *
+ * @param image the downloaded array of bytes from the camera
+ * @return the mean value of the for the image
+ */
+int calculateMeanOfTheImage(uint8_t *image) {
+	uint8_t  i,j = SIZE_OF_THUMBNAIL;
+	uint8_t  a,b;
+	uint8_t  sum,mean;
+	uint8_t  n = SIZE_OF_BITMAP;
 
-static int calculateMeanOfTheImage(uint8_t DOWNLOADED64IMAGE)
-{
-
-	uint8_t  i = 64;
-	uint8_t  j = 64;
-	uint8_t  a = 0;
-	uint8_t  b = 0;
-	uint8_t  sum=0;
-	uint8_t  n = i*j;
-	uint8_t  IMAGE_MEAN  =0;
-
-for (a = 0 ; a < i; ++a){
-	for (b = 0; b < j; ++b){
-		sum = sum + DOWNLOADED64IMAGE[a][b];
-		//TODO: replace the DOWNLOADED64IMAGE with the correct name. It is received from tlm image frame.
-	  }
-   }
-
-IMAGE_MEAN= sum / n;
-
- 	return IMAGE_MEAN;
-
+	for (a = 0 ; a < i; ++a){
+		for (b = 0; b < j; ++b){
+			sum = sum + image[a][b];
+		  }
+	   }
+	mean = sum / n;
+ 	return mean;
 }
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
@@ -477,7 +468,7 @@ IMAGE_MEAN= sum / n;
 static uint8_t * MessageBuilder(uint8_t response_size){
 
 	// Define the total size the buffer should be
-    uint8_t total_buffer_length = response_size + BASE_MESSAGE_SIZE;
+    uint8_t total_buffer_length = response_size + BASE_MESSAGE_LEN;
 
     // Dynamically Allocate a Buffer for telemetry response
     uint8_t* Buffer = (uint8_t*) malloc(total_buffer_length * sizeof(uint8_t));

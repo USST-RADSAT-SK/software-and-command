@@ -1,7 +1,7 @@
 /**
-\ * @file RCamera.c
+ * @file RCamera.c
  * @date December 23, 2021
- * @author Shiva Moghtaderi (shm153)
+ * @author Shiva Moghtaderi (shm153) & Addi Amaya (caa746)
  */
 
 #include <RCamera.h>
@@ -10,10 +10,511 @@
 #include <string.h>
 #include <stdio.h>
 #include <stdlib.h>
+#include <RImage.h>
+#include <RADCS.h>
+#include <RCommon.h>
 
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
+
+#define TELEMETRY_0                  	((uint8_t) 0x80)
+#define TELEMETRY_26                	((uint8_t) 0x9A)
+#define TELEMETRY_40                    ((uint8_t) 0xA8)
+#define TELEMETRY_72                    ((uint8_t) 0xC8)
+#define TELEMETRY_73                    ((uint8_t) 0xC9)
+
+#define TELEMETRY_0_LEN					((uint8_t) 12)
+#define TELEMETRY_26_LEN				((uint8_t) 14)
+#define TELEMETRY_40_LEN				((uint8_t) 18)
+#define TELEMETRY_72_LEN			    ((uint8_t) 44)
+#define TELEMETRY_73_LEN			    ((uint8_t) 44)
+#define TELEMETRY_REQUEST_LEN			((uint8_t) 1)
+#define TELEMETRY_REPLY_SIZE_8			((uint8_t) 8)
+#define TELEMETRY_REPLY_SIZE_10			((uint8_t) 10)
+#define TELEMETRY_REPLY_SIZE_14			((uint8_t) 14)
+#define TELEMETRY_REPLY_SIZE_40			((uint8_t) 40)
+
+#define TELEMETRY_OFFSET_0              ((uint8_t) 2)
+#define TELEMETRY_OFFSET_1              ((uint8_t) 3)
+#define TELEMETRY_OFFSET_2              ((uint8_t) 4)
+#define TELEMETRY_OFFSET_3              ((uint8_t) 5)
+#define TELEMETRY_OFFSET_4              ((uint8_t) 6)
+#define TELEMETRY_OFFSET_5              ((uint8_t) 7)
+#define TELEMETRY_OFFSET_6              ((uint8_t) 8)
+#define TELEMETRY_OFFSET_7              ((uint8_t) 9)
+#define TELEMETRY_OFFSET_8              ((uint8_t) 10)
+#define TELEMETRY_OFFSET_9              ((uint8_t) 11)
+#define TELEMETRY_OFFSET_10             ((uint8_t) 12)
+#define TELEMETRY_OFFSET_11             ((uint8_t) 13)
+#define TELEMETRY_OFFSET_12             ((uint8_t) 14)
+#define TELEMETRY_OFFSET_13             ((uint8_t) 15)
+#define TELEMETRY_OFFSET_14             ((uint8_t) 16)
+#define TELEMETRY_OFFSET_16             ((uint8_t) 18)
+#define TELEMETRY_OFFSET_18             ((uint8_t) 20)
+#define TELEMETRY_OFFSET_20             ((uint8_t) 22)
+#define TELEMETRY_OFFSET_22             ((uint8_t) 24)
+#define TELEMETRY_OFFSET_24             ((uint8_t) 26)
+#define TELEMETRY_OFFSET_26             ((uint8_t) 28)
+#define TELEMETRY_OFFSET_28             ((uint8_t) 30)
+#define TELEMETRY_OFFSET_30             ((uint8_t) 32)
+#define TELEMETRY_OFFSET_32             ((uint8_t) 34)
+#define TELEMETRY_OFFSET_34             ((uint8_t) 36)
+#define TELEMETRY_OFFSET_36             ((uint8_t) 38)
+#define TELEMETRY_OFFSET_38             ((uint8_t) 40)
+#define TELEMETRY_ID_OFFSET		        ((uint8_t) 2)
+
+#define BASE_MESSAGE_LEN				((uint8_t) 4)
+#define START_IDENTIFIER1               ((uint16_t) 0x1F)
+#define START_IDENTIFIER2               ((uint16_t) 0x7F)
+#define FILLER							((uint16_t) 0x00)
+#define END_IDENTIFIER1                 ((uint16_t) 0x1F)
+#define END_IDENTIFIER2                 ((uint16_t) 0xFF)
+
+#define SUN_SENSOR	         	        ((uint8_t) 0)
+#define IMAGE_SENSOR	                ((uint8_t) 1)
+#define SRAM1                           ((uint8_t) 0)
+#define SRAM2                           ((uint8_t) 1)
+
+
+/***************************************************************************************************
+                                       PRIVATE FUNCTION STUBS
+***************************************************************************************************/
+static uint8_t * MessageBuilder(uint8_t response_size);
+static int tlmStatus(tlm_status_t *telemetry_reply);
+static int tlmPower(tlm_power_t *telemetry_reply);
+static int tlmConfig(tlm_config_t *telemetry_reply);
+static int tlmReadSensorOneMask(tlm_read_sensor_mask_t *telemetry_reply);
+static int tlmReadSensorTwoMask(tlm_read_sensor_mask_t *telemetry_reply);
+/***************************************************************************************************
+                                             PUBLIC API
+***************************************************************************************************/
+
+int captureAndDownload(void){
+	return 0;
+}
+
+int detectionAndInterpret(void){
+	return 0;
+}
+
+int cameraTelemetry(void){
+	return 0;
+}
+
+int cameraConfig(void){
+	return 0;
+}
+
+/***************************************************************************************************
+                                         PRIVATE FUNCTIONS
+***************************************************************************************************/
+
+/*
+ * Used to dynamically allocated buffer sizes as each telemetry and telecommand
+ * require different sizes
+ *
+ * @note must use Free() to free the allocated memory when finished using the buffer
+ * @param response_size defines how many data bytes are required in the buffer
+ * @return dynamically allocated buffer
+ * */
+static uint8_t * MessageBuilder(uint8_t response_size){
+
+	// Define the total size the buffer should be
+    uint8_t total_buffer_length = response_size + BASE_MESSAGE_LEN;
+
+    // Dynamically Allocate a Buffer for telemetry response
+    uint8_t* tlmBuffer = (uint8_t*) malloc(total_buffer_length * sizeof(uint8_t));
+
+    // Initialize all elements in the buffer with zero
+    for (uint8_t i = 0; i < total_buffer_length; i++){
+    	tlmBuffer[i] = 0;
+    }
+
+    // Fill Buffer with default values
+    for(uint8_t i = 0; i<total_buffer_length;i++){
+        if (i == 0){
+        	tlmBuffer[i] = START_IDENTIFIER1;
+        }
+        else if (i == 1){
+            tlmBuffer[i] = START_IDENTIFIER2;
+        }
+        else if (i == total_buffer_length-2) {
+        	tlmBuffer[i] = END_IDENTIFIER1;
+        }
+        else if (i == total_buffer_length-1) {
+        	tlmBuffer[i] = END_IDENTIFIER2;
+        }
+        else{
+        	tlmBuffer[i] = FILLER;
+        }
+    }
+
+    return tlmBuffer;
+
+}
+
+/*
+ * Used to retrieve the status of the Camera (TLM ID 0)
+ *
+ * @param telemetry_reply struct that holds all the information from the telemetry response
+ * @return error of telecommand attempt. 0 on success, otherwise failure
+ * */
+static int tlmStatus(tlm_status_t *telemetry_reply) {
+	uint8_t *telemetryBuffer;
+	uint16_t sizeOfBuffer;
+	int error;
+
+	// ensure the input pointers are not NULL
+	if (telemetry_reply == 0)
+		return E_GENERIC;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = MessageBuilder(TELEMETRY_REQUEST_LEN);
+	sizeOfBuffer = TELEMETRY_REQUEST_LEN + BASE_MESSAGE_LEN;
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_0;
+
+    // Send Telemetry Request
+	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	if (error != 0)
+		return E_GENERIC;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_8);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_0_LEN);
+
+	if (error != 0){
+		free(telemetryBuffer);
+		return E_GENERIC;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	telemetry_reply->nodeType = telemetryBuffer[TELEMETRY_OFFSET_0];
+	telemetry_reply->interfaceVersion = telemetryBuffer[TELEMETRY_OFFSET_1];
+	telemetry_reply->firmwareVersionMajor = telemetryBuffer[TELEMETRY_OFFSET_2];
+	telemetry_reply->firmwareVersionMinor = telemetryBuffer[TELEMETRY_OFFSET_3];
+	memcpy(&telemetry_reply->runtimeSeconds, &telemetryBuffer[TELEMETRY_OFFSET_4], sizeof(telemetry_reply->runtimeSeconds));
+	memcpy(&telemetry_reply->runtimeMSeconds, &telemetryBuffer[TELEMETRY_OFFSET_6], sizeof(telemetry_reply->runtimeMSeconds));
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	return SUCCESS;
+
+}
+
+/*
+ * Used to retrieve the power status of the Camera (TLM ID 26)
+ *
+ * @param telemetry_reply struct that holds all the information from the telemetry response
+ * @return error of telecommand attempt. 0 on success, otherwise failure
+ * */
+static int tlmPower(tlm_power_t *telemetry_reply) {
+	uint8_t* telemetryBuffer;
+	uint16_t sizeOfBuffer;
+	int error;
+
+	// ensure the input pointers are not NULL
+	if (telemetry_reply == 0)
+		return E_GENERIC;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = MessageBuilder(TELEMETRY_REQUEST_LEN);
+	sizeOfBuffer = TELEMETRY_REQUEST_LEN + BASE_MESSAGE_LEN;
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_26;
+
+    // Send Telemetry Request
+	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_10);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_26_LEN);
+
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->threeVcurrent, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->threeVcurrent));
+	memcpy(&telemetry_reply->sramOneCurrent, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->sramOneCurrent));
+	memcpy(&telemetry_reply->sramTwoCurrent, &telemetryBuffer[TELEMETRY_OFFSET_4], sizeof(telemetry_reply->sramTwoCurrent));
+	memcpy(&telemetry_reply->fiveVcurrent, &telemetryBuffer[TELEMETRY_OFFSET_6], sizeof(telemetry_reply->fiveVcurrent));
+	telemetry_reply->sramOneOverCurrent = telemetryBuffer[TELEMETRY_OFFSET_8];
+	telemetry_reply->sramTwoOverCurrent = telemetryBuffer[TELEMETRY_OFFSET_9];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	return SUCCESS;
+}
+
+/*
+ * Used to retrieve the configuration status of the Camera (TLM ID 40)
+ *
+ * @param telemetry_reply struct that holds all the information from the telemetry response
+ * @return error of telecommand attempt. 0 on success, otherwise failure
+ * */
+static int tlmConfig(tlm_config_t *telemetry_reply) {
+	uint8_t* telemetryBuffer;
+	uint16_t sizeOfBuffer;
+	int error;
+
+	// ensure the input pointers are not NULL
+	if (telemetry_reply == 0)
+		return E_GENERIC;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = MessageBuilder(TELEMETRY_REQUEST_LEN);
+	sizeOfBuffer = TELEMETRY_REQUEST_LEN + BASE_MESSAGE_LEN;
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_40;
+
+    // Send Telemetry Request
+	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_14);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_40_LEN);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	telemetry_reply->cameraOneDetectionThrshld = telemetryBuffer[TELEMETRY_OFFSET_0];
+	telemetry_reply->cameraTwoDetectionThrshld = telemetryBuffer[TELEMETRY_OFFSET_1];
+	telemetry_reply->cameraOneAutoAdjustMode = telemetryBuffer[TELEMETRY_OFFSET_2];
+	memcpy(&telemetry_reply->cameraOneExposure, &telemetryBuffer[TELEMETRY_OFFSET_3], sizeof(telemetry_reply->cameraOneExposure));
+	telemetry_reply->cameraOneAGC = telemetryBuffer[TELEMETRY_OFFSET_5];
+	telemetry_reply->cameraOneBlueGain = telemetryBuffer[TELEMETRY_OFFSET_6];
+	telemetry_reply->cameraOneRedGain = telemetryBuffer[TELEMETRY_OFFSET_7];
+	telemetry_reply->cameraTwoAutoAdjustMode = telemetryBuffer[TELEMETRY_OFFSET_8];
+	memcpy(&telemetry_reply->cameraTwoExposure, &telemetryBuffer[TELEMETRY_OFFSET_9], sizeof(telemetry_reply->cameraTwoExposure));
+	telemetry_reply->cameraTwoAGC = telemetryBuffer[TELEMETRY_OFFSET_11];
+	telemetry_reply->cameraTwoBlueGain = telemetryBuffer[TELEMETRY_OFFSET_12];
+	telemetry_reply->cameraTwoRedGain = telemetryBuffer[TELEMETRY_OFFSET_13];
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	return SUCCESS;
+}
+
+/*
+ * Used to retrieve the mask configuration of Sensor one of the Camera (TLM ID 72)
+ *
+ * @param telemetry_reply struct that holds all the information from the telemetry response
+ * @return error of telecommand attempt. 0 on success, otherwise failure
+ * */
+static int tlmReadSensorOneMask(tlm_read_sensor_mask_t *telemetry_reply) {
+	uint8_t* telemetryBuffer;
+	uint16_t sizeOfBuffer;
+	int error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = MessageBuilder(TELEMETRY_REQUEST_LEN);
+	sizeOfBuffer = TELEMETRY_REQUEST_LEN + BASE_MESSAGE_LEN;
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_72;
+
+    // Send Telemetry Request
+	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_40);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_72_LEN);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->MinXAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->MinXAreaOne));
+	memcpy(&telemetry_reply->MaxXAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->MaxXAreaOne));
+	memcpy(&telemetry_reply->MinYAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_4], sizeof(telemetry_reply->MinYAreaOne));
+	memcpy(&telemetry_reply->MaxYAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_6], sizeof(telemetry_reply->MaxYAreaOne));
+	memcpy(&telemetry_reply->MinXAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_8], sizeof(telemetry_reply->MinXAreaTwo));
+	memcpy(&telemetry_reply->MaxXAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_10], sizeof(telemetry_reply->MaxXAreaTwo));
+	memcpy(&telemetry_reply->MinYAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_12], sizeof(telemetry_reply->MinYAreaTwo));
+	memcpy(&telemetry_reply->MaxYAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_14], sizeof(telemetry_reply->MaxYAreaTwo));
+	memcpy(&telemetry_reply->MinXAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_16], sizeof(telemetry_reply->MinXAreaThree));
+	memcpy(&telemetry_reply->MaxXAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_18], sizeof(telemetry_reply->MaxXAreaThree));
+	memcpy(&telemetry_reply->MinYAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_20], sizeof(telemetry_reply->MinYAreaThree));
+	memcpy(&telemetry_reply->MaxYAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_22], sizeof(telemetry_reply->MaxYAreaThree));
+	memcpy(&telemetry_reply->MinXAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_24], sizeof(telemetry_reply->MinXAreaFourth));
+	memcpy(&telemetry_reply->MaxXAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_26], sizeof(telemetry_reply->MaxXAreaFourth));
+	memcpy(&telemetry_reply->MinYAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_28], sizeof(telemetry_reply->MinYAreaFourth));
+	memcpy(&telemetry_reply->MaxYAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_30], sizeof(telemetry_reply->MaxYAreaFourth));
+	memcpy(&telemetry_reply->MinXAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_32], sizeof(telemetry_reply->MinXAreaFifth));
+	memcpy(&telemetry_reply->MaxXAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_34], sizeof(telemetry_reply->MaxXAreaFifth));
+	memcpy(&telemetry_reply->MinYAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_36], sizeof(telemetry_reply->MinYAreaFifth));
+	memcpy(&telemetry_reply->MaxYAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_38], sizeof(telemetry_reply->MaxYAreaFifth));
+
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	return SUCCESS;
+}
+
+/*
+ * Used to retrieve the mask configuration of Sensor one of the Camera (TLM ID 73)
+ *
+ * @param telemetry_reply struct that holds all the information from the telemetry response
+ * @return error of telecommand attempt. 0 on success, otherwise failure
+ * */
+static int tlmReadSensorTwoMask(tlm_read_sensor_mask_t *telemetry_reply) {
+	uint8_t* telemetryBuffer;
+	uint16_t sizeOfBuffer;
+	int error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = MessageBuilder(TELEMETRY_REQUEST_LEN);
+	sizeOfBuffer = TELEMETRY_REQUEST_LEN + BASE_MESSAGE_LEN;
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_73;
+
+    // Send Telemetry Request
+	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+    // Error Check on uartTransmit
+	if (error != 0)
+		return error;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_40);
+
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_73_LEN);
+
+	// Error Check on uartRecieve, if error, free allocated buffer
+	if (error != 0){
+		free(telemetryBuffer);
+		return error;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->MinXAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->MinXAreaOne));
+	memcpy(&telemetry_reply->MaxXAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->MaxXAreaOne));
+	memcpy(&telemetry_reply->MinYAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_4], sizeof(telemetry_reply->MinYAreaOne));
+	memcpy(&telemetry_reply->MaxYAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_6], sizeof(telemetry_reply->MaxYAreaOne));
+	memcpy(&telemetry_reply->MinXAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_8], sizeof(telemetry_reply->MinXAreaTwo));
+	memcpy(&telemetry_reply->MaxXAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_10], sizeof(telemetry_reply->MaxXAreaTwo));
+	memcpy(&telemetry_reply->MinYAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_12], sizeof(telemetry_reply->MinYAreaTwo));
+	memcpy(&telemetry_reply->MaxYAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_14], sizeof(telemetry_reply->MaxYAreaTwo));
+	memcpy(&telemetry_reply->MinXAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_16], sizeof(telemetry_reply->MinXAreaThree));
+	memcpy(&telemetry_reply->MaxXAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_18], sizeof(telemetry_reply->MaxXAreaThree));
+	memcpy(&telemetry_reply->MinYAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_20], sizeof(telemetry_reply->MinYAreaThree));
+	memcpy(&telemetry_reply->MaxYAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_22], sizeof(telemetry_reply->MaxYAreaThree));
+	memcpy(&telemetry_reply->MinXAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_24], sizeof(telemetry_reply->MinXAreaFourth));
+	memcpy(&telemetry_reply->MaxXAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_26], sizeof(telemetry_reply->MaxXAreaFourth));
+	memcpy(&telemetry_reply->MinYAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_28], sizeof(telemetry_reply->MinYAreaFourth));
+	memcpy(&telemetry_reply->MaxYAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_30], sizeof(telemetry_reply->MaxYAreaFourth));
+	memcpy(&telemetry_reply->MinXAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_32], sizeof(telemetry_reply->MinXAreaFifth));
+	memcpy(&telemetry_reply->MaxXAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_34], sizeof(telemetry_reply->MaxXAreaFifth));
+	memcpy(&telemetry_reply->MinYAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_36], sizeof(telemetry_reply->MinYAreaFifth));
+	memcpy(&telemetry_reply->MaxYAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_38], sizeof(telemetry_reply->MaxYAreaFifth));
+
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	return SUCCESS;
+}
+
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+//-----------------------------------------------------------------------------------------------------------------------------------
+
 //Telecommand define
 typedef struct __attribute__((__packed__)) _tc_header_t {
 	uint8_t header1;
