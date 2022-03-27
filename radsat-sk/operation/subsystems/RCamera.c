@@ -150,9 +150,98 @@ static int tcCameraTwoDistortionCorrection(uint16_t mantissa1, uint8_t exponent1
 int captureAndDownload(void){
 	return 0;
 }
+/*
+ * Used to created a 3D vector from a detection of both sensors
+ *
+ * @note The RADSAT-SK ADCS will only have access to SRAM1
+ * @param data a struct that will contain the components of 2 3D vectors
+ * @return 0 on success, otherwise failure
+ */
+int detectionAndInterpret(detection_results_t *data){
+	int error;
+	uint16_t alphaSunSensor;
+	uint16_t betaSunSensor;
+	uint16_t alphaImageSensor;
+	uint16_t betaImageSensor;
+	tlm_detection_result_and_trigger_adcs_t *sun_sensor_data;
+	tlm_detection_result_and_trigger_adcs_t *image_sensor_data;
+	interpret_detection_result_t sun_sensor_coords;
+	interpret_detection_result_t image_sensor_coords;
 
-int detectionAndInterpret(void){
-	return 0;
+
+	// Send Telecommand 20, Image Capture and Detection for camera 1, Sun sensor
+	error = tcImageCaputreAndDetection(SUN_SENSOR);
+
+	if (error != 0)
+		return error;
+
+	// Request results of detection from TC 20 with TLM 22
+	error = tlmSensorOneResultAndDetectionSRAMOne(sun_sensor_data);
+
+	if (error != 0)
+		return error;
+
+	// If there was a failure to detect try again
+	if (sun_sensor_data->detectionResult != 7) {
+		error = tlmSensorOneResultAndDetectionSRAMOne(sun_sensor_data);
+
+		if (error != 0)
+			return error;
+	}
+
+	// If it was still a failure, set alpha and beta to zero
+	if (sun_sensor_data->detectionResult != 7){
+		alphaSunSensor = 0;
+		betaSunSensor = 0;
+	}
+	else {
+		alphaSunSensor = sun_sensor_data->alpha;
+		betaSunSensor = sun_sensor_data->beta;
+	}
+
+	// Send Telecommand 20, Image Capture and Detection for camera 2, image sensor
+	error = tcImageCaputreAndDetection(IMAGE_SENSOR);
+
+	if (error != 0)
+		return error;
+
+	// Request results of detection from TC 20 with TLM 22
+	error = tlmSensorOneResultAndDetectionSRAMOne(image_sensor_data);
+
+	if (error != 0)
+		return error;
+
+	// If there was a failure to detect try again
+	if (image_sensor_data->detectionResult != 7) {
+		error = tlmSensorOneResultAndDetectionSRAMOne(image_sensor_data);
+
+		if (error != 0)
+			return error;
+	}
+
+	// If it was still a failure, set alpha and beta to zero
+	if (image_sensor_data->detectionResult != 7){
+		alphaSunSensor = 0;
+		betaSunSensor = 0;
+	}
+	else {
+		alphaImageSensor = image_sensor_data->alpha;
+		betaImageSensor = image_sensor_data->beta;
+	}
+
+	sun_sensor_coords = detectionResult(alphaSunSensor, betaSunSensor);
+	image_sensor_coords = detectionResult(alphaSunSensor, betaSunSensor);
+
+	// Fill struct with data
+	data->sunSensorX = sun_sensor_coords.X_AXIS;
+	data->sunSensorY = sun_sensor_coords.Y_AXIS;
+	data->sunSensorZ = sun_sensor_coords.Z_AXIS;
+	data->imageSensorX = image_sensor_coords.X_AXIS;
+	data->imageSensorY = image_sensor_coords.Y_AXIS;
+	data->imageSensorZ = image_sensor_coords.Z_AXIS;
+
+	return SUCCESS;
+
 }
 
 int cameraTelemetry(void){

@@ -20,6 +20,15 @@ typedef struct _camera_telecommand_t {
 
 /*Define parameters*/
 
+typedef struct _detection_results_t {
+	uint16_t sunSensorX;
+	uint16_t sunSensorY;
+	uint16_t sunSensorZ;
+	uint16_t imageSensorX;
+	uint16_t imageSensorY;
+	uint16_t imageSensorZ;
+} detection_results_t;
+
 // ResetTelecommand
 typedef struct _tc_reset_Telecommand_params_t {
 	uint8_t resetType;

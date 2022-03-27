@@ -440,20 +440,20 @@ int tcAdcvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
  * @return the mean value of the for the image
  */
 //TODO: Mention to Shiva it should be a linear buffer
-int calculateMeanOfTheImage(uint8_t *image) {
-	uint8_t  i,j = SIZE_OF_THUMBNAIL;
-	uint8_t  a,b;
-	uint8_t  sum,mean;
-	uint8_t  n = SIZE_OF_BITMAP;
-
-	for (a = 0 ; a < i; ++a){
-		for (b = 0; b < j; ++b){
-			sum = sum + image[a][b];
-		  }
-	   }
-	mean = sum / n;
- 	return mean;
-}
+//int calculateMeanOfTheImage(uint8_t *image) {
+//	uint8_t  i,j = SIZE_OF_THUMBNAIL;
+//	uint8_t  a,b;
+//	uint8_t  sum,mean;
+//	uint8_t  n = SIZE_OF_BITMAP;
+//
+//	for (a = 0 ; a < i; ++a){
+//		for (b = 0; b < j; ++b){
+//			sum = sum + image[a][b];
+//		  }
+//	   }
+//	mean = sum / n;
+// 	return mean;
+//}
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
 ***************************************************************************************************/
