@@ -25,8 +25,8 @@
 #define TELECOMMAND_OFFSET_1            ((uint8_t) 4)
 #define TELECOMMAND_REPONSE_OFFSET		((uint8_t) 2)
 
-#define TELEMETRY_22                 ((uint8_t) 0x96)
-#define TELEMETRY_25                 ((uint8_t) 0x99)
+#define TELEMETRY_22                    ((uint8_t) 0x96)
+#define TELEMETRY_25                    ((uint8_t) 0x99)
 
 #define TELEMETRY_22_LEN				((uint8_t) 10)
 #define TELEMETRY_25_LEN				((uint8_t) 10)

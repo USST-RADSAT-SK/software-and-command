@@ -439,6 +439,7 @@ int tcAdcvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
  * @param image the downloaded array of bytes from the camera
  * @return the mean value of the for the image
  */
+//TODO: Mention to Shiva it should be a linear buffer
 int calculateMeanOfTheImage(uint8_t *image) {
 	uint8_t  i,j = SIZE_OF_THUMBNAIL;
 	uint8_t  a,b;
