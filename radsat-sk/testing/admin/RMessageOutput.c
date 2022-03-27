@@ -9,6 +9,9 @@
 #include <RMessageOutput.h>
 #include <RFileTransferService.h>
 #include <RProtocolService.h>
+#include <RMessage.h>
+#include <RUart.h>
+#include <RRadsat.pb.h>
 
 
 /***************************************************************************************************
@@ -24,31 +27,31 @@
 /*
  * Prints all prepared messages in the message suite
  */
-void printAll(void) {
-	printAck();
-	printNack();
-	printFileTransferMessages();
+void sendAll(void) {
+	sendAck();
+	sendNack();
+	sendFileTransferMessages();
 }
 
 /*
  * Prints an ACK message
  */
 void printAck(void) {
-	uint8_t wrappedMessage[ProtocolMessage_size];
-	protocolGenerate(ProtocolMessage_ack_tag, wrappedMessage);
+	uint8_t wrappedMessage[RADSAT_SK_MAX_MESSAGE_SIZE];
+	uint8_t size = protocolGenerate(ProtocolMessage_ack_tag, wrappedMessage);
 
-	printf(wrappedMessage);
+	uartTransmit(UART_DEBUG_BUS, wrappedMessage, size);
 }
 
 
 /*
  * Prints a NACK message
  */
-void printNack(void) {
-	uint8_t wrappedMessage[ProtocolMessage_size];
-	protocolGenerate(ProtocolMessage_nack_tag, wrappedMessage);
+void sendNack(void) {
+	uint8_t wrappedMessage[RADSAT_SK_MAX_MESSAGE_SIZE];
+	uint8_t size = protocolGenerate(ProtocolMessage_nack_tag, wrappedMessage);
 
-	printf(wrappedMessage);
+	uartTransmit(UART_DEBUG_BUS, wrappedMessage, size);
 }
 
 
@@ -59,10 +62,11 @@ void printNack(void) {
  * is used for each struct member so that data can be validated through
  * the serialization process.
  */
-void printFileTransferMessages(void) {
+void sendFileTransferMessages(void) {
 
 	// Dosimeter data Message
-	DosimeterData mockDosimeterData;
+	RadsatMessage mockDosimeterData;
+	mockDosimeterData.which_service = RadsatMessage_service_fileTransferMessage_MSGTYPE;
 
 	mockDosimeterData.boardOne.voltageChannelZero = 1.0;
 	mockDosimeterData.boardOne.voltageChannelOne = 1.1;
@@ -82,17 +86,20 @@ void printFileTransferMessages(void) {
 	mockDosimeterData.boardTwo.voltageChannelSix = 2.6;
 	mockDosimeterData.boardTwo.voltageChannelSeven = 2.7;
 
-	int dosimiterSize = fileTransferAddMessage(&mockDosimeterData,
-													sizeof(mockDosimeterData),
-													FileTransferMessage_dosimeterData_tag);
+	uint8_t wrappedMockDosimeterData[RADSAT_SK_MAX_MESSAGE_SIZE];
+	messageWrap(&mockDosimeterData, wrappedMockDosimeterData)
+
+	int dosimiterSize = fileTransferAddMessage(wrappedMockDosimeterData,
+												RADSAT_SK_MAX_MESSAGE_SIZE,
+												FileTransferMessage_dosimeterData_tag);
 
 	if (dosimiterSize != 0) {
-		uint8_t dosimeterFrame[sizeof(mockDosimeterData)] = { 0 };
+		uint8_t dosimeterFrame[RADSAT_SK_MAX_MESSAGE_SIZE];
 
-		int dosimeterFrameStatus = fileTransferNextFrame(&dosimeterFrame);
+		int dosimeterFrameSize = fileTransferNextFrame(&dosimeterFrame);
 
-		if (dosimeterFrameStatus != 0) {
-			printf(dosimeterFrame);
+		if (dosimeterFrameSize != 0) {
+			uartTransmit(UART_DEBUG_BUS, dosimeterFrame, dosimeterFrameSize);
 		}
 		else {
 			printf("Error in getting dosimeter frame");
@@ -104,24 +111,24 @@ void printFileTransferMessages(void) {
 	}
 
 	// OBC Telemetry
-	ObcTelemetry mockObcTelemetry;
+	RadsatMessage mockObcTelemetry;
 
 	mockObcTelemetry.mode = 0;
 	mockObcTelemetry.uptime = 1;
 	mockObcTelemetry.rtcTime = 2;
 	mockObcTelemetry.rtcTemperature = 3;
 
-	int obcTelemetrySize = fileTransferAddMessage(&mockObcTelemetry,
-													sizeof(mockObcTelemetry),
-													FileTransferMessage_obcTelemetry_tag);
+	int obcTelemetrySize = fileTransferAddMessage(wrappedMockObcTelemetry,
+													RADSAT_SK_MAX_MESSAGE_SIZE,
+													FileTransferMessage_dosimeterData_tag);
 
 	if (obcTelemetrySize != 0) {
-		uint8_t obcTelemetryFrame[sizeof(mockObcTelemetry)] = { 0 };
+		uint8_t obcTelemetryFrame[RADSAT_SK_MAX_MESSAGE_SIZE];
 
-		int obcTelemetryFrameStatus = fileTransferNextFrame(&obcTelemetryFrame);
+		int obcTelemetryFrameSize = fileTransferNextFrame(&obcTelemetryFrame);
 
-		if (obcTelemetryFrameStatus != 0) {
-			printf(obcTelemetryFrame);
+		if (obcTelemetryFrameSize != 0) {
+			uartTransmit(UART_DEBUG_BUS, obcTelemetryFrame, obcTelemetryFrameSize);
 		}
 		else {
 			printf("Error in getting obcTelemetry frame");
@@ -134,7 +141,7 @@ void printFileTransferMessages(void) {
 
 
 	// Transceiver Telemetry
-	TransceiverTelemetry mockTransceiverTelemetry;
+	RadsatMessage mockTransceiverTelemetry;
 
 	mockTransceiverTelemetry.receiver.rx_doppler = 1.0;
 	mockTransceiverTelemetry.receiver.rx_rssi = 1.1;
@@ -160,17 +167,17 @@ void printFileTransferMessages(void) {
 	mockTransceiverTelemetry.transmitter.board_temp = 4.8;
 	mockTransceiverTelemetry.transmitter.uptime = 5;
 
-	int transceiverTelemetrySize = fileTransferAddMessage(&mockTransceiverTelemetry,
-															sizeof(mockTransceiverTelemetry),
-															FileTransferMessage_transceiverTelemetry_tag);
+	int transceiverTelemetrySize = fileTransferAddMessage(wrappedMockTransceiverTelemetry,
+															RADSAT_SK_MAX_MESSAGE_SIZE,
+															FileTransferMessage_dosimeterData_tag);
 
 	if (transceiverTelemetrySize != 0) {
 		uint8_t transceiverFrame[sizeof(mockTransceiverTelemetry)] = { 0 };
 
-		int transceiverTelemetryFrameStatus = fileTransferNextFrame(&transceiverFrame);
+		int transceiverTelemetryFrameSize = fileTransferNextFrame(&transceiverFrame);
 
-		if (transceiverTelemetryFrameStatus != 0) {
-			printf(transceiverFrame);
+		if (transceiverTelemetryFrameSize != 0) {
+			uartTransmit(UART_DEBUG_BUS, transceiverFrame, transceiverTelemetryFrameSize);
 		}
 		else {
 			printf("Error in getting transceiverTelemetry frame");

@@ -14,9 +14,9 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-void printAll(void);
-void printAck(void);
-void printNack(void);
-void printFileTransferMessages(void);
+void sendAll(void);
+void sendAck(void);
+void sendNack(void);
+void sendFileTransferMessages(void);
 
 #endif /* RMESSAGEOUPUT_H_ */
