@@ -65,7 +65,7 @@ void sendNack(void) {
 void sendFileTransferMessages(void) {
 
 	// Dosimeter data Message
-	RadsatMessage mockDosimeterData;
+	RadsatMessage mockDosimeterData = { 0 };
 	mockDosimeterData.which_service = RadsatMessage_service_fileTransferMessage_MSGTYPE;
 
 	mockDosimeterData.fileTransferMessage.dosimeterData.boardOne.voltageChannelZero = 1.0;

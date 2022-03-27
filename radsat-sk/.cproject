@@ -72,13 +72,14 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.938562612" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/satellite-subsystems/satellite-subsystems/include&quot;"/>
 									<listOptionValue builtIn="false" value="../framework"/>
 									<listOptionValue builtIn="false" value="../framework/fileio"/>
 									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
-									<listOptionValue builtIn="false" value="../operation/collection"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>
 									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
@@ -88,13 +89,12 @@
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/satellite-subsystems/satellite-subsystems/include&quot;"/>
+									<listOptionValue builtIn="false" value="../testing/admin"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.663972223" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>
 									<listOptionValue builtIn="false" value="at91sam9g20"/>
-									<listOptionValue builtIn="false" value="TRACE_LEVEL=5"/>
+									<listOptionValue builtIn="false" value="TRACE_LEVEL=0"/>
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="'BASE_REVISION_NUMBER=$(REV)'"/>
 									<listOptionValue builtIn="false" value="'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)'"/>
@@ -154,6 +154,7 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="framework"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="operation"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="testing"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -177,7 +178,7 @@
 				<configuration artifactName="${ProjName}" buildArtefactType="org.eclipse.cdt.build.core.buildArtefactType.exe" buildProperties="org.eclipse.cdt.build.core.buildType=org.eclipse.cdt.build.core.buildType.release,org.eclipse.cdt.build.core.buildArtefactType=org.eclipse.cdt.build.core.buildArtefactType.exe" cleanCommand="${cross_rm} -rf" description="" id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2034562181" name="Release" parent="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release" prebuildStep="">
 					<folderInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2034562181." name="/" resourcePath="">
 						<toolChain id="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.release.1640017854" name="Cross ARM GCC" superClass="ilg.gnuarmeclipse.managedbuild.cross.toolchain.elf.release">
-							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.167091797" name="Optimization Level" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level" value="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.size" valueType="enumerated"/>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.167091797" name="Optimization Level" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level" value="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.level.none" valueType="enumerated"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.messagelength.96355074" name="Message length (-fmessage-length=0)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.messagelength" value="true" valueType="boolean"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.signedchar.1269780580" name="'char' is signed (-fsigned-char)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.signedchar" value="false" valueType="boolean"/>
 							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.functionsections.2005473579" name="Function sections (-ffunction-sections)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.optimization.functionsections" value="true" valueType="boolean"/>
@@ -220,13 +221,14 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.898299688" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/satellite-subsystems/satellite-subsystems/include&quot;"/>
 									<listOptionValue builtIn="false" value="../framework"/>
 									<listOptionValue builtIn="false" value="../framework/fileio"/>
 									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
-									<listOptionValue builtIn="false" value="../operation/collection"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>
 									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
@@ -236,8 +238,6 @@
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/satellite-subsystems/satellite-subsystems/include&quot;"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.774467720" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="TRACE_LEVEL=5"/>
@@ -247,6 +247,8 @@
 									<listOptionValue builtIn="false" value="'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)'"/>
 									<listOptionValue builtIn="false" value="'BASE_REVISION_HASH=$(REVHASH)'"/>
 								</option>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otherwarnings.735148481" name="Other warning flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otherwarnings" useByScannerDiscovery="true" value="-Wno-missing-braces -Wno-missing-field-initializers" valueType="string"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.176201539" name="Language standard" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.gnu99" valueType="enumerated"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.556885632" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.760206862" name="Cross ARM C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler"/>
@@ -268,9 +270,8 @@
 									<listOptionValue builtIn="false" value="HAL"/>
 									<listOptionValue builtIn="false" value="FreeRTOS"/>
 									<listOptionValue builtIn="false" value="At91"/>
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="HCC"/>
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="libSatelliteSubsystemsD"/>
-									<listOptionValue builtIn="false" srcPrefixMapping="" srcRootPath="" value="SatelliteSubsystemsD"/>
+									<listOptionValue builtIn="false" value="HCC"/>
+									<listOptionValue builtIn="false" value="SatelliteSubsystemsD"/>
 								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input.1145212187" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
@@ -302,6 +303,7 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="framework"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="operation"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
+						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="testing"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -380,13 +382,14 @@
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.2036718290" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" useByScannerDiscovery="false" valueType="includePath">
 									<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/src}&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
 									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/satellite-subsystems/satellite-subsystems/include&quot;"/>
 									<listOptionValue builtIn="false" value="../framework"/>
 									<listOptionValue builtIn="false" value="../framework/fileio"/>
 									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
-									<listOptionValue builtIn="false" value="../operation/collection"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>
 									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
 									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
@@ -394,9 +397,8 @@
 									<listOptionValue builtIn="false" value="../operation/message/crypt"/>
 									<listOptionValue builtIn="false" value="../operation/services"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>
-									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/satellite-subsystems/satellite-subsystems/include&quot;"/>
 									<listOptionValue builtIn="false" value="../testing"/>
 									<listOptionValue builtIn="false" value="../testing/unit"/>
 								</option>
@@ -410,6 +412,8 @@
 									<listOptionValue builtIn="false" value="'BASE_REVISION_HASH=$(REVHASH)'"/>
 									<listOptionValue builtIn="false" value="TEST=1"/>
 								</option>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otherwarnings.1632846580" name="Other warning flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otherwarnings" useByScannerDiscovery="true" value="-Wno-missing-braces -Wno-missing-field-initializers" valueType="string"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.437875250" name="Language standard" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.gnu99" valueType="enumerated"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1887967793" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
 							<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler.131487389" name="Cross ARM C++ Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.cpp.compiler"/>
@@ -420,8 +424,20 @@
 									<listOptionValue builtIn="false" value="${external-dependencies}/hal/at91/linker-scripts/sdram.lds"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.other.527146464" name="Other linker flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.other" value="-lc" valueType="string"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths.114461409" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths"/>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs.1154351373" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths.114461409" name="Library search path (-L)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.paths" valueType="libPaths">
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/lib&quot;"/>
+									<listOptionValue builtIn="false" value="&quot;${external-dependencies}/satellite-subsystems/satellite-subsystems/lib&quot;"/>
+								</option>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs.1154351373" name="Libraries (-l)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.linker.libs" valueType="libs">
+									<listOptionValue builtIn="false" value="HALD"/>
+									<listOptionValue builtIn="false" value="FreeRTOSD"/>
+									<listOptionValue builtIn="false" value="At91D"/>
+									<listOptionValue builtIn="false" value="HCCD"/>
+									<listOptionValue builtIn="false" value="SatelliteSubsystemsD"/>
+								</option>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input.498498045" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.linker.input">
 									<additionalInput kind="additionalinputdependency" paths="$(USER_OBJS)"/>
 									<additionalInput kind="additionalinput" paths="$(LIBS)"/>
@@ -465,6 +481,7 @@
 		<configuration configurationName="Release">
 			<resource resourceType="PROJECT" workspacePath="/${ProjName}"/>
 		</configuration>
+		<configuration configurationName="Test"/>
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/${ProjName}"/>
 		</configuration>
