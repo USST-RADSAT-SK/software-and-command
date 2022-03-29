@@ -120,12 +120,12 @@ static uint32_t pdbCurrentCommandBytes[4] = {
 /**
  * 3 Byte Command for PDB Temperature Reading
  */
-static uint32_t* pdbTempCommandByte = 0x10E308;
+static uint32_t pdbTempCommandByte = 0x10E308;
 
 /**
- * 2 Byte Command for Resetting PDB Watchdog
+ * 2 Byte Command for Resetting PDB Watchdog (0x2200)
  */
-static uint16_t* pdbWatchdogResetCommand = 0x2200;
+static uint8_t pdbWatchdogResetCommand[2] = {0x22, 0x00};
 
 
 /***************************************************************************************************
@@ -255,7 +255,7 @@ int getPdbTelemetry(PdbStatus* dataStorage) {
 
 
 	// Get ADC temperature reading from the PDB
-	memcpy(i2c_command, pdbTempCommandByte, PDB_TELEM_COMMAND_LENGTH);
+	memcpy(i2c_command, &pdbTempCommandByte, PDB_TELEM_COMMAND_LENGTH);
 
 	int error = pdbTalk(i2c_command, i2c_data);
 
