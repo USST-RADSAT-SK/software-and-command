@@ -117,8 +117,11 @@
 #define IMAGE_SENSOR	                ((uint8_t) 1)
 #define SRAM1                           ((uint8_t) 0)
 #define SRAM2                           ((uint8_t) 1)
+#define TOP_HALVE                       ((uint8_t) 0)
+#define BOTTOM_HALVE                    ((uint8_t) 1)
 
 
+#define SIZE_SELECTION_64               ((uint8_t) 4)
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
@@ -148,7 +151,92 @@ static int tcCameraTwoDistortionCorrection(uint16_t mantissa1, uint8_t exponent1
 ***************************************************************************************************/
 
 int captureAndDownload(void){
-	return 0;
+
+	int error;
+	int SRAM_FLAG_1=0;   //0 for empty, 1 for full
+	int SRAM_FLAG_2=0;
+	int SRAM_FLAG_3=0;
+	int i; // Counter for counting the image frames
+	uint8_t image1[128];
+	uint8_t image2[128];
+	uint8_t image3[128];
+
+	tlm_telecommand_ack_t *telecommand_ack;
+	tlm_detection_result_and_trigger_t *sensor_two_result;
+	tlm_image_frame_info_t *image_frame_info;
+	tlm_image_frame_t *image_frame;
+
+	//  Take the first image
+    // Send Telecommand 21, Image Capture for camera
+   error= tcImageCaputre(SRAM1, BOTTOM_HALVE);
+
+	if (error != 0)
+		return error;
+
+	// Request telecommand acknowledgment with TLM 3
+   error=tlmTelecommandAcknowledge(telecommand_ack);
+
+	if (error != 0)
+		return error;
+
+	if(telecommand_ack->tc_error_flag== 0){
+	// Request for sensor 2 results with TLM 21
+		error= tlmSensorTwoResult(sensor_two_result);
+			if (error != 0)
+			return error;
+		}
+
+	// If there was a failure to detect try again
+	// 3= successfully captured (Other SRAM)
+	if (sensor_two_result->captureResult != 3) {
+		error = tlmSensorTwoResult(sensor_two_result);
+
+		if (error != 0)
+			return error;
+	}
+	else {
+	// Send Telecommand 64, Initialize image download
+	error= tcInitImageDownload(SRAM1,BOTTOM_HALVE,SIZE_SELECTION_64);
+	SRAM_FLAG_1=0;
+	}
+
+	// 64 x 64 image (32 frames)
+    for (i=31; i>0; i --){
+	// Request image frame info with TLM 65
+	  error=tlmImageFrameInfo(image_frame_info);
+	  if (error != 0)
+	  return error;
+    }
+
+      if(image_frame_info->imageFrameNumber == 0){
+
+   // Request image frame with TLM 64
+	error=tlmImageFrame(image_frame);
+	if (error != 0)
+	return error;
+
+	//  Load the image in image1 for further processing
+	//TODO: this is not correct. it keeps replacing each frame. it should be concatinated.
+	image1=image_frame->image_bytes;
+}
+
+    // Send Telecommand 65, Advance image download
+      //TODO:ASk about tcAdcvanceImageDownload
+    error=tcAdcvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB);
+	if (error != 0)
+		return error;
+
+	// After downloading process is completed, mean measurement should be done.
+	  if (SRAM_FLAG_1==1){
+	    	//imagemean1= calculateMeanOfTheImage(uint8_t *image);
+	    }
+
+
+
+
+
+	return SUCCESS;
+
 }
 /*
  * Used to created a 3D vector from a detection of both sensors
@@ -249,6 +337,15 @@ int cameraTelemetry(void){
 }
 
 int cameraConfig(void){
+	int error;
+	tlm_config_t *configuration;
+
+	// Request configuration  TLM 40
+	error=tlmConfig(configuration);
+	if (error != 0)
+		return error;
+
+
 	return 0;
 }
 
@@ -1052,7 +1149,7 @@ static int tcCameraTwoBoresight(uint16_t X_Pixel, uint16_t Y_Pixel) {
 	uint8_t *telecommandBuffer;
 	uint8_t *telecommandResponse;
 	uint16_t sizeOfBuffer;
-	uint8_t tcErrorFlag;
+	uint8_t  tcErrorFlag;
 	int error;
 
 	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
@@ -1390,6 +1487,8 @@ static int tcCameraTwoDistortionCorrection(uint16_t mantissa1, uint8_t exponent1
 	return SUCCESS;
 
 }
+/*************************************************************************************************************/
+
 
 //-----------------------------------------------------------------------------------------------------------------------------------
 //-----------------------------------------------------------------------------------------------------------------------------------

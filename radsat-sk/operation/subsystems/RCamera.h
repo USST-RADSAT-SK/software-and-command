@@ -232,8 +232,5 @@ typedef struct _tlm_read_sensor_mask_t {
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
-
-//int cameraCaptureImage(camera_slot_t slot);
-//int sendCameraCaptureImageTc();
-
+int captureAndDownload(void);
 #endif /* RCAMERA_H_ */

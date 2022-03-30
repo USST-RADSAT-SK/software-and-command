@@ -28,10 +28,12 @@
 #define TELECOMMAND_OFFSET_2            ((uint8_t) 5)
 #define TELECOMMAND_REPONSE_OFFSET		((uint8_t) 2)
 
+#define TELEMETRY_3                 	((uint8_t) 0x83)
 #define TELEMETRY_21                 	((uint8_t) 0x95)
 #define TELEMETRY_64                 	((uint8_t) 0xC0)
 #define TELEMETRY_65                 	((uint8_t) 0xC1)
 
+#define TELEMETRY_3_LEN				    ((uint8_t) 7)
 #define TELEMETRY_21_LEN				((uint8_t) 10)
 #define TELEMETRY_64_LEN				((uint8_t) 132)
 #define TELEMETRY_65_LEN				((uint8_t) 7)
@@ -60,6 +62,8 @@
 #define IMAGE_SENSOR	                ((uint8_t) 1)
 #define SRAM1                           ((uint8_t) 0)
 #define SRAM2                           ((uint8_t) 1)
+#define TOP_HALVE                       ((uint8_t) 0)
+#define BOTTOM_HALVE                    ((uint8_t) 1)
 
 /***************************************************************************************************
                                           PRIVATE GLOBALS
@@ -86,7 +90,7 @@ int tcImageCaputre(uint8_t SRAM, uint8_t location) {
 	uint8_t *telecommandBuffer;
 	uint8_t *telecommandResponse;
 	uint16_t sizeOfBuffer;
-	uint8_t tcErrorFlag;
+	uint8_t  tcErrorFlag;
 	int error;
 
 	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
@@ -381,7 +385,7 @@ int tcAdcvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
 	uint8_t *telecommandBuffer;
 	uint8_t *telecommandResponse;
 	uint16_t sizeOfBuffer;
-	uint8_t tcErrorFlag;
+	uint8_t  tcErrorFlag;
 	int error;
 
 	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
@@ -432,6 +436,59 @@ int tcAdcvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
 
 }
 
+/*
+ * Used to receive telemetry for telecommand acknoledgment (TLM ID 3)
+ *
+ * @param telemetry_reply struct that holds all the information from the telemetry response
+ * @return error of telecommand attempt. 0 on success, otherwise failure
+ * */
+int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
+uint8_t* telemetryBuffer;
+int error;
+
+    //  Ensure the input pointers are not NULL
+if (telemetry_reply == 0)
+return E_GENERIC;
+
+    // Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+    telemetryBuffer = MessageBuilder(TELEMETRY_REQUEST_LEN);
+    sizeOfBuffer = TELEMETRY_REQUEST_LEN + BASE_MESSAGE_LEN;
+
+    // Fill buffer with telemetry ID
+	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_3;
+
+   // Send Telemetry Request
+	 error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
+
+	if (error != 0){
+		free(telemetryBuffer);
+		return E_GENERIC;
+	}
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_REPLY_SIZE_3);
+
+  // Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_3_LEN);
+
+
+	if (error != 0){
+		free(telemetryBuffer);
+		return E_GENERIC;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->tc_error_flag,&telemetryBuffer[TELEMETRY_OFFSET_2],sizeof(telemetry_reply->tc_error_flag));
+
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+	return SUCCESS;
+}
 
 /*
  * Used to calculate the mean value of bit map
@@ -439,20 +496,20 @@ int tcAdcvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
  * @param image the downloaded array of bytes from the camera
  * @return the mean value of the for the image
  */
-//TODO: Mention to Shiva it should be a linear buffer
-//int calculateMeanOfTheImage(uint8_t *image) {
-//	uint8_t  i,j = SIZE_OF_THUMBNAIL;
-//	uint8_t  a,b;
-//	uint8_t  sum,mean;
-//	uint8_t  n = SIZE_OF_BITMAP;
-//
-//	for (a = 0 ; a < i; ++a){
-//		for (b = 0; b < j; ++b){
-//			sum = sum + image[a][b];
-//		  }
-//	   }
-//	mean = sum / n;
-// 	return mean;
+
+  //int calculateMeanOfTheImage(uint8_t *image) {
+ 	//uint8_t  i,j = SIZE_OF_THUMBNAIL;
+ 	//uint8_t  a,b;
+ 	//uint8_t  sum,mean;
+ 	//uint8_t  n = SIZE_OF_BITMAP;
+
+ 	//for (a = 0 ; a < i; ++a){
+ 	//	for (b = 0; b < j; ++b){
+ 	//		sum = sum + image[a][b];
+ 	//	  }
+ 	//  }
+ 	//mean = sum / n;
+  	//return mean;
 //}
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
