@@ -1,6 +1,6 @@
 /**
  * @file RBattery.h
- * @date February 22, 2022
+ * @date March 29, 2022
  * @author Isaac Poirier (iap992)
  */
 
@@ -43,9 +43,9 @@ typedef struct _batteryStatus {
                                              PUBLIC API
 ***************************************************************************************************/
 
-BatteryStatus getBatteryTelemetry(void);
+int getBatteryTelemetry(BatteryStatus*);
 
-void checkSafeFlag(void);
+int checkSafeFlag(void);
 
 
 //#endif  /* RBATTERY_H_ */
