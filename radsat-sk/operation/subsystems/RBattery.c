@@ -62,7 +62,7 @@
 #define NUMBER_OF_VOLTAGE_AND_CURRENT_COMMANDS (3)
 
 /** Number of temperature calls to the Battery */
-#define NUMBER_OF_TEMP_COMMANDS (3)
+#define NUMBER_OF_TEMP_COMMANDS (4)
 
 
 /***************************************************************************************************
