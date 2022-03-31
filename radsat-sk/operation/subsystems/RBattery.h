@@ -43,7 +43,7 @@ typedef struct _batteryStatus {
                                              PUBLIC API
 ***************************************************************************************************/
 
-int getBatteryTelemetry(BatteryStatus*);
+int getBatteryTelemetry(BatteryStatus* dataStorage);
 
 int checkSafeFlag(void);
 
