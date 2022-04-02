@@ -1,25 +1,34 @@
-/*
- * RObc.h
- *
- *  Created on: Mar 10, 2022
- *      Author: isaac
+/**
+ * @file RObc.h
+ * @date April 2, 2022
+ * @author Matthew Buglass (mab839)
  */
 
 #ifndef ROBC_H_
 #define ROBC_H_
+
+#include <stdlib.h>
 
 
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
 
+#define OBC_TELEMETRY_ERROR 1
 
+typedef struct _obcTelemetry_t {
+	float temperature;
+} obcTelemetry_t;
 
 
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
+
+uint8_t obcTelemetry(obcTelemetry_t* obcTelemetryBuffer);
+void obcPetWatchdogs(void);
+
 
 
 #endif /* ROBC_H_ */

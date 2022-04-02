@@ -1,9 +1,13 @@
-/*
- * RObc.c
- *
- *  Created on: Mar 10, 2022
- *      Author: isaac
+/**
+ * @file RObc.h
+ * @date April 2, 2022
+ * @author Matthew Buglass (mab839)
  */
+
+#include <RObc.h>
+#include <hal/errors.h>
+#include <hal/Timing/WatchDogTimer.h>
+#include <hal/Timing/RTC.h>
 
 /***************************************************************************************************
                                   PRIVATE DEFINITIONS AND VARIABLES
@@ -20,16 +24,22 @@
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
-int obcTelemetry(void){
-	int error;
+uint8_t obcTelemetry(obcTelemetry_t* obcTelemetryBuffer){
+	float temperature = 0;
+	int error = RTC_getTemperature(*temperature);
 
-	return 0;
+	if (error == 0) {
+		obcTelemetryBuffer->temperature = temperature;
+		return 0;
+
+	}
+	else {
+		return OBC_TELEMETRY_ERROR;
+	}
 }
 
-int obcPetWatchdogs(void){
-	int error;
-
-	return 0;
+void obcPetWatchdogs(void){
+	WDT_forceKick();
 }
 
 
