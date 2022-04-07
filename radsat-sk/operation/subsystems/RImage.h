@@ -57,7 +57,7 @@ typedef struct _tlm_telecommand_ack_t {
                                              PUBLIC API
 ***************************************************************************************************/
 
-int tcAdcvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB);
+int tcAdvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB);
 int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply);
 int tcImageCaputre(uint8_t SRAM, uint8_t location);
 int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply);

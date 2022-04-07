@@ -381,7 +381,7 @@ int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply) {
  * @param NextFrameNumMSB is the last 8 bytes for the telecommand
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
-int tcAdcvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
+int tcAdvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
 	uint8_t *telecommandBuffer;
 	uint8_t *telecommandResponse;
 	uint16_t sizeOfBuffer;
@@ -497,20 +497,17 @@ return E_GENERIC;
  * @return the mean value of the for the image
  */
 
-  //int calculateMeanOfTheImage(uint8_t *image) {
- 	//uint8_t  i,j = SIZE_OF_THUMBNAIL;
- 	//uint8_t  a,b;
- 	//uint8_t  sum,mean;
- 	//uint8_t  n = SIZE_OF_BITMAP;
+  int calculateMeanOfTheImage(uint8_t *image) {
+ 	uint8_t  i,j = SIZE_OF_THUMBNAIL;
+ 	uint8_t  sum,mean;
+ 	uint8_t  n = SIZE_OF_BITMAP;
 
- 	//for (a = 0 ; a < i; ++a){
- 	//	for (b = 0; b < j; ++b){
- 	//		sum = sum + image[a][b];
- 	//	  }
- 	//  }
- 	//mean = sum / n;
-  	//return mean;
-//}
+ 	for (i = 0 ; i < n; ++i){
+ 			sum = sum + image[i];
+ 	  }
+ 	mean = sum / n;
+  	return mean;
+}
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
 ***************************************************************************************************/
