@@ -444,6 +444,7 @@ int tcAdvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
  * */
 int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
 uint8_t* telemetryBuffer;
+uint16_t sizeOfBuffer;
 int error;
 
     //  Ensure the input pointers are not NULL
