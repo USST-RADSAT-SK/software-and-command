@@ -15,19 +15,19 @@
 
 
 /** Struct for storing Sun Sensor Telemetry Data */
-typedef struct _sunSensorStatus {
+typedef struct _sun_sensor_status_t {
 	float xPos;
 	float xNeg;
 	float yPos;
 	float yNeg;
 	float zPos;
 	float zNeg;
-} SunSensorStatus;
+} sun_sensor_status_t;
 
 
 /** Struct for passing all telemetry data */
 typedef struct _PdbStatus {
-	SunSensorStatus sunSensorData;
+	sun_sensor_status_t sunSensorData;
 	// Output Voltages
 	float outputVoltageBCR;
 	float outputVoltageBatteryBus;

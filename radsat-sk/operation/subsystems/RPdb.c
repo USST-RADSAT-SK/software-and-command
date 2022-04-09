@@ -19,7 +19,7 @@
 
 /** Used in: (Volts = Constant * ADC Count) */
 #define ADC_COUNT_TO_BCR_OUTPUT_VOLTAGE			((float) 0.008993157)
-#define ADC_COUNT_TO_BCR_VOLTAGE				((float) 0.0322581)
+#define ADC_COUNT_TO_BCR_VOLTAGE				((float) 0.0322581) 	// Not used
 #define ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE	((float) 0.008978)
 #define ADC_COUNT_TO_5V_BUS_OUTPUT_VOLTAGE		((float) 0.005865)
 #define ADC_COUNT_TO_3V3_BUS_OUTPUT_VOLTAGE		((float) 0.004311)
@@ -53,7 +53,7 @@
  * Constant Values for I2C Communication
  */
 /** I2C Slave Address for PDB */
-#define PDB_I2C_SLAVE_ADDR 			(0x2B)
+#define PDB_I2C_SLAVE_ADDR 			((uint16_t) 0x2B)
 
 /** Data Sent to the PDB via I2C for telemetry commands is 3 Bytes, 1 for the command, 2 for data*/
 #define PDB_TELEM_COMMAND_LENGTH	(3)
@@ -141,10 +141,10 @@ static int pdbTalk(uint8_t* command, uint8_t* response);
 /**
  * Get the Irradiance (W/m^2) value from the sun sensor on each face of the CubeSat
  *
- * @param A pointer to a SunSensorStatus object, which will be filled with the converted ADC data for each sun sensor
+ * @param A pointer to a sun_sensor_status_t object, which will be filled with the converted ADC data for each sun sensor
  * @return an error code, or 0 if no error
  */
-int getSunSensorData(SunSensorStatus* sunData) {
+int getSunSensorData(sun_sensor_status_t* sunData) {
 
 	// Create temporary variables for sending and receiving I2C data
 	uint8_t i2c_command[PDB_TELEM_COMMAND_LENGTH] = {0};
@@ -155,15 +155,11 @@ int getSunSensorData(SunSensorStatus* sunData) {
 
 	// Send 6 commands to get each of the sun sensor's data
 	for(int i = 0; i < NUM_SUN_SENSORS; i = i + 1){
-		// Using address of the command into the i2c_command
-		// TODO: Remove this before push ^
 		// Load command into output buffer
 		memcpy(i2c_command, &pdbSunSensorCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
 		int error = pdbTalk(i2c_command, i2c_data);
 
 		if(error != 0){
-			// TODO: Some error raising here?
-			// return the error
 			return error;
 		}
 
@@ -194,7 +190,7 @@ int getSunSensorData(SunSensorStatus* sunData) {
 int getPdbTelemetry(PdbStatus* dataStorage) {
 
 	// Create an empty sunSensorData structure
-	SunSensorStatus sunSensorData;
+	sun_sensor_status_t sunSensorData;
 
 	// Get sun sensor data and store it in the new PDBStatus Structure
 	getSunSensorData(&sunSensorData);
@@ -210,16 +206,18 @@ int getPdbTelemetry(PdbStatus* dataStorage) {
 
 	// Send 4 commands to get ADC output voltage readings from the PDB
 	for(int i = 0; i < NUM_TELEM_CALLS; i = i + 1){
+		// memset for i2c_command to 0
 		memcpy(i2c_command, &pdbVoltageCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
+		// Fix memset(i2c_data, 0, sizeof(storedData[i]));
+
 		int error = pdbTalk(i2c_command, i2c_data);
 
 		if(error != 0){
-			// TODO: Some error raising here?
-			// return the error
 			return error;
 		}
-
+		memset(&storedData[i], 0, sizeof(storedData[i]));
 		memcpy(&storedData[i], i2c_data, PDB_RESPONSE_LENGTH);
+
 	}
 
 	// If error checking method works in getSunSensorData(), implement the same checks for each of the below calls
@@ -232,7 +230,7 @@ int getPdbTelemetry(PdbStatus* dataStorage) {
 
 	// Reset the storedData float values here?
 
-	// Send 4 commands to get ADC output voltage readings from the PDB
+	// Send 4 commands to get ADC output current readings from the PDB
 	for(int i = 0; i < NUM_TELEM_CALLS; i = i + 1){
 		memcpy(i2c_command, &pdbCurrentCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
 		int error = pdbTalk(i2c_command, i2c_data);
@@ -324,13 +322,9 @@ static int pdbTalk(uint8_t* command, uint8_t* response) {
 	int error = i2cTalk(PDB_I2C_SLAVE_ADDR, comm_length, PDB_RESPONSE_LENGTH,
 							command, response, comm_delay);
 
-	// return error? if an error occurs, else send the data back
-	// TODO: Make this return 0 on a failure? Printf the error instead? Get advice for this
 	if (error != 0) {
 		return error;
 	}
-	else {
-		return 0;
-	}
 
+	return 0;
 }
