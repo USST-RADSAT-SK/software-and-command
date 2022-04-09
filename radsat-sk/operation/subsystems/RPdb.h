@@ -26,7 +26,7 @@ typedef struct _sun_sensor_status_t {
 
 
 /** Struct for passing all telemetry data */
-typedef struct _PdbStatus {
+typedef struct _pdb_status_t {
 	sun_sensor_status_t sunSensorData;
 	// Output Voltages
 	float outputVoltageBCR;
@@ -40,15 +40,15 @@ typedef struct _PdbStatus {
 	float outputCurrent3V3Bus;
 	// PDB Motherboard Temperature
 	float PdbTemperature;
-} PdbStatus;
+} pdb_status_t;
 
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
-int getSunSensorData(SunSensorStatus* sunData);
-int getPdbTelemetry(PdbStatus* dataStorage);
+int getSunSensorData(sun_sensor_status_t* sunData);
+int getPdbTelemetry(pdb_status_t* dataStorage);
 int petPdbWatchdog(void);
 
 #endif /* RPdb_H_ */

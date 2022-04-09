@@ -1,13 +1,13 @@
 /**
  * @file RPdb.c
- * @date March 29, 2022
+ * @date April 09, 2022
  * @author Isaac Poirier (iap992)
  */
 
 #include <RPdb.h>
 #include <RI2c.h>
 #include <string.h>
-#include <hal/errors.h>
+#include <RCommon.h>
 
 
 /***************************************************************************************************
@@ -19,7 +19,6 @@
 
 /** Used in: (Volts = Constant * ADC Count) */
 #define ADC_COUNT_TO_BCR_OUTPUT_VOLTAGE			((float) 0.008993157)
-#define ADC_COUNT_TO_BCR_VOLTAGE				((float) 0.0322581) 	// Not used
 #define ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE	((float) 0.008978)
 #define ADC_COUNT_TO_5V_BUS_OUTPUT_VOLTAGE		((float) 0.005865)
 #define ADC_COUNT_TO_3V3_BUS_OUTPUT_VOLTAGE		((float) 0.004311)
@@ -29,24 +28,21 @@
 #define ADC_COUNT_TO_BCR_OUTPUT_CURRENT			((float) 14.662757)
 
 /** Used in: (Amps = Constant * ADC Count) */
-#define ADC_COUNT_TO_BCR_AMPERAGE				((float) 0.0009775)
-#define ADC_COUNT_TO_3V3_PDB_CURRENT_DRAW		((float) 0.001327547)
-#define ADC_COUNT_TO_5V_PDB_CURRENT_DRAW		((float) 0.001327547)
 #define ADC_COUNT_TO_BATTERY_BUS_OUTPUT_CURRENT	((float) 0.005237)
 #define ADC_COUNT_TO_5V_BUS_OUTPUT_CURRENT		((float) 0.005237)
 #define ADC_COUNT_TO_3V3_BUS_OUTPUT_CURRENT		((float) 0.005237)
 
 
 /** Used in: (Temp in Deg C = (Scale * ADC Count) - Shift) */
-#define ADC_COUNT_TO_SOLAR_ARRAY_TEMP_SCALE	((float) 0.4963)
+#define ADC_COUNT_TO_SOLAR_ARRAY_TEMP_SCALE		((float) 0.4963)
 
 // Can use this \/ interchangeably between solar array and motherboard temp shift
-#define ADC_COUNT_TO_MOTHERBOARD_TEMP_SHIFT ((float) 273.15)
-#define ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE ((float) 0.372434)
+#define ADC_COUNT_TO_MOTHERBOARD_TEMP_SHIFT 	((float) 273.15)
+#define ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE 	((float) 0.372434)
 
 
 /** Used in: (Irradiance = Constant * ADC Count) */
-#define ADC_COUNT_TO_IRRADIANCE				((float) 1.59725)
+#define ADC_COUNT_TO_IRRADIANCE					((float) 1.59725)
 
 
 /**
@@ -65,27 +61,27 @@
 #define PDB_RESPONSE_LENGTH			(2)
 
 /** Delay between telemetry read/write operations with the PDB on I2C is 5ms */
-#define PDB_I2C_TELEM_DELAY			(5)
+#define PDB_I2C_TELEM_DELAY_MS		(5)
 
 /** Delay between other read/write operations with the PDB on I2C is 1ms */
-#define PDB_I2C_DELAY				(1)
+#define PDB_I2C_DELAY_MS			(1)
 
-
-/**
- * Constant Values for I2C Communication
- */
 /** Number of sun sensors on the CubeSat */
-#define NUM_SUN_SENSORS		(6)
+#define NUM_SUN_SENSORS				(6)
 
 /** Number of other Telem Command Bytes */
-#define NUM_TELEM_CALLS 	(4)
+#define NUM_TELEM_CALLS 			(4)
+
+/** Filter Mask and Comparison value for Recognizing Telemetry Calls */
+#define TELEM_MASK 					(0x0000FF0000)
+#define TELEM_CALL_COMPARISON		(0x0000100000)
 
 
 /***************************************************************************************************
                                           PRIVATE GLOBALS
 ***************************************************************************************************/
 /**
- *  4 Byte commands to request data for each of the 6 sun-sensors
+ *  Commands to request data for each of the 6 sun-sensors
  *	located on each face of the CubeSat Solar Arrays.
  */
 static uint32_t pdbSunSensorCommandBytes[6] = {
@@ -98,7 +94,7 @@ static uint32_t pdbSunSensorCommandBytes[6] = {
 };
 
 /**
- * 4 Byte commands for requesting output voltage readings for each bus and BCR
+ * Commands for requesting output voltage readings for each bus and BCR
  */
 static uint32_t pdbVoltageCommandBytes[4] = {
 		0x10E280,		// Output Voltage of BCR
@@ -108,7 +104,7 @@ static uint32_t pdbVoltageCommandBytes[4] = {
 };
 
 /**
- * 3 Byte commands for requesting output current readings for each bus and BCR
+ * Commands for requesting output current readings for each bus and BCR
  */
 static uint32_t pdbCurrentCommandBytes[4] = {
 		0x10E284,		// Output Current of BCR in mA
@@ -118,12 +114,12 @@ static uint32_t pdbCurrentCommandBytes[4] = {
 };
 
 /**
- * 3 Byte Command for PDB Temperature Reading
+ * Command for PDB Temperature Reading
  */
-static uint32_t pdbTempCommandByte = 0x10E308;
+static uint32_t pdbTemperatureCommandBytes = 0x10E308;
 
 /**
- * 2 Byte Command for Resetting PDB Watchdog (0x2200)
+ * Command for Resetting PDB Watchdog (0x2200)
  */
 static uint8_t pdbWatchdogResetCommand[2] = {0x22, 0x00};
 
@@ -147,23 +143,29 @@ static int pdbTalk(uint8_t* command, uint8_t* response);
 int getSunSensorData(sun_sensor_status_t* sunData) {
 
 	// Create temporary variables for sending and receiving I2C data
-	uint8_t i2c_command[PDB_TELEM_COMMAND_LENGTH] = {0};
-	uint8_t i2c_data[PDB_RESPONSE_LENGTH] = {0};
+	uint8_t command[PDB_TELEM_COMMAND_LENGTH] = {0};
+	uint8_t response[PDB_RESPONSE_LENGTH] = {0};
 
 	// Create a temporary array for calculated sun data before transferring into the structure sunData
 	float convertedData[NUM_SUN_SENSORS] = {0};
 
 	// Send 6 commands to get each of the sun sensor's data
 	for(int i = 0; i < NUM_SUN_SENSORS; i = i + 1){
-		// Load command into output buffer
-		memcpy(i2c_command, &pdbSunSensorCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
-		int error = pdbTalk(i2c_command, i2c_data);
 
-		if(error != 0){
+		// Load command into output buffer
+		memset(command, 0, sizeof(command));
+		memcpy(command, &pdbSunSensorCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
+
+		memset(response, 0, sizeof(response));
+
+		int error = pdbTalk(command, response);
+
+		if(error != SUCCESS){
 			return error;
 		}
+		memset(&convertedData[i], 0, sizeof(convertedData[i]));
+		memcpy(&convertedData[i], response, PDB_RESPONSE_LENGTH);
 
-		memcpy(&convertedData[i], i2c_data, PDB_RESPONSE_LENGTH);
 		convertedData[i] = ADC_COUNT_TO_IRRADIANCE * ((float)convertedData[i]);
 	}
 
@@ -176,7 +178,7 @@ int getSunSensorData(sun_sensor_status_t* sunData) {
 	sunData->zNeg = convertedData[4]; 	// SA3A
 	// Could change these numbers into an ENUM with the names of the connections
 
-	return 0;
+	return SUCCESS;
 }
 
 
@@ -187,61 +189,62 @@ int getSunSensorData(sun_sensor_status_t* sunData) {
  * @param A pointer to an PDBStatus object containing all of the telemetry for the PDB system
  * @return either 0 or an error code
  */
-int getPdbTelemetry(PdbStatus* dataStorage) {
+int getPdbTelemetry(pdb_status_t* dataStorage) {
 
 	// Create an empty sunSensorData structure
 	sun_sensor_status_t sunSensorData;
 
-	// Get sun sensor data and store it in the new PDBStatus Structure
-	getSunSensorData(&sunSensorData);
-
-	dataStorage->sunSensorData = sunSensorData;
+	// Get sun sensor data and store it in the new pdb_status_t Structure
+	getSunSensorData(&dataStorage->sunSensorData);
 
 	// Create temporary variables for sending and receiving I2C data
-	uint8_t i2c_command[PDB_TELEM_COMMAND_LENGTH] = {0};
-	uint8_t i2c_data[PDB_RESPONSE_LENGTH] = {0};
+	uint8_t command[PDB_TELEM_COMMAND_LENGTH] = {0};
+	uint8_t response[PDB_RESPONSE_LENGTH] = {0};
 
 	// Create a temporary array for calculated sun data before transferring into the structure sunData
 	float storedData[NUM_TELEM_CALLS] = {0};
 
 	// Send 4 commands to get ADC output voltage readings from the PDB
 	for(int i = 0; i < NUM_TELEM_CALLS; i = i + 1){
-		// memset for i2c_command to 0
-		memcpy(i2c_command, &pdbVoltageCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
-		// Fix memset(i2c_data, 0, sizeof(storedData[i]));
 
-		int error = pdbTalk(i2c_command, i2c_data);
+		memset(command, 0, sizeof(command));
+		memcpy(command, &pdbVoltageCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
 
-		if(error != 0){
+		memset(response, 0, sizeof(response));
+
+		int error = pdbTalk(command, response);
+
+		if(error != SUCCESS){
 			return error;
 		}
+
+		// Clear storedData[i] before using it
 		memset(&storedData[i], 0, sizeof(storedData[i]));
-		memcpy(&storedData[i], i2c_data, PDB_RESPONSE_LENGTH);
+		memcpy(&storedData[i], response, PDB_RESPONSE_LENGTH);
 
 	}
 
-	// If error checking method works in getSunSensorData(), implement the same checks for each of the below calls
 	dataStorage->outputVoltageBCR = ADC_COUNT_TO_BCR_OUTPUT_VOLTAGE * storedData[0];
 	dataStorage->outputVoltageBatteryBus = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE * storedData[1];
 	dataStorage->outputVoltage5VBus = ADC_COUNT_TO_5V_BUS_OUTPUT_VOLTAGE * storedData[2];
 	dataStorage->outputVoltage3V3Bus = ADC_COUNT_TO_3V3_BUS_OUTPUT_VOLTAGE * storedData[3];
 
-
-
-	// Reset the storedData float values here?
-
 	// Send 4 commands to get ADC output current readings from the PDB
 	for(int i = 0; i < NUM_TELEM_CALLS; i = i + 1){
-		memcpy(i2c_command, &pdbCurrentCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
-		int error = pdbTalk(i2c_command, i2c_data);
 
-		if(error != 0){
-			// TODO: Some error raising here?
-			// return the error
+		memset(command, 0, sizeof(command));
+		memcpy(command, &pdbCurrentCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
+
+		memset(response, 0, sizeof(response));
+
+		int error = pdbTalk(command, response);
+
+		if(error != SUCCESS){
 			return error;
 		}
 
-		memcpy(&storedData[i], i2c_data, PDB_RESPONSE_LENGTH);
+		memset(&storedData[i], 0, sizeof(storedData[i]));
+		memcpy(&storedData[i], response, PDB_RESPONSE_LENGTH);
 	}
 
 
@@ -253,20 +256,19 @@ int getPdbTelemetry(PdbStatus* dataStorage) {
 
 
 	// Get ADC temperature reading from the PDB
-	memcpy(i2c_command, &pdbTempCommandByte, PDB_TELEM_COMMAND_LENGTH);
+	memset(command, 0, sizeof(command));
+	memcpy(command, &pdbTemperatureCommandBytes, PDB_TELEM_COMMAND_LENGTH);
 
-	int error = pdbTalk(i2c_command, i2c_data);
+	int error = pdbTalk(command, response);
 
-	if(error != 0){
-		// TODO: Some error raising here?
-		// return the error
+	if(error != SUCCESS){
 		return error;
 	}
 
-	dataStorage->PdbTemperature = (ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE * (float)(*i2c_data))
+	dataStorage->PdbTemperature = (ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE * (float)(*response))
 										- ADC_COUNT_TO_MOTHERBOARD_TEMP_SHIFT;
 
-	return 0;
+	return SUCCESS;
 }
 
 
@@ -275,15 +277,14 @@ int getPdbTelemetry(PdbStatus* dataStorage) {
  * @return either an error if it occurred, or 0
  */
 int petPdbWatchdog(void){
-
 	// One way communication so just use transmit using reset watchdog command 0x22
 	int error = i2cTransmit(PDB_I2C_SLAVE_ADDR, pdbWatchdogResetCommand, PDB_COMMAND_LENGTH);
-	if (error != 0) {
+
+	if (error != SUCCESS) {
 		return error;
 	}
-	else {
-		return 0;
-	}
+
+	return SUCCESS;
 }
 
 
@@ -294,9 +295,6 @@ int petPdbWatchdog(void){
 
 
 static int pdbTalk(uint8_t* command, uint8_t* response) {
-
-	// Create a temporary variable for receiving I2C data
-	// char* i2c_data = {0};
 
 	// Check for null pointers
 	if(command == NULL || response == NULL){
@@ -309,22 +307,23 @@ static int pdbTalk(uint8_t* command, uint8_t* response) {
 
 	// Variable selection for command length dependent on if it is a telemetry call
 	// Byte mask to look only at the command field to see if it is 0x10 (telem call)
-	if ((command && 0x0000FF0000) == 0x0000100000) {
+	//TODO: Will this method of comparison actually work with the new uint8_t* size of 'command'
+	if ((command && TELEM_MASK) == TELEM_CALL_COMPARISON) {
 		comm_length = PDB_TELEM_COMMAND_LENGTH;
-		comm_delay = PDB_I2C_TELEM_DELAY;
+		comm_delay = PDB_I2C_TELEM_DELAY_MS;
 	}
 	else {
 		comm_length = PDB_COMMAND_LENGTH;
-		comm_delay = PDB_I2C_DELAY;
+		comm_delay = PDB_I2C_DELAY_MS;
 	}
 
 	// tell PDB to give us data; and store into our internal buffer
 	int error = i2cTalk(PDB_I2C_SLAVE_ADDR, comm_length, PDB_RESPONSE_LENGTH,
 							command, response, comm_delay);
 
-	if (error != 0) {
+	if (error != SUCCESS) {
 		return error;
 	}
 
-	return 0;
+	return SUCCESS;
 }
