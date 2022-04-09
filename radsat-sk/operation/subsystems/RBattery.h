@@ -10,14 +10,10 @@
 #include <stdint.h>
 
 
-#endif /* RBATTERY_H_ */
-
 
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
-
-uint8_t safeFlag;
 
 
 /** Struct for passing all telemetry data */
@@ -48,4 +44,4 @@ int getBatteryTelemetry(BatteryStatus* dataStorage);
 int checkSafeFlag(void);
 
 
-//#endif  /* RBATTERY_H_ */
+#endif /* RBATTERY_H_ */

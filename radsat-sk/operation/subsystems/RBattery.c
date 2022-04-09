@@ -69,6 +69,8 @@
                                           PRIVATE GLOBALS
 ***************************************************************************************************/
 
+static uint8_t safeFlag;
+
 /**
  * 3 Byte commands for requesting output voltage readings for each bus
  */
@@ -132,8 +134,6 @@ int getBatteryTelemetry(BatteryStatus* dataStorage){
 		int error = batteryTalk(i2c_command, i2c_data);
 
 		if(error != 0){
-			// TODO: Some Error Raising here?
-			// return the error
 			return error;
 		}
 
@@ -160,8 +160,8 @@ int getBatteryTelemetry(BatteryStatus* dataStorage){
 	}
 	// Get ADC Output Currents
 	dataStorage->outputCurrentBatteryBus = ADC_COUNT_TO_BATTERY_OUTPUT_CURRENT_MAG * storedData[0];
-	dataStorage->outputCurrentBatteryBus = ADC_COUNT_TO_5V_BUS_CURRENT_DRAW * storedData[1];
-	dataStorage->outputCurrentBatteryBus = ADC_COUNT_TO_3V3_BUS_CURRENT_DRAW * storedData[2];
+	dataStorage->outputCurrent5VBus; = ADC_COUNT_TO_5V_BUS_CURRENT_DRAW * storedData[1];
+	dataStorage->outputCurrent3V3Bus = ADC_COUNT_TO_3V3_BUS_CURRENT_DRAW * storedData[2];
 
 
 	// Send 4 commands to get ADC output current readings from the Battery
@@ -218,7 +218,7 @@ int checkSafeFlag(void){
 	float converted_value = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE * (float)(*i2c_data);
 
 	// If the voltage is less than 6.5V then raise the safeFlag to send the cubeSat into safe mode.
-	// TODO: generate an error?
+	 // TODO: generate an error?
 	if(converted_value < 6.5){
 		safeFlag = 1;
 	}
