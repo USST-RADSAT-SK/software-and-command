@@ -1,6 +1,6 @@
 /**
- * @file RCommunicationTask.c
- * @date January 30, 2021
+ * @file RCommunicationTasks.h
+ * @date January 30, 2022
  * @author Tyrel Kostyk (tck290) and Matthew Buglass (mab839)
  */
 
@@ -11,11 +11,16 @@
 
 
 /***************************************************************************************************
-											 PUBLIC API
+                                           FREERTOS TASKS
 ***************************************************************************************************/
 
-void communicationRxTask(void* parameters);
-void communicationTxTask(void* parameters);
+void CommunicationRxTask(void* parameters);
+void CommunicationTxTask(void* parameters);
+
+
+/***************************************************************************************************
+                                             PUBLIC API
+***************************************************************************************************/
 
 uint8_t communicationPassModeActive(void);
 

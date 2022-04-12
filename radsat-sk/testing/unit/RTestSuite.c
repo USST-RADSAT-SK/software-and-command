@@ -1,11 +1,8 @@
 /**
- * @file RTestSuite.h
+ * @file RTestSuite.c
  * @date December 29, 2021
- * @author Tyrel Kostyk
+ * @author Tyrel Kostyk (tck290)
  */
-
-#ifndef RTESTSUITE_H_
-#define RTESTSUITE_H_
 
 #ifdef TEST
 
@@ -16,8 +13,14 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-void testSuiteRunAll(void);
+/**
+ * Run all of the unit tests
+ *
+ * @pre All necessary HAL, SSI, etc. initializations completed
+ */
+void testSuiteRunAll(void) {
+	testDosimeterAll();
+}
 
 
-#endif /* TEST */
-#endif /* RTESTSUITE_H_ */
+#endif
