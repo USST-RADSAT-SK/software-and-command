@@ -150,7 +150,7 @@ int getSunSensorData(sun_sensor_status_t* sunData) {
 	float convertedData[NUM_SUN_SENSORS] = {0};
 
 	// Send 6 commands to get each of the sun sensor's data
-	for(int i = 0; i < NUM_SUN_SENSORS; i = i + 1){
+	for (int i = 0; i < NUM_SUN_SENSORS; i = i + 1) {
 
 		// Load command into output buffer
 		memset(command, 0, sizeof(command));
@@ -160,9 +160,10 @@ int getSunSensorData(sun_sensor_status_t* sunData) {
 
 		int error = pdbTalk(command, response);
 
-		if(error != SUCCESS){
+		if (error != SUCCESS) {
 			return error;
 		}
+
 		memset(&convertedData[i], 0, sizeof(convertedData[i]));
 		memcpy(&convertedData[i], response, PDB_RESPONSE_LENGTH);
 
@@ -205,7 +206,7 @@ int getPdbTelemetry(pdb_status_t* dataStorage) {
 	float storedData[NUM_TELEM_CALLS] = {0};
 
 	// Send 4 commands to get ADC output voltage readings from the PDB
-	for(int i = 0; i < NUM_TELEM_CALLS; i = i + 1){
+	for (int i = 0; i < NUM_TELEM_CALLS; i = i + 1) {
 
 		memset(command, 0, sizeof(command));
 		memcpy(command, &pdbVoltageCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
@@ -214,7 +215,7 @@ int getPdbTelemetry(pdb_status_t* dataStorage) {
 
 		int error = pdbTalk(command, response);
 
-		if(error != SUCCESS){
+		if (error != SUCCESS) {
 			return error;
 		}
 
@@ -230,7 +231,7 @@ int getPdbTelemetry(pdb_status_t* dataStorage) {
 	dataStorage->outputVoltage3V3Bus = ADC_COUNT_TO_3V3_BUS_OUTPUT_VOLTAGE * storedData[3];
 
 	// Send 4 commands to get ADC output current readings from the PDB
-	for(int i = 0; i < NUM_TELEM_CALLS; i = i + 1){
+	for (int i = 0; i < NUM_TELEM_CALLS; i = i + 1) {
 
 		memset(command, 0, sizeof(command));
 		memcpy(command, &pdbCurrentCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
@@ -239,7 +240,7 @@ int getPdbTelemetry(pdb_status_t* dataStorage) {
 
 		int error = pdbTalk(command, response);
 
-		if(error != SUCCESS){
+		if (error != SUCCESS) {
 			return error;
 		}
 
@@ -261,7 +262,7 @@ int getPdbTelemetry(pdb_status_t* dataStorage) {
 
 	int error = pdbTalk(command, response);
 
-	if(error != SUCCESS){
+	if (error != SUCCESS) {
 		return error;
 	}
 
@@ -276,7 +277,7 @@ int getPdbTelemetry(pdb_status_t* dataStorage) {
  * Pet the Communications watchdog on the PDB using code 0x22
  * @return either an error if it occurred, or 0
  */
-int petPdbWatchdog(void){
+int petPdbWatchdog(void) {
 	// One way communication so just use transmit using reset watchdog command 0x22
 	int error = i2cTransmit(PDB_I2C_SLAVE_ADDR, pdbWatchdogResetCommand, PDB_COMMAND_LENGTH);
 
@@ -297,7 +298,7 @@ int petPdbWatchdog(void){
 static int pdbTalk(uint8_t* command, uint8_t* response) {
 
 	// Check for null pointers
-	if(command == NULL || response == NULL){
+	if (command == NULL || response == NULL) {
 		return E_INPUT_POINTER_NULL;
 	}
 
