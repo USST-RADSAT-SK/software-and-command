@@ -17,7 +17,7 @@
 
 
 /** Struct for passing all telemetry data */
-typedef struct _batteryStatus {
+typedef struct _battery_status_t {
 	// Output Voltages
 	float outputVoltageBatteryBus;
 	float outputVoltage5VBus;
@@ -26,12 +26,13 @@ typedef struct _batteryStatus {
 	float outputCurrentBatteryBus;
 	float outputCurrent5VBus;
 	float outputCurrent3V3Bus;
+	float batteryCurrentDirection;
 	// Temperatures
 	float motherboardTemp;
 	float daughterboardTemp1;
 	float daughterboardTemp2;
 	float daughterboardTemp3;
-} BatteryStatus;
+} battery_status_t;
 
 
 
@@ -39,9 +40,8 @@ typedef struct _batteryStatus {
                                              PUBLIC API
 ***************************************************************************************************/
 
-int getBatteryTelemetry(BatteryStatus* dataStorage);
-
-int checkSafeFlag(void);
+int batteryTelemetry(battery_status_t* dataStorage);
+int batteryIsNotSafe(uint8_t* safeFlag);
 
 
 #endif /* RBATTERY_H_ */

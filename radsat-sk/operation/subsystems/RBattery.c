@@ -7,8 +7,7 @@
 #include <RBattery.h>
 #include <RI2C.h>
 #include <string.h>
-#include <hal/errors.h>
-
+#include <RCommon.h>
 
 /***************************************************************************************************
                                             DEFINITIONS
@@ -58,18 +57,28 @@
 /** Delay between other read/write operations with the EPS on I2C is 1ms */
 #define BATTERY_I2C_DELAY				(1)
 
-/** Number of voltage/current calls to the Battery */
-#define NUMBER_OF_VOLTAGE_AND_CURRENT_COMMANDS (3)
+/** Number of voltage calls to the Battery */
+#define NUMBER_OF_VOLTAGE_COMMANDS (3)
+
+/** Number of current calls to the Battery*/
+#define NUMBER_OF_CURRENT_COMMANDS (4)
 
 /** Number of temperature calls to the Battery */
 #define NUMBER_OF_TEMP_COMMANDS (4)
+
+/** Filter Mask and Comparison value for Recognizing Telemetry Calls */
+#define TELEM_MASK 					(0x0000FF0000)
+#define TELEM_CALL_COMPARISON		(0x0000100000)
 
 
 /***************************************************************************************************
                                           PRIVATE GLOBALS
 ***************************************************************************************************/
-
-static uint8_t safeFlag;
+/** Charging or discharging enum for current direction of the battery */
+enum _batteryCurrentDirection {
+	discharging,
+	charging
+};
 
 /**
  * 3 Byte commands for requesting output voltage readings for each bus
@@ -83,10 +92,11 @@ static uint32_t batteryVoltageCommandBytes[3] = {
 /**
  * 3 Byte commands for requesting output current readings for each bus
  */
-static uint32_t batteryCurrentCommandBytes[3] = {
+static uint32_t batteryCurrentCommandBytes[4] = {
 		0x10E284,		// Output Current of Battery Bus in mA
 		0x10E214,		// Output Current of 5V Bus in mA
-		0x10E204		// Output Current of 3.3V Bus in mA
+		0x10E204,		// Output Current of 3.3V Bus in mA
+		0x10E308		// Battery Current Direction
 };
 
 /**
@@ -104,6 +114,7 @@ static uint32_t batteryTemperatureCommandBytes[4] = {
 ***************************************************************************************************/
 
 static int batteryTalk(uint8_t* command, uint8_t* response);
+static int checkSafeFlag(uint8_t* safeFlag);
 
 
 /***************************************************************************************************
@@ -111,123 +122,114 @@ static int batteryTalk(uint8_t* command, uint8_t* response);
 ***************************************************************************************************/
 
 /**
- * Request and store all of the relavant data (voltage, current, temperature) from the battery board
+ * Request and store all of the relevant data (voltage, current, temperature) from the battery board
  * 		and battery daughter boards
- * @return A BatteryStatus object containing all of the telemetry of the battery board
+ * @return A battery_status_t object containing all of the telemetry of the battery board
  */
-int getBatteryTelemetry(BatteryStatus* dataStorage){
+int batteryTelemetry(battery_status_t* dataStorage) {
 
 	// Create temporary variables for sending and receiving I2C data
-	uint8_t i2c_command[BATTERY_TELEM_COMMAND_LENGTH] = {0};
-	uint8_t i2c_data[BATTERY_RESPONSE_LENGTH] = {0};
+	uint8_t command[BATTERY_TELEM_COMMAND_LENGTH] = {0};
+	uint8_t response[BATTERY_RESPONSE_LENGTH] = {0};
 
-	// Create a temporary array for calculated voltage and current before transferring into the BatteryStatus structure
-	float storedData[NUMBER_OF_VOLTAGE_AND_CURRENT_COMMANDS] = {0};
+	// Create a temporary array for calculated voltage and current before transferring into the battery_status_t structure
+	float storedData[NUMBER_OF_CURRENT_COMMANDS] = {0};
 
-	// Create a temporary array for calculated temperatures before transferring into the BatteryStatus structure
-	float storedTempData[NUMBER_OF_TEMP_COMMANDS] = {0};
+	// Create a temporary array for calculated temperatures before transferring into the battery_status_t structure
+	float storedTemperatureData[NUMBER_OF_TEMP_COMMANDS] = {0};
 
 
 	// Send 3 commands to get ADC output voltage readings from the Battery
-	for(int i = 0; i < NUMBER_OF_VOLTAGE_AND_CURRENT_COMMANDS; i = i + 1){
-		memcpy(i2c_command, &batteryVoltageCommandBytes[i], BATTERY_TELEM_COMMAND_LENGTH);
-		int error = batteryTalk(i2c_command, i2c_data);
+	for (int i = 0; i < NUMBER_OF_VOLTAGE_COMMANDS; i = i + 1) {
+		memset(command, 0, sizeof(command));
+		memcpy(command, &batteryVoltageCommandBytes[i], BATTERY_TELEM_COMMAND_LENGTH);
 
-		if(error != 0){
+		int error = batteryTalk(command, response);
+
+		if (error != SUCCESS){
 			return error;
 		}
-
-		memcpy(&storedData[i], i2c_data, BATTERY_RESPONSE_LENGTH);
+		memset(&storedData[i], 0, sizeof(storedData[i]));
+		memcpy(&storedData[i], response, BATTERY_RESPONSE_LENGTH);
 	}
+
 	// Get ADC Output Voltages
 	dataStorage->outputVoltageBatteryBus = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE * storedData[0];
 	dataStorage->outputVoltage5VBus = ADC_COUNT_TO_5V_BUS_OUTPUT_VOLTAGE * storedData[1];
 	dataStorage->outputVoltage3V3Bus = ADC_COUNT_TO_3V3_BUS_OUTPUT_VOLTAGE * storedData[2];
 
 
-	// Send 3 commands to get ADC output current readings from the Battery
-	for(int i = 0; i < NUMBER_OF_VOLTAGE_AND_CURRENT_COMMANDS; i = i + 1){
-		memcpy(i2c_command, &batteryCurrentCommandBytes[i], BATTERY_TELEM_COMMAND_LENGTH);
-		int error = batteryTalk(i2c_command, i2c_data);
+	// Send 4 commands to get ADC output current readings from the Battery
+	for (int i = 0; i < NUMBER_OF_CURRENT_COMMANDS; i = i + 1) {
+		memset(command, 0, sizeof(command));
+		memcpy(command, &batteryCurrentCommandBytes[i], BATTERY_TELEM_COMMAND_LENGTH);
 
-		if(error != 0){
-			// TODO: Some Error Raising here?
-			// return the error
+		int error = batteryTalk(command, response);
+
+		if (error != SUCCESS) {
 			return error;
 		}
 
-		memcpy(&storedData[i], i2c_data, BATTERY_RESPONSE_LENGTH);
+		memset(&storedData[i], 0, sizeof(&storedData[i]));
+		memcpy(&storedData[i], response, BATTERY_RESPONSE_LENGTH);
 	}
+
 	// Get ADC Output Currents
 	dataStorage->outputCurrentBatteryBus = ADC_COUNT_TO_BATTERY_OUTPUT_CURRENT_MAG * storedData[0];
-	dataStorage->outputCurrent5VBus; = ADC_COUNT_TO_5V_BUS_CURRENT_DRAW * storedData[1];
+	dataStorage->outputCurrent5VBus  = ADC_COUNT_TO_5V_BUS_CURRENT_DRAW * storedData[1];
 	dataStorage->outputCurrent3V3Bus = ADC_COUNT_TO_3V3_BUS_CURRENT_DRAW * storedData[2];
 
+	// An if/else to assign forward/backwards directionality to batteryCurrentDirection
+	if (storedData[3] < 512) {
+		dataStorage->batteryCurrentDirection = charging;
+	}
+	else {
+		dataStorage->batteryCurrentDirection = discharging;
+	}
 
-	// Send 4 commands to get ADC output current readings from the Battery
-	for(int i = 0; i < NUMBER_OF_TEMP_COMMANDS; i = i + 1){
-		memcpy(i2c_command, &batteryTemperatureCommandBytes[i], BATTERY_TELEM_COMMAND_LENGTH);
-		int error = batteryTalk(i2c_command, i2c_data);
+	// Send 4 commands to get ADC temperature readings from the Battery
+	for (int i = 0; i < NUMBER_OF_TEMP_COMMANDS; i = i + 1) {
+		memset(command, 0, sizeof(command));
+		memcpy(command, &batteryTemperatureCommandBytes[i], BATTERY_TELEM_COMMAND_LENGTH);
 
-		if(error != 0){
-			// TODO: Some Error Raising here?
-			// return the error
+		int error = batteryTalk(command, response);
+
+		if (error != SUCCESS) {
 			return error;
 		}
 
-		memcpy(&storedTempData[i], i2c_data, BATTERY_RESPONSE_LENGTH);
+		memset(&storedTemperatureData[i], 0, sizeof(&storedTemperatureData[i]));
+		memcpy(&storedTemperatureData[i], response, BATTERY_RESPONSE_LENGTH);
 	}
+
 	// Get ADC Temperatures
-	dataStorage->motherboardTemp = (ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE * storedTempData[0])
+	dataStorage->motherboardTemp = (ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE * storedTemperatureData[0])
 			- ADC_COUNT_TO_MOTHERBOARD_TEMP_SHIFT;
 
-	dataStorage->daughterboardTemp1 = (ADC_COUNT_TO_DAUGHTERBOARD_TEMP_SCALE * storedTempData[1])
+	dataStorage->daughterboardTemp1 = (ADC_COUNT_TO_DAUGHTERBOARD_TEMP_SCALE * storedTemperatureData[1])
 				- ADC_COUNT_TO_DAUGHTERBOARD_TEMP_SHIFT;
 
-	dataStorage->daughterboardTemp2 = (ADC_COUNT_TO_DAUGHTERBOARD_TEMP_SCALE * storedTempData[2])
+	dataStorage->daughterboardTemp2 = (ADC_COUNT_TO_DAUGHTERBOARD_TEMP_SCALE * storedTemperatureData[2])
 				- ADC_COUNT_TO_DAUGHTERBOARD_TEMP_SHIFT;
 
-	dataStorage->daughterboardTemp3 = (ADC_COUNT_TO_DAUGHTERBOARD_TEMP_SCALE * storedTempData[3])
+	dataStorage->daughterboardTemp3 = (ADC_COUNT_TO_DAUGHTERBOARD_TEMP_SCALE * storedTemperatureData[3])
 				- ADC_COUNT_TO_DAUGHTERBOARD_TEMP_SHIFT;
 
-	return 0;
+	return SUCCESS;
 }
 
 
-/**
- * Send a telecommand via I2C to check on the current battery voltage, and if under 6.5V, raise the global safeFlag
- * @return nothing.
- */
-int checkSafeFlag(void){
+int batteryIsNotSafe(uint8_t* safeFlag) {
 
-	// Create temporary variables for sending and receiving I2C data
-	uint8_t i2c_command[BATTERY_TELEM_COMMAND_LENGTH] = {0};
-	uint8_t i2c_data[BATTERY_RESPONSE_LENGTH] = {0};
+	int error = checkSafeFlag(safeFlag);
 
-	memcpy(i2c_command, &batteryVoltageCommandBytes[0], BATTERY_TELEM_COMMAND_LENGTH);
-
-	// Get the battery output voltage
-	int error = batteryTalk(i2c_command, i2c_data);
-
-	if(error != 0){
-		// TODO: Some Error Raising here?
-		// return the error
+	if (error != SUCCESS) {
 		return error;
 	}
 
-	float converted_value = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE * (float)(*i2c_data);
-
-	// If the voltage is less than 6.5V then raise the safeFlag to send the cubeSat into safe mode.
-	 // TODO: generate an error?
-	if(converted_value < 6.5){
-		safeFlag = 1;
-	}
-	else{
-		safeFlag = 0;
-	}
-
-	return 0;
+	return SUCCESS;
 }
+
 
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
@@ -236,10 +238,10 @@ int checkSafeFlag(void){
 static int batteryTalk(uint8_t* command, uint8_t* response) {
 
 	// Create a temporary variable for receiving I2C data
-	// char* i2c_data = {0};
+	// char* response = {0};
 
 	// Check for null pointers
-	if(command == NULL || response == NULL){
+	if (command == NULL || response == NULL) {
 		return E_INPUT_POINTER_NULL;
 	}
 
@@ -249,7 +251,7 @@ static int batteryTalk(uint8_t* command, uint8_t* response) {
 
 	// Variable selection for command length dependent on if it is a telemetry call
 	// Byte mask to look only at the command field to see if it is 0x10 (telem call)
-	if ((command && 0x0000FF0000) == 0x0000100000) {
+	if ((command && TELEM_MASK) == TELEM_CALL_COMPARISON) {
 		comm_length = BATTERY_TELEM_COMMAND_LENGTH;
 		comm_delay = BATTERY_I2C_TELEM_DELAY;
 	}
@@ -262,17 +264,46 @@ static int batteryTalk(uint8_t* command, uint8_t* response) {
 	int error = i2cTalk(BATTERY_I2C_SLAVE_ADDR, comm_length, BATTERY_RESPONSE_LENGTH,
 							command, response, comm_delay);
 
-	// return error? if an error occurs, else send the data back
-	// TODO: Make this return 0 on a failure? Printf the error instead? Get advice for this
-	if (error != 0) {
+	if (error != SUCCESS) {
 		return error;
 	}
-	else {
-		return 0;
-	}
 
+	return SUCCESS;
 }
 
+
+/**
+ * Send a telecommand via I2C to check on the current battery voltage, and if under 6.5V, raise the global safeFlag
+ * @return nothing.
+ */
+static int checkSafeFlag(uint8_t* safeFlag) {
+
+	// Create temporary variables for sending and receiving I2C data
+	uint8_t command[BATTERY_TELEM_COMMAND_LENGTH] = {0};
+	uint8_t response[BATTERY_RESPONSE_LENGTH] = {0};
+
+	memset(command, 0, sizeof(command));
+	memcpy(command, &batteryVoltageCommandBytes[0], BATTERY_TELEM_COMMAND_LENGTH);
+
+	// Get the battery output voltage
+	int error = batteryTalk(command, response);
+
+	if (error != SUCCESS) {
+		return error;
+	}
+
+	float converted_value = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE * (float)(*response);
+
+	// If the voltage is less than 6.5V then raise the safeFlag to send the cubeSat into safe mode.
+	if (converted_value < 6.5) {
+		*safeFlag = 1;
+	}
+	else {
+		*safeFlag = 0;
+	}
+
+	return SUCCESS;
+}
 
 
 
