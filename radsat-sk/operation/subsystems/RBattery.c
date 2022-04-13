@@ -144,6 +144,8 @@ int batteryTelemetry(battery_status_t* dataStorage) {
 		memset(command, 0, sizeof(command));
 		memcpy(command, &batteryVoltageCommandBytes[i], BATTERY_TELEM_COMMAND_LENGTH);
 
+		memset(response, 0, sizeof(response));
+
 		int error = batteryTalk(command, response);
 
 		if (error != SUCCESS){
@@ -163,6 +165,8 @@ int batteryTelemetry(battery_status_t* dataStorage) {
 	for (int i = 0; i < NUMBER_OF_CURRENT_COMMANDS; i = i + 1) {
 		memset(command, 0, sizeof(command));
 		memcpy(command, &batteryCurrentCommandBytes[i], BATTERY_TELEM_COMMAND_LENGTH);
+
+		memset(response, 0, sizeof(response));
 
 		int error = batteryTalk(command, response);
 
@@ -191,6 +195,8 @@ int batteryTelemetry(battery_status_t* dataStorage) {
 	for (int i = 0; i < NUMBER_OF_TEMP_COMMANDS; i = i + 1) {
 		memset(command, 0, sizeof(command));
 		memcpy(command, &batteryTemperatureCommandBytes[i], BATTERY_TELEM_COMMAND_LENGTH);
+
+		memset(response, 0, sizeof(response));
 
 		int error = batteryTalk(command, response);
 
@@ -284,6 +290,8 @@ static int checkSafeFlag(uint8_t* safeFlag) {
 
 	memset(command, 0, sizeof(command));
 	memcpy(command, &batteryVoltageCommandBytes[0], BATTERY_TELEM_COMMAND_LENGTH);
+
+	memset(response, 0, sizeof(response));
 
 	// Get the battery output voltage
 	int error = batteryTalk(command, response);
