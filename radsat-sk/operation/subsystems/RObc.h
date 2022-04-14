@@ -14,8 +14,6 @@
                                             DEFINITIONS
 ***************************************************************************************************/
 
-#define OBC_TELEMETRY_ERROR 1
-
 typedef struct _obcTelemetry_t {
 	float temperature;
 } obcTelemetry_t;
