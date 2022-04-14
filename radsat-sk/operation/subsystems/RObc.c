@@ -5,44 +5,39 @@
  */
 
 #include <RObc.h>
+#include <RCommon.h>
 #include <hal/errors.h>
 #include <hal/Timing/WatchDogTimer.h>
 #include <hal/Timing/RTC.h>
 
 /***************************************************************************************************
-                                  PRIVATE DEFINITIONS AND VARIABLES
-***************************************************************************************************/
-
-
-
-/***************************************************************************************************
-                                       PRIVATE FUNCTION STUBS
-***************************************************************************************************/
-
-
-
-/***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
-uint8_t obcTelemetry(obcTelemetry_t* obcTelemetryBuffer){
+
+/**
+ * Retrieve Temperature telemetry from OBC
+ *
+ * @return	Error code; 0 for success, otherwise see hal/errors.h.
+ */
+int obcTelemetry(obcTelemetry_t* obcTelemetryBuffer){
 	float temperature = 0;
-	int error = RTC_getTemperature(*temperature);
+	int error = RTC_getTemperature(&temperature);
 
-	if (error == 0) {
-		obcTelemetryBuffer->temperature = temperature;
-		return 0;
+	if (error != SUCCESS) {
+		return error;
+	}
 
-	}
-	else {
-		return OBC_TELEMETRY_ERROR;
-	}
+	obcTelemetryBuffer->temperature = temperature;
+	return SUCCESS;
+
 }
 
+/**
+ * Pet the watchdog on the OBC
+ *
+ * @return	N/A
+ */
 void obcPetWatchdogs(void){
 	WDT_forceKick();
 }
 
-
-/***************************************************************************************************
-                                         PRIVATE FUNCTIONS
-***************************************************************************************************/

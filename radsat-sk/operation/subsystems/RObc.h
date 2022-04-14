@@ -26,7 +26,7 @@ typedef struct _obcTelemetry_t {
                                              PUBLIC API
 ***************************************************************************************************/
 
-uint8_t obcTelemetry(obcTelemetry_t* obcTelemetryBuffer);
+int obcTelemetry(obcTelemetry_t* obcTelemetryBuffer);
 void obcPetWatchdogs(void);
 
 
