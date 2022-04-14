@@ -73,8 +73,8 @@
 #define NUM_TELEM_CALLS 			(4)
 
 /** Filter Mask and Comparison value for Recognizing Telemetry Calls */
-#define TELEM_MASK 					(0x0000FF0000)
-#define TELEM_CALL_COMPARISON		(0x0000100000)
+#define TELEM_MASK 					(0xFF0000)
+#define TELEM_CALL_COMPARISON		(0x100000)
 
 
 /***************************************************************************************************
