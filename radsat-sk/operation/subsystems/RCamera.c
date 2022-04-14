@@ -542,7 +542,7 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 				cameraTelemetry->cameraOneTelemetry.blueGain,
 				cameraTelemetry->cameraOneTelemetry.redGain);
 	if(error != SUCCESS){
-		return SUCCESS;
+		return error;
 	}
 
 	// Update camera Two settings
@@ -551,7 +551,7 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 				cameraTelemetry->cameraTwoTelemetry.blueGain,
 				cameraTelemetry->cameraTwoTelemetry.redGain);
 	if(error != SUCCESS){
-		return SUCCESS;
+		return error;
 	}
 
 
