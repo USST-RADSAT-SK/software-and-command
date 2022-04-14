@@ -113,6 +113,8 @@
 #define LOCKED							((uint8_t) 1)
 #define UNLOCKED						((uint8_t) 0)
 
+#define TC_NO_ERROR						((uint8_t) 0)
+
 /* Struct for telmetry status, ID 0*/
 typedef struct _tlm_status_t {
 	uint8_t  nodeType;
@@ -206,11 +208,50 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
+/*
+ * Used to capture an image with CubeSense Camera
+ *  */
+ int capture(void){
+
+	int error;
+
+	uint8_t imagemean;
+
+
+	tlm_telecommand_ack_t *telecommand_ack;
+	tlm_detection_result_and_trigger_t *sensor_two_result;
+
+
+	// Send Telecommand to Camera to Take a Photo
+	error = tcImageCaputre(SRAM1, BOTTOM_HALVE);
+
+	if (error != SUCCESS)
+		return error;
+
+	// Request telecommand acknowledgment with TLM 3
+   error = tlmTelecommandAcknowledge(telecommand_ack);
+
+	if (error != SUCCESS)
+		return error;
+
+	// Confirm there was a Successful telecommand
+	if(telecommand_ack->tc_error_flag == TC_NO_ERROR) {
+
+		// Request for sensor 2 (Camera) results
+		error = tlmSensorTwoResult(sensor_two_result);
+
+			if (error != SUCCESS)
+				return error;
+
+			return SUCCESS;
+		}
+	}
+
+
 
 /*
  * Used to Download an image from CubeSense Camera
  *
- * @note a capture function must be implemented before this function
  * @param sram defines which SRAM to use on Cubesense
  * @param location defines which SRAM slot to use within selected SRAM, 0 = top, 1 = bottom
  * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
@@ -293,6 +334,28 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 
 	return SUCCESS;
 }
+
+/*
+ * Used to calculate the mean of each image.
+ * A threshold is defined to filter out useless images.
+ * Adjust thresholds accordingly.
+ * */
+int filtering(image) {
+
+	float imagemean;
+
+	uint8_t  lowThreshold= 500;
+	uint8_t  highThreshold= 1000000;
+
+
+	// Call the function to calculate the mean
+	imagemean = calculateMeanOfTheImage(image);
+
+	// Check if the image is entirely white or entirely black
+	if ( lowThreshold < imagemean < highThreshold )
+		return SUCCESS;
+
+	}
 
 /*
  * Used to created a 3D vector from a detection of both sensors

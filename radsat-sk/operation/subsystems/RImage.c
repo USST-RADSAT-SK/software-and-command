@@ -46,7 +46,7 @@
 #define TELEMETRY_OFFSET_5              ((uint8_t) 7)
 #define TELEMETRY_ID_OFFSET		        ((uint8_t) 2)
 
-#define SIZE_OF_THUMBNAIL				((uint8_t) 64)
+
 #define SIZE_OF_BITMAP					((uint8_t) 4096)
 
 #define BASE_MESSAGE_LEN				((uint8_t) 4)
@@ -440,12 +440,12 @@ return E_GENERIC;
  */
 
   int calculateMeanOfTheImage(uint8_t *image) {
- 	uint8_t  i,j = SIZE_OF_THUMBNAIL;
- 	uint8_t  sum,mean;
+
+ 	float  sum,mean;
  	uint8_t  n = SIZE_OF_BITMAP;
 
- 	for (i = 0 ; i < n; ++i){
- 			sum = sum + image[i];
+ 	for (uint8_t j = 0 ; j < n; ++j){
+ 			sum = sum + image[j];
  	  }
  	mean = sum / n;
   	return mean;
