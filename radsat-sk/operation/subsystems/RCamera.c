@@ -13,11 +13,13 @@
 #include <RImage.h>
 #include <RADCS.h>
 #include <RCommon.h>
+#include <hal/Timing/RTT.h>
 
 /***************************************************************************************************
-                                            DEFINITIONS
+                               PRIVATE DEFINITIONS AND VARIABLES
 ***************************************************************************************************/
 
+/* Telecommand ID numbers and Related Parameters */
 #define TELECOMMAND_40               	((uint8_t) 0x28)
 #define TELECOMMAND_41               	((uint8_t) 0x29)
 #define TELECOMMAND_42               	((uint8_t) 0x2A)
@@ -61,22 +63,21 @@
 #define TELECOMMAND_OFFSET_14           ((uint8_t) 17)
 #define TELECOMMAND_REPONSE_OFFSET		((uint8_t) 2)
 
+/* Telemetry ID numbers and Related Parameters */
 #define TELEMETRY_0                  	((uint8_t) 0x80)
 #define TELEMETRY_26                	((uint8_t) 0x9A)
 #define TELEMETRY_40                    ((uint8_t) 0xA8)
-#define TELEMETRY_72                    ((uint8_t) 0xC8)
-#define TELEMETRY_73                    ((uint8_t) 0xC9)
+#define TELEMETRY_64                 	((uint8_t) 0xC0)
 
 #define TELEMETRY_0_LEN					((uint8_t) 12)
 #define TELEMETRY_26_LEN				((uint8_t) 14)
 #define TELEMETRY_40_LEN				((uint8_t) 18)
-#define TELEMETRY_72_LEN			    ((uint8_t) 44)
-#define TELEMETRY_73_LEN			    ((uint8_t) 44)
+#define TELEMETRY_64_LEN				((uint8_t) 132)
 #define TELEMETRY_REQUEST_LEN			((uint8_t) 1)
+#define TELEMETRY_REPLY_SIZE_1			((uint8_t) 1)
 #define TELEMETRY_REPLY_SIZE_8			((uint8_t) 8)
 #define TELEMETRY_REPLY_SIZE_10			((uint8_t) 10)
 #define TELEMETRY_REPLY_SIZE_14			((uint8_t) 14)
-#define TELEMETRY_REPLY_SIZE_40			((uint8_t) 40)
 
 #define TELEMETRY_OFFSET_0              ((uint8_t) 2)
 #define TELEMETRY_OFFSET_1              ((uint8_t) 3)
@@ -92,21 +93,9 @@
 #define TELEMETRY_OFFSET_11             ((uint8_t) 13)
 #define TELEMETRY_OFFSET_12             ((uint8_t) 14)
 #define TELEMETRY_OFFSET_13             ((uint8_t) 15)
-#define TELEMETRY_OFFSET_14             ((uint8_t) 16)
-#define TELEMETRY_OFFSET_16             ((uint8_t) 18)
-#define TELEMETRY_OFFSET_18             ((uint8_t) 20)
-#define TELEMETRY_OFFSET_20             ((uint8_t) 22)
-#define TELEMETRY_OFFSET_22             ((uint8_t) 24)
-#define TELEMETRY_OFFSET_24             ((uint8_t) 26)
-#define TELEMETRY_OFFSET_26             ((uint8_t) 28)
-#define TELEMETRY_OFFSET_28             ((uint8_t) 30)
-#define TELEMETRY_OFFSET_30             ((uint8_t) 32)
-#define TELEMETRY_OFFSET_32             ((uint8_t) 34)
-#define TELEMETRY_OFFSET_34             ((uint8_t) 36)
-#define TELEMETRY_OFFSET_36             ((uint8_t) 38)
-#define TELEMETRY_OFFSET_38             ((uint8_t) 40)
 #define TELEMETRY_ID_OFFSET		        ((uint8_t) 2)
 
+/* General definitions */
 #define BASE_MESSAGE_LEN				((uint8_t) 4)
 #define START_IDENTIFIER1               ((uint16_t) 0x1F)
 #define START_IDENTIFIER2               ((uint16_t) 0x7F)
@@ -123,14 +112,82 @@
 
 #define LOCKED							((uint8_t) 1)
 #define UNLOCKED						((uint8_t) 0)
-#define TC_NO_ERROR						((uint8_t) 0)
-#define SUCCESSFULLY_CAPTURED			((uint8_t) 3)
-#define EMPTY_FRAME_BUFFER				((uint8_t) 0)
-#define MAX_COUNTER_AMOUNT				((uint16_t) 100)
 
-#define SIZE_SELECTION_64               ((uint8_t) 4)
-#define NextFrameNumLBS                 ((uint8_t) 1)
-#define NextFrameNumMBS                 ((uint8_t) 1)
+/* Struct for telmetry status, ID 0*/
+typedef struct _tlm_status_t {
+	uint8_t  nodeType;
+	uint8_t  interfaceVersion;
+	uint8_t  firmwareVersionMajor;
+	uint8_t  firmwareVersionMinor;
+	uint16_t runtimeSeconds;
+	uint16_t runtimeMSeconds;
+} tlm_status_t;
+
+/* Struct for telmetry Serial number, ID 2 */
+typedef struct _tlm_communication_status_t {
+	uint16_t tcCounter;
+	uint16_t tlmCounter;
+	uint8_t  tcBufferOverunFlag;
+	uint8_t  i2ctlmReadErrorFlag;
+	uint8_t	 uarttlmProtocolErrorFlag;
+	uint8_t  uartIncompleteMsgFlag;
+} tlm_communication_status_t;
+
+/* Struct for telemetry power, ID 26 */
+typedef struct _tlm_power_t {
+	uint16_t threeVcurrent;
+	uint16_t sramOneCurrent;
+	uint16_t sramTwoCurrent;
+	uint16_t fiveVcurrent;
+	uint8_t sramOneOverCurrent;
+	uint8_t sramTwoOverCurrent;
+} tlm_power_t;
+
+/* Struct for telemetry configuration, ID 40 */
+typedef struct _tlm_config_t{
+	uint8_t cameraOneDetectionThrshld;
+	uint8_t cameraTwoDetectionThrshld;
+	uint8_t cameraOneAutoAdjustMode;
+	uint16_t cameraOneExposure;
+	uint8_t cameraOneAGC;
+	uint8_t cameraOneBlueGain;
+	uint8_t cameraOneRedGain;
+	uint8_t cameraTwoAutoAdjustMode;
+	uint16_t cameraTwoExposure;
+	uint8_t cameraTwoAGC;
+	uint8_t cameraTwoBlueGain;
+	uint8_t cameraTwoRedGain;
+} tlm_config_t;
+
+/* Struct for telemetry full image, ID 66-69 */
+typedef struct _tlm_full_image_t {
+	uint8_t imageBytes[1048576];
+} tlm_full_image_t;
+
+/* struct for telemetry read sensor masks ID 72-73 */
+typedef struct _tlm_read_sensor_mask_t {
+	uint16_t MinXAreaOne;
+	uint16_t MaxXAreaOne;
+	uint16_t MinYAreaOne;
+	uint16_t MaxYAreaOne;
+	uint16_t MinXAreaTwo;
+	uint16_t MaxXAreaTwo;
+	uint16_t MinYAreaTwo;
+	uint16_t MaxYAreaTwo;
+	uint16_t MinXAreaThree;
+	uint16_t MaxXAreaThree;
+	uint16_t MinYAreaThree;
+	uint16_t MaxYAreaThree;
+	uint16_t MinXAreaFourth;
+	uint16_t MaxXAreaFourth;
+	uint16_t MinYAreaFourth;
+	uint16_t MaxYAreaFourth;
+	uint16_t MinXAreaFifth;
+	uint16_t MaxXAreaFifth;
+	uint16_t MinYAreaFifth;
+	uint16_t MaxYAreaFifth;
+} tlm_read_sensor_mask_t;
+
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
@@ -138,123 +195,104 @@ static uint8_t * MessageBuilder(uint8_t response_size);
 static int tlmStatus(tlm_status_t *telemetry_reply);
 static int tlmPower(tlm_power_t *telemetry_reply);
 static int tlmConfig(tlm_config_t *telemetry_reply);
-static int tlmReadSensorOneMask(tlm_read_sensor_mask_t *telemetry_reply);
-static int tlmReadSensorTwoMask(tlm_read_sensor_mask_t *telemetry_reply);
+static int tlmImageFrame(tlm_image_frame_t *telemetry_reply);
 static int tcCameraOneDetectionThreshold(uint8_t detectionThreshold);
 static int tcCameraTwoDetectionThreshold(uint8_t detectionThreshold);
 static int tcCameraOneAutoAdjust(uint8_t enabler);
 static int tcCameraOneSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_gain, uint8_t red_gain);
 static int tcCameraTwoAutoAdjust(uint8_t enabler);
 static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_gain, uint8_t red_gain);
-static int tcCameraOneBoresight(uint16_t X_Pixel, uint16_t Y_Pixel);
-static int tcCameraTwoBoresight(uint16_t X_Pixel, uint16_t Y_Pixel);
-static int tcCameraOneMask(uint8_t MaskNumber, uint16_t Xmin, uint16_t Xmax, uint16_t Ymin, uint16_t Ymax);
-static int tcCameraTwoMask(uint8_t MaskNumber, uint16_t Xmin, uint16_t Xmax, uint16_t Ymin, uint16_t Ymax);
-static int tcCameraOneDistortionCorrection(uint16_t mantissa1, uint8_t exponent1, uint16_t mantissa2, uint8_t exponent2,
-		uint16_t mantissa3, uint8_t exponent3, uint16_t mantissa4, uint8_t exponent4, uint16_t mantissa5, uint8_t exponent5);
-static int tcCameraTwoDistortionCorrection(uint16_t mantissa1, uint8_t exponent1, uint16_t mantissa2, uint8_t exponent2,
-		uint16_t mantissa3, uint8_t exponent3, uint16_t mantissa4, uint8_t exponent4, uint16_t mantissa5, uint8_t exponent5);
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
-int captureAndDownload(void){
-
+/*
+ * Used to Download an image from CubeSense Camera
+ *
+ * @note a capture function must be implemented before this function
+ * @param sram defines which SRAM to use on Cubesense
+ * @param location defines which SRAM slot to use within selected SRAM, 0 = top, 1 = bottom
+ * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
+ * @param image where the entire photo will reside with an image ID
+ * */
+int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *image) {
+	unsigned int startTime;
+	unsigned int currentTime;
+	unsigned int elapsedTime;
+	int imageFrameNum = 1;
 	int error;
+	uint16_t numOfFrames;
+	tlm_image_frame_info_t *imageFrameInfo = {0};
+	tlm_image_frame_t *imageFrame = {0};
 
-	uint8_t timeOutFlag;
-	uint16_t internalCounter;
-
-	uint8_t imagemean;
-
-
-	tlm_telecommand_ack_t *telecommand_ack;
-	tlm_detection_result_and_trigger_t *sensor_two_result;
-	tlm_image_frame_info_t *image_frame_info;
-	tlm_image_frame_t *image_frame;
-
-	// Send Telecommand to Camera to Take a Photo
-	error = tcImageCaputre(SRAM1, BOTTOM_HALVE);
-
-	if (error != SUCCESS)
+	// Send telecommand 64 to initialized a download
+	error = tcInitImageDownload(sram,location,size);
+	if (error != SUCCESS){
 		return error;
-
-	// Request telecommand acknowledgment with TLM 3
-   error = tlmTelecommandAcknowledge(telecommand_ack);
-
-	if (error != SUCCESS)
-		return error;
-
-	// Confirm there was a Successful telecommand
-	if(telecommand_ack->tc_error_flag == TC_NO_ERROR) {
-
-		// Request for sensor 2 (Camera) results
-		error = tlmSensorTwoResult(sensor_two_result);
-
-			if (error != SUCCESS)
-				return error;
 	}
 
-	// If there was a successful image capture, proceed with execution
-	if (sensor_two_result->captureResult == SUCCESSFULLY_CAPTURED) {
+	// From size of image download determine loop variable
+	switch(size) {
+		case 0: numOfFrames = 8192; break;
+		case 1: numOfFrames = 2048; break;
+		case 2: numOfFrames = 512; break;
+		case 3: numOfFrames = 128; break;
+		case 4: numOfFrames = 32; break;
+		default: numOfFrames = 32; break;
+	}
 
-		// Initialize image download to the Bottom half of SRAM 1
-		error = tcInitImageDownload(SRAM1,BOTTOM_HALVE,SIZE_SELECTION_64);
+	// Reset all parameters
+	startTime = 0;
+	currentTime = 0;
+	elapsedTime = 0;
+	imageFrameNum = 1;
+	memset(image->imageFrames,0,sizeof(image->imageFrames));
 
-		if (error != SUCCESS)
-			return error;
+	// Loop for the amount of frames that are being downloaded
+	for (uint16_t i = 0; i < numOfFrames; i++){
 
-		// Request telecommand acknowledgment
-	   error = tlmTelecommandAcknowledge(telecommand_ack);
+		// Start a timer and record start time, resets timer on function call
+		RTT_start();
+		startTime = RTT_GetTime();
 
-		if (error != SUCCESS)
-			return error;
+		// Need to wait until on board camera buffer empties for frame, timer used as a back up to ensure we dont deadlock, set for 2 seconds
+		while((imageFrameNum != 0) || (elapsedTime <= 2)) {
 
-		// Confirm there was a Successful telecommand
-		if(telecommand_ack->tc_error_flag == TC_NO_ERROR) {
-
-			// Wait until there are no frames loaded into download buffer
-			internalCounter = 0;
-			while (timeOutFlag != 1) {
-
-				// Request image frame info with TLM 65
-				error = tlmImageFrameInfo(image_frame_info);
-
-				// Checks to see if there are image frames in the download buffer
-				 if(image_frame_info->imageFrameNumber == EMPTY_FRAME_BUFFER){
-					 timeOutFlag = 1;
-				 }
-
-				 // Internal counter to ensure we dont deadlock ourselves
-				 if (internalCounter >= MAX_COUNTER_AMOUNT) {
-					 timeOutFlag = 1;
-					 internalCounter = 0;
-				 }
-				 internalCounter++;
-
+			// Request Telemetry 65 To get the status of image frame buffer
+			error = tlmImageFrameInfo(imageFrameInfo);
+			if(error != SUCCESS){
+				return error;
 			}
 
-			// Confirm that the download buffer is emopty
-			if(image_frame_info->imageFrameNumber == EMPTY_FRAME_BUFFER){
+			imageFrameNum = imageFrameInfo->imageFrameNumber;
 
-				// Recieve the image frames
-				error = tlmImageFrame(image_frame);
+			currentTime = RTT_GetTime();
+			elapsedTime = currentTime - startTime;
 
-				if (error != 0)
-					return error;
-
-			}
-
-			return SUCCESS;
 		}
 
+		// Collect Image Frame with TLM 64
+		error = tlmImageFrame(imageFrame);
+		if(error != SUCCESS){
+			return error;
+		}
 
-	return E_GENERIC;
+		// Store Image Frame inside master struct
+		image->imageFrames[i] = *imageFrame;
 
+		// Advance Image Download to Continue to the next Frame
+		error = tcAdvanceImageDownload(i);
+		if(error != SUCCESS){
+			return error;
+		}
 	}
-}
 
+	// Give the image an ID
+	image->image_ID = sram + location;
+
+	return SUCCESS;
+}
 
 /*
  * Used to created a 3D vector from a detection of both sensors
@@ -269,10 +307,10 @@ int detectionAndInterpret(detection_results_t *data){
 	uint16_t betaSunSensor;
 	uint16_t alphaImageSensor;
 	uint16_t betaImageSensor;
-	tlm_detection_result_and_trigger_adcs_t *sun_sensor_data;
-	tlm_detection_result_and_trigger_adcs_t *image_sensor_data;
-	interpret_detection_result_t sun_sensor_coords;
-	interpret_detection_result_t image_sensor_coords;
+	tlm_detection_result_and_trigger_adcs_t *sun_sensor_data = {0};
+	tlm_detection_result_and_trigger_adcs_t *image_sensor_data = {0};
+	interpret_detection_result_t sun_sensor_coords = {0};
+	interpret_detection_result_t image_sensor_coords = {0};
 
 
 	// Send Telecommand 20, Image Capture and Detection for camera 1, Sun sensor
@@ -358,9 +396,9 @@ int detectionAndInterpret(detection_results_t *data){
  */
 int cameraTelemetry(CameraTelemetry *cameraTelemetry) {
 	int error;
-	tlm_status_t *tlmStatusStruct;
-	tlm_power_t *tlmPowerStruct;
-	tlm_config_t *tlmConfigStruct;
+	tlm_status_t *tlmStatusStruct = {0};
+	tlm_power_t *tlmPowerStruct = {0};
+	tlm_config_t *tlmConfigStruct = {0};
 
 	// Grab All telemetry and check if successful while doing so
 	error = tlmStatus(tlmStatusStruct);
@@ -399,13 +437,63 @@ int cameraTelemetry(CameraTelemetry *cameraTelemetry) {
 	cameraTelemetry->cameraTwoTelemetry.exposure = tlmConfigStruct->cameraTwoExposure;
 	cameraTelemetry->cameraTwoTelemetry.redGain = tlmConfigStruct->cameraTwoRedGain;
 
-
+	return SUCCESS;
 
 }
 
+/*
+ * In the case the ground station wants to adjust camera settings
+ *
+ * @param cameraTelemetry a struct that will contain the values that want to be adjusted
+ * */
 int cameraConfig(CameraTelemetry *cameraTelemetry) {
+	int error;
 
-	return 0;
+	// Update Auto adjust for camera one
+	error = tcCameraOneAutoAdjust(cameraTelemetry->cameraOneTelemetry.autoAdjustMode);
+	if(error != SUCCESS){
+		return error;
+	}
+
+	// Update Auto adjust for camera two
+	error = tcCameraTwoAutoAdjust(cameraTelemetry->cameraTwoTelemetry.autoAdjustMode);
+	if (error != SUCCESS){
+		return error;
+	}
+
+	// Update detection Threshold for camera one
+	error = tcCameraOneDetectionThreshold(cameraTelemetry->cameraOneTelemetry.detectionThreshold);
+	if (error != SUCCESS){
+		return error;
+	}
+
+	// Update detection Threshold for camera two
+	error = tcCameraTwoDetectionThreshold(cameraTelemetry->cameraTwoTelemetry.detectionThreshold);
+	if (error != SUCCESS){
+		return error;
+	}
+
+	// Update camera one settings
+	error = tcCameraOneSettings(cameraTelemetry->cameraOneTelemetry.exposure,
+				cameraTelemetry->cameraOneTelemetry.autoGainControl,
+				cameraTelemetry->cameraOneTelemetry.blueGain,
+				cameraTelemetry->cameraOneTelemetry.redGain);
+	if(error != SUCCESS){
+		return SUCCESS;
+	}
+
+	// Update camera Two settings
+	error = tcCameraTwoSettings(cameraTelemetry->cameraTwoTelemetry.exposure,
+				cameraTelemetry->cameraTwoTelemetry.autoGainControl,
+				cameraTelemetry->cameraTwoTelemetry.blueGain,
+				cameraTelemetry->cameraTwoTelemetry.redGain);
+	if(error != SUCCESS){
+		return SUCCESS;
+	}
+
+
+
+	return SUCCESS;
 }
 
 /***************************************************************************************************
@@ -634,136 +722,51 @@ static int tlmConfig(tlm_config_t *telemetry_reply) {
 }
 
 /*
- * Used to retrieve the mask configuration of Sensor one of the Camera (TLM ID 72)
+ * Used to receive telemetry for image frame (TLM ID 64)
  *
  * @param telemetry_reply struct that holds all the information from the telemetry response
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
-static int tlmReadSensorOneMask(tlm_read_sensor_mask_t *telemetry_reply) {
+int tlmImageFrame(tlm_image_frame_t *telemetry_reply) {
 	uint8_t* telemetryBuffer;
 	uint16_t sizeOfBuffer;
 	int error;
+
+	// ensure the input pointers are not NULL
+	if (telemetry_reply == 0)
+		return E_GENERIC;
 
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
 	telemetryBuffer = MessageBuilder(TELEMETRY_REQUEST_LEN);
 	sizeOfBuffer = TELEMETRY_REQUEST_LEN + BASE_MESSAGE_LEN;
 
     // Fill buffer with telemetry ID
-	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_72;
+	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_64;
 
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
+	if (error != 0){
+		free(telemetryBuffer);
+		return E_GENERIC;
+	}
+
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
 
-    // Error Check on uartTransmit
-	if (error != 0)
-		return error;
-
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
-	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_40);
+	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_1);
 
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
-	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_72_LEN);
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_64_LEN);
 
-	// Error Check on uartRecieve, if error, free allocated buffer
 	if (error != 0){
 		free(telemetryBuffer);
-		return error;
+		return E_GENERIC;
 	}
 
 	// Fill telemetry reply, data from uart read starts at index two
-	memcpy(&telemetry_reply->MinXAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->MinXAreaOne));
-	memcpy(&telemetry_reply->MaxXAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->MaxXAreaOne));
-	memcpy(&telemetry_reply->MinYAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_4], sizeof(telemetry_reply->MinYAreaOne));
-	memcpy(&telemetry_reply->MaxYAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_6], sizeof(telemetry_reply->MaxYAreaOne));
-	memcpy(&telemetry_reply->MinXAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_8], sizeof(telemetry_reply->MinXAreaTwo));
-	memcpy(&telemetry_reply->MaxXAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_10], sizeof(telemetry_reply->MaxXAreaTwo));
-	memcpy(&telemetry_reply->MinYAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_12], sizeof(telemetry_reply->MinYAreaTwo));
-	memcpy(&telemetry_reply->MaxYAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_14], sizeof(telemetry_reply->MaxYAreaTwo));
-	memcpy(&telemetry_reply->MinXAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_16], sizeof(telemetry_reply->MinXAreaThree));
-	memcpy(&telemetry_reply->MaxXAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_18], sizeof(telemetry_reply->MaxXAreaThree));
-	memcpy(&telemetry_reply->MinYAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_20], sizeof(telemetry_reply->MinYAreaThree));
-	memcpy(&telemetry_reply->MaxYAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_22], sizeof(telemetry_reply->MaxYAreaThree));
-	memcpy(&telemetry_reply->MinXAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_24], sizeof(telemetry_reply->MinXAreaFourth));
-	memcpy(&telemetry_reply->MaxXAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_26], sizeof(telemetry_reply->MaxXAreaFourth));
-	memcpy(&telemetry_reply->MinYAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_28], sizeof(telemetry_reply->MinYAreaFourth));
-	memcpy(&telemetry_reply->MaxYAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_30], sizeof(telemetry_reply->MaxYAreaFourth));
-	memcpy(&telemetry_reply->MinXAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_32], sizeof(telemetry_reply->MinXAreaFifth));
-	memcpy(&telemetry_reply->MaxXAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_34], sizeof(telemetry_reply->MaxXAreaFifth));
-	memcpy(&telemetry_reply->MinYAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_36], sizeof(telemetry_reply->MinYAreaFifth));
-	memcpy(&telemetry_reply->MaxYAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_38], sizeof(telemetry_reply->MaxYAreaFifth));
-
-
-	// Free the dynamically allocated buffer
-	free(telemetryBuffer);
-
-	return SUCCESS;
-}
-
-/*
- * Used to retrieve the mask configuration of Sensor one of the Camera (TLM ID 73)
- *
- * @param telemetry_reply struct that holds all the information from the telemetry response
- * @return error of telecommand attempt. 0 on success, otherwise failure
- * */
-static int tlmReadSensorTwoMask(tlm_read_sensor_mask_t *telemetry_reply) {
-	uint8_t* telemetryBuffer;
-	uint16_t sizeOfBuffer;
-	int error;
-
-	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
-	telemetryBuffer = MessageBuilder(TELEMETRY_REQUEST_LEN);
-	sizeOfBuffer = TELEMETRY_REQUEST_LEN + BASE_MESSAGE_LEN;
-
-    // Fill buffer with telemetry ID
-	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_73;
-
-    // Send Telemetry Request
-	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
-
-	// Free the dynamically allocated buffer
-	free(telemetryBuffer);
-
-    // Error Check on uartTransmit
-	if (error != 0)
-		return error;
-
-	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
-	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_40);
-
-    // Reading Automatic reply from CubeSense regarding status of Telemetry request
-	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_73_LEN);
-
-	// Error Check on uartRecieve, if error, free allocated buffer
-	if (error != 0){
-		free(telemetryBuffer);
-		return error;
-	}
-
-	// Fill telemetry reply, data from uart read starts at index two
-	memcpy(&telemetry_reply->MinXAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->MinXAreaOne));
-	memcpy(&telemetry_reply->MaxXAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->MaxXAreaOne));
-	memcpy(&telemetry_reply->MinYAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_4], sizeof(telemetry_reply->MinYAreaOne));
-	memcpy(&telemetry_reply->MaxYAreaOne, &telemetryBuffer[TELEMETRY_OFFSET_6], sizeof(telemetry_reply->MaxYAreaOne));
-	memcpy(&telemetry_reply->MinXAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_8], sizeof(telemetry_reply->MinXAreaTwo));
-	memcpy(&telemetry_reply->MaxXAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_10], sizeof(telemetry_reply->MaxXAreaTwo));
-	memcpy(&telemetry_reply->MinYAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_12], sizeof(telemetry_reply->MinYAreaTwo));
-	memcpy(&telemetry_reply->MaxYAreaTwo, &telemetryBuffer[TELEMETRY_OFFSET_14], sizeof(telemetry_reply->MaxYAreaTwo));
-	memcpy(&telemetry_reply->MinXAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_16], sizeof(telemetry_reply->MinXAreaThree));
-	memcpy(&telemetry_reply->MaxXAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_18], sizeof(telemetry_reply->MaxXAreaThree));
-	memcpy(&telemetry_reply->MinYAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_20], sizeof(telemetry_reply->MinYAreaThree));
-	memcpy(&telemetry_reply->MaxYAreaThree, &telemetryBuffer[TELEMETRY_OFFSET_22], sizeof(telemetry_reply->MaxYAreaThree));
-	memcpy(&telemetry_reply->MinXAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_24], sizeof(telemetry_reply->MinXAreaFourth));
-	memcpy(&telemetry_reply->MaxXAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_26], sizeof(telemetry_reply->MaxXAreaFourth));
-	memcpy(&telemetry_reply->MinYAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_28], sizeof(telemetry_reply->MinYAreaFourth));
-	memcpy(&telemetry_reply->MaxYAreaFourth, &telemetryBuffer[TELEMETRY_OFFSET_30], sizeof(telemetry_reply->MaxYAreaFourth));
-	memcpy(&telemetry_reply->MinXAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_32], sizeof(telemetry_reply->MinXAreaFifth));
-	memcpy(&telemetry_reply->MaxXAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_34], sizeof(telemetry_reply->MaxXAreaFifth));
-	memcpy(&telemetry_reply->MinYAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_36], sizeof(telemetry_reply->MinYAreaFifth));
-	memcpy(&telemetry_reply->MaxYAreaFifth, &telemetryBuffer[TELEMETRY_OFFSET_38], sizeof(telemetry_reply->MaxYAreaFifth));
-
+	memcpy(&telemetry_reply->image_bytes, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->image_bytes));
 
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
@@ -1135,414 +1138,3 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 	return SUCCESS;
 }
 
-
-/*
- * Used to adjust the boresight pixel location for camera one (TC ID 50)
- *
- * @param X_Pixel 100 * (X_Pixel location of CAM1 boresight)
- * @param Y_Pixel 100 * (X_Pixel location of CAM1 boresight)
- * @return error of telecommand. 0 on success, otherwise failure
- */
-static int tcCameraOneBoresight(uint16_t X_Pixel, uint16_t Y_Pixel) {
-	uint8_t *telecommandBuffer;
-	uint8_t *telecommandResponse;
-	uint16_t sizeOfBuffer;
-	uint8_t tcErrorFlag;
-	int error;
-
-	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
-	telecommandBuffer = MessageBuilder(TELECOMMAND_50_LEN);
-	sizeOfBuffer = TELECOMMAND_50_LEN + BASE_MESSAGE_LEN;
-
-	// Fill buffer with Telecommand ID
-	telecommandBuffer[TELECOMMAND_OFFSET_ID] = TELECOMMAND_50;
-
-	// Fill buffer with X_pixel
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_0], &X_Pixel, sizeof(X_Pixel));
-
-	// Fill buffer with Y_pixel
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_2], &Y_Pixel, sizeof(Y_Pixel));
-
-    // Send Telemetry Request
-	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
-
-	if (error != 0){
-		return E_GENERIC;
-	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
-
-	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
-	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
-	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
-
-	// Read automatically reply to telecommand
-	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
-
-	if (error != 0){
-		return E_GENERIC;
-	}
-
-	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
-
-	// Free the dynamically allocated buffer
-	free(telecommandResponse);
-
-	if (tcErrorFlag != 0){
-		return E_GENERIC;
-	}
-
-	return SUCCESS;
-}
-
-/*
- * Used to adjust the boresight pixel location for camera one (TC ID 51)
- *
- * @param X_Pixel 100 * (X_Pixel location of CAM2 boresight)
- * @param Y_Pixel 100 * (X_Pixel location of CAM2 boresight)
- * @return error of telecommand. 0 on success, otherwise failure
- */
-static int tcCameraTwoBoresight(uint16_t X_Pixel, uint16_t Y_Pixel) {
-	uint8_t *telecommandBuffer;
-	uint8_t *telecommandResponse;
-	uint16_t sizeOfBuffer;
-	uint8_t  tcErrorFlag;
-	int error;
-
-	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
-	telecommandBuffer = MessageBuilder(TELECOMMAND_51_LEN);
-	sizeOfBuffer = TELECOMMAND_51_LEN + BASE_MESSAGE_LEN;
-
-	// Fill buffer with Telecommand ID
-	telecommandBuffer[TELECOMMAND_OFFSET_ID] = TELECOMMAND_51;
-
-	// Fill buffer with X_pixel
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_0], &X_Pixel, sizeof(X_Pixel));
-
-	// Fill buffer with Y_pixel
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_2], &Y_Pixel, sizeof(Y_Pixel));
-
-    // Send Telemetry Request
-	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
-
-	if (error != 0){
-		return E_GENERIC;
-	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
-
-	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
-	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
-	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
-
-	// Read automatically reply to telecommand
-	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
-
-	if (error != 0){
-		return E_GENERIC;
-	}
-
-	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
-
-	// Free the dynamically allocated buffer
-	free(telecommandResponse);
-
-	if (tcErrorFlag != 0){
-		return E_GENERIC;
-	}
-
-	return SUCCESS;
-}
-
-/*
- * Used to set the mask for Camera 1
- *
- * @param MaskNumber Number indicating which of 5 (0 - 4) areas will be specified
- * @param Xmin Lower X limit of specified masked area
- * @param Xmax Upper X limit of specified masked area
- * @param Ymin Lower Y limit of specified masked area
- * @param Ymax Upper Y limit of specified masked area
- * @return error of telecommand. 0 on success, otherwise failure
- */
-static int tcCameraOneMask(uint8_t MaskNumber, uint16_t Xmin, uint16_t Xmax, uint16_t Ymin, uint16_t Ymax) {
-	uint8_t *telecommandBuffer;
-	uint8_t *telecommandResponse;
-	uint16_t sizeOfBuffer;
-	uint8_t tcErrorFlag;
-	int error;
-
-	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
-	telecommandBuffer = MessageBuilder(TELECOMMAND_52_LEN);
-	sizeOfBuffer = TELECOMMAND_52_LEN + BASE_MESSAGE_LEN;
-
-	// Fill buffer with Telecommand ID
-	telecommandBuffer[TELECOMMAND_OFFSET_ID] = TELECOMMAND_52;
-
-	// Fill buffer
-	telecommandBuffer[TELECOMMAND_OFFSET_0] = MaskNumber;
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_1], &Xmin, sizeof(Xmin));
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_3], &Xmax, sizeof(Xmax));
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_5], &Ymin, sizeof(Ymin));
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_7], &Ymax, sizeof(Ymax));
-
-    // Send Telemetry Request
-	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
-
-	if (error != 0){
-		return E_GENERIC;
-	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
-
-	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
-	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
-	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
-
-	// Read automatically reply to telecommand
-	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
-
-	if (error != 0){
-		return E_GENERIC;
-	}
-
-	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
-
-	// Free the dynamically allocated buffer
-	free(telecommandResponse);
-
-	if (tcErrorFlag != 0){
-		return E_GENERIC;
-	}
-
-	return SUCCESS;
-}
-
-/*
- * Used to set the mask for Camera 2
- *
- * @param MaskNumber Number indicating which of 5 (0 - 4) areas will be specified
- * @param Xmin Lower X limit of specified masked area
- * @param Xmax Upper X limit of specified masked area
- * @param Ymin Lower Y limit of specified masked area
- * @param Ymax Upper Y limit of specified masked area
- * @return error of telecommand. 0 on success, otherwise failure
- */
-static int tcCameraTwoMask(uint8_t MaskNumber, uint16_t Xmin, uint16_t Xmax, uint16_t Ymin, uint16_t Ymax) {
-	uint8_t *telecommandBuffer;
-	uint8_t *telecommandResponse;
-	uint16_t sizeOfBuffer;
-	uint8_t tcErrorFlag;
-	int error;
-
-	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
-	telecommandBuffer = MessageBuilder(TELECOMMAND_53_LEN);
-	sizeOfBuffer = TELECOMMAND_53_LEN + BASE_MESSAGE_LEN;
-
-	// Fill buffer with Telecommand ID
-	telecommandBuffer[TELECOMMAND_OFFSET_ID] = TELECOMMAND_53;
-
-	// Fill buffer
-	telecommandBuffer[TELECOMMAND_OFFSET_0] = MaskNumber;
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_1], &Xmin, sizeof(Xmin));
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_3], &Xmax, sizeof(Xmax));
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_5], &Ymin, sizeof(Ymin));
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_7], &Ymax, sizeof(Ymax));
-
-    // Send Telemetry Request
-	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
-
-	if (error != 0){
-		return E_GENERIC;
-	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
-
-	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
-	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
-	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
-
-	// Read automatically reply to telecommand
-	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
-
-	if (error != 0){
-		return E_GENERIC;
-	}
-
-	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
-
-	// Free the dynamically allocated buffer
-	free(telecommandResponse);
-
-	if (tcErrorFlag != 0){
-		return E_GENERIC;
-	}
-
-	return SUCCESS;
-}
-
-/*
- * Used to set to distortion correction coefficients for camera one
- *
- * @param mantissa1 mantissa of coefficient 1
- * @param exponent1 exponent of coefficient 1
- * @param mantissa2 mantissa of coefficient 2
- * @param exponent2 exponent of coefficient 2
- * @param mantissa3 mantissa of coefficient 3
- * @param exponent3 exponent of coefficient 3
- * @param mantissa4 mantissa of coefficient 4
- * @param exponent4 exponent of coefficient 4
- * @param mantissa5 mantissa of coefficient 5
- * @param exponent5 exponent of coefficient 5
- * @return error of telecommand. 0 on success, otherwise failure
- */
-static int tcCameraOneDistortionCorrection(uint16_t mantissa1, uint8_t exponent1, uint16_t mantissa2, uint8_t exponent2,
-		uint16_t mantissa3, uint8_t exponent3, uint16_t mantissa4, uint8_t exponent4, uint16_t mantissa5, uint8_t exponent5) {
-
-	uint8_t *telecommandBuffer;
-	uint8_t *telecommandResponse;
-	uint16_t sizeOfBuffer;
-	uint8_t tcErrorFlag;
-	int error;
-
-	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
-	telecommandBuffer = MessageBuilder(TELECOMMAND_54_LEN);
-	sizeOfBuffer = TELECOMMAND_54_LEN + BASE_MESSAGE_LEN;
-
-	// Fill buffer with Telecommand ID
-	telecommandBuffer[TELECOMMAND_OFFSET_ID] = TELECOMMAND_54;
-
-	// Fill buffer
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_0], &mantissa1, sizeof(mantissa1));
-	telecommandBuffer[TELECOMMAND_OFFSET_2] = exponent1;
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_3], &mantissa2, sizeof(mantissa2));
-	telecommandBuffer[TELECOMMAND_OFFSET_5] = exponent2;
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_6], &mantissa3, sizeof(mantissa3));
-	telecommandBuffer[TELECOMMAND_OFFSET_8] = exponent3;
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_9], &mantissa4, sizeof(mantissa4));
-	telecommandBuffer[TELECOMMAND_OFFSET_11] = exponent4;
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_12], &mantissa5, sizeof(mantissa5));
-	telecommandBuffer[TELECOMMAND_OFFSET_14] = exponent5;
-
-
-    // Send Telemetry Request
-	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
-
-	if (error != 0){
-		return E_GENERIC;
-	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
-
-	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
-	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
-	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
-
-	// Read automatically reply to telecommand
-	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
-
-	if (error != 0){
-		return E_GENERIC;
-	}
-
-	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
-
-	// Free the dynamically allocated buffer
-	free(telecommandResponse);
-
-	if (tcErrorFlag != 0){
-		return E_GENERIC;
-	}
-
-	return SUCCESS;
-
-}
-
-
-/*
- * Used to set to distortion correction coefficients for camera two
- *
- * @param mantissa1 mantissa of coefficient 1
- * @param exponent1 exponent of coefficient 1
- * @param mantissa2 mantissa of coefficient 2
- * @param exponent2 exponent of coefficient 2
- * @param mantissa3 mantissa of coefficient 3
- * @param exponent3 exponent of coefficient 3
- * @param mantissa4 mantissa of coefficient 4
- * @param exponent4 exponent of coefficient 4
- * @param mantissa5 mantissa of coefficient 5
- * @param exponent5 exponent of coefficient 5
- * @return error of telecommand. 0 on success, otherwise failure
- */
-static int tcCameraTwoDistortionCorrection(uint16_t mantissa1, uint8_t exponent1, uint16_t mantissa2, uint8_t exponent2,
-		uint16_t mantissa3, uint8_t exponent3, uint16_t mantissa4, uint8_t exponent4, uint16_t mantissa5, uint8_t exponent5) {
-
-	uint8_t *telecommandBuffer;
-	uint8_t *telecommandResponse;
-	uint16_t sizeOfBuffer;
-	uint8_t tcErrorFlag;
-	int error;
-
-	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
-	telecommandBuffer = MessageBuilder(TELECOMMAND_55_LEN);
-	sizeOfBuffer = TELECOMMAND_55_LEN + BASE_MESSAGE_LEN;
-
-	// Fill buffer with Telecommand ID
-	telecommandBuffer[TELECOMMAND_OFFSET_ID] = TELECOMMAND_55;
-
-	// Fill buffer
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_0], &mantissa1, sizeof(mantissa1));
-	telecommandBuffer[TELECOMMAND_OFFSET_2] = exponent1;
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_3], &mantissa2, sizeof(mantissa2));
-	telecommandBuffer[TELECOMMAND_OFFSET_5] = exponent2;
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_6], &mantissa3, sizeof(mantissa3));
-	telecommandBuffer[TELECOMMAND_OFFSET_8] = exponent3;
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_9], &mantissa4, sizeof(mantissa4));
-	telecommandBuffer[TELECOMMAND_OFFSET_11] = exponent4;
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_12], &mantissa5, sizeof(mantissa5));
-	telecommandBuffer[TELECOMMAND_OFFSET_14] = exponent5;
-
-
-    // Send Telemetry Request
-	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
-
-	if (error != 0){
-		return E_GENERIC;
-	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
-
-	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
-	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
-	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
-
-	// Read automatically reply to telecommand
-	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
-
-	if (error != 0){
-		return E_GENERIC;
-	}
-
-	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
-
-	// Free the dynamically allocated buffer
-	free(telecommandResponse);
-
-	if (tcErrorFlag != 0){
-		return E_GENERIC;
-	}
-
-	return SUCCESS;
-
-}

@@ -35,11 +35,6 @@ typedef struct _tlm_detection_result_and_trigger_t {
 	uint8_t  detectionResult;
 } tlm_detection_result_and_trigger_t;
 
-/* Struct for telemetry image frame, ID 64 */
-typedef struct _tlm_image_frame_t {
-	uint8_t image_bytes[128];
-} tlm_image_frame_t;
-
 /* Struct for telemetry image frame info, ID 65 */
 typedef struct _tlm_image_frame_info_t {
 	uint16_t imageFrameNumber;
@@ -53,15 +48,18 @@ typedef struct _tlm_telecommand_ack_t {
 	uint8_t tc_error_flag;
 } tlm_telecommand_ack_t;
 
+typedef struct _image_t {
+	uint8_t imageID;
+	uint8_t *image;
+} image_t;
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
-int tcAdvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB);
-int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply);
+int tcAdvanceImageDownload(uint16_t nextFrameNumber);
 int tcImageCaputre(uint8_t SRAM, uint8_t location);
 int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply);
 int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply);
 int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size);
-int tlmImageFrame(tlm_image_frame_t *telemetry_reply);
+int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply);
 int calculateMeanOfTheImage(uint8_t *image);

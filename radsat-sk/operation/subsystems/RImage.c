@@ -30,12 +30,10 @@
 
 #define TELEMETRY_3                 	((uint8_t) 0x83)
 #define TELEMETRY_21                 	((uint8_t) 0x95)
-#define TELEMETRY_64                 	((uint8_t) 0xC0)
 #define TELEMETRY_65                 	((uint8_t) 0xC1)
 
 #define TELEMETRY_3_LEN				    ((uint8_t) 7)
 #define TELEMETRY_21_LEN				((uint8_t) 10)
-#define TELEMETRY_64_LEN				((uint8_t) 132)
 #define TELEMETRY_65_LEN				((uint8_t) 7)
 #define TELEMETRY_REQUEST_LEN			((uint8_t) 1)
 #define TELEMETRY_REPLY_SIZE_1			((uint8_t) 1)
@@ -204,8 +202,8 @@ int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply) {
 /*
  * Used to send image capture telecommand (TC ID 64)
  *
- * @param SRAM defines which SRAM to use on Cubesense
- * @param location defines which SRAM slot to use within selected SRAM
+ * @param SRAM defines which SRAM to use on Cubesense, SRAM 1 = 0, SRAM 2 = 1
+ * @param location defines which SRAM slot to use within selected SRAM, 0 = top, 1 = bottom
  * @param size defines the resolution of the image to download, 4 = 64x64, 1 = 512x512, 0 = 1024x1024
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
@@ -268,59 +266,6 @@ int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size) {
 }
 
 /*
- * Used to receive telemetry for image frame (TLM ID 64)
- *
- * @param telemetry_reply struct that holds all the information from the telemetry response
- * @return error of telecommand attempt. 0 on success, otherwise failure
- * */
-int tlmImageFrame(tlm_image_frame_t *telemetry_reply) {
-	uint8_t* telemetryBuffer;
-	uint16_t sizeOfBuffer;
-	int error;
-
-	// ensure the input pointers are not NULL
-	if (telemetry_reply == 0)
-		return E_GENERIC;
-
-	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
-	telemetryBuffer = MessageBuilder(TELEMETRY_REQUEST_LEN);
-	sizeOfBuffer = TELEMETRY_REQUEST_LEN + BASE_MESSAGE_LEN;
-
-    // Fill buffer with telemetry ID
-	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_64;
-
-    // Send Telemetry Request
-	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
-
-	if (error != 0){
-		free(telemetryBuffer);
-		return E_GENERIC;
-	}
-
-	// Free the dynamically allocated buffer
-	free(telemetryBuffer);
-
-	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
-	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_1);
-
-    // Reading Automatic reply from CubeSense regarding status of Telemetry request
-	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_64_LEN);
-
-	if (error != 0){
-		free(telemetryBuffer);
-		return E_GENERIC;
-	}
-
-	// Fill telemetry reply, data from uart read starts at index two
-	memcpy(&telemetry_reply->image_bytes, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->image_bytes));
-
-	// Free the dynamically allocated buffer
-	free(telemetryBuffer);
-
-	return SUCCESS;
-}
-
-/*
  * Used to receive telemetry for image frame (TLM ID 65)
  *
  * @param telemetry_reply struct that holds all the information from the telemetry response
@@ -357,7 +302,7 @@ int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply) {
 	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_3);
 
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
-	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_64_LEN);
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_65_LEN);
 
 	if (error != 0){
 		free(telemetryBuffer);
@@ -377,11 +322,10 @@ int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply) {
 /*
  * Used to send advance image capture telecommand (TC ID 65)
  *
- * @param NextFrameNumLBS is the first 8 bytes for the telecommmand
- * @param NextFrameNumMSB is the last 8 bytes for the telecommand
+ * @param NextFrameNumber number of next frame to be loaded
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
-int tcAdvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
+int tcAdvanceImageDownload(uint16_t nextFrameNumber) {
 	uint8_t *telecommandBuffer;
 	uint8_t *telecommandResponse;
 	uint16_t sizeOfBuffer;
@@ -395,11 +339,8 @@ int tcAdvanceImageDownload(uint8_t NextFrameNumLBS, uint8_t NextFrameNumMSB) {
 	// Fill buffer with Telecommand ID
 	telecommandBuffer[TELECOMMAND_OFFSET_ID] = TELECOMMAND_65;
 
-    // Fill buffer with Next frame number lsb
-	telecommandBuffer[TELECOMMAND_OFFSET_0] = NextFrameNumLBS;
-
-	// Fill buffer with SRAMNext frame number MSB
-	telecommandBuffer[TELECOMMAND_OFFSET_1] = NextFrameNumMSB;
+	// Fill buffer with Next frame number
+	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_0], nextFrameNumber, sizeof(nextFrameNumber));
 
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
