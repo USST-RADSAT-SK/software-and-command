@@ -4,22 +4,27 @@
  * @author Tyrel Kostyk (tck290) and Isaac Poirier (iap992)
  */
 
+#include <RDosimeterCollectionTask.h>
 #include <RDosimeter.h>
+#include <RCommon.h>
+
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
 
 /***************************************************************************************************
-                                            DEFINITIONS
+                                   DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
 
-#define DOSIMETER_READINGS_PER_DAY	(6)
-#define MS_PER_DAY					(1000 * 60 * 60 * 24)
-#define DOSIMETER_DELAY_MS			(MS_PER_DAY / DOSIMETER_READINGS_PER_DAY)
+/** How many dosimeter payload readings to collect per day. */
+#define DOSIMETER_READINGS_PER_DAY			(6)
+
+/** Dosimeter Collection Task delay (in ms). */
+#define DOSIMETER_COLLECTION_TASK_DELAY_MS	(MS_PER_DAY / DOSIMETER_READINGS_PER_DAY)
 
 
 /***************************************************************************************************
-                                             PUBLIC API
+                                           FREERTOS TASKS
 ***************************************************************************************************/
 
 void DosimeterCollectionTask(void* parameters) {
@@ -33,14 +38,15 @@ void DosimeterCollectionTask(void* parameters) {
 
 		// TODO: check flags (once they exist) to prevent running this task during communication mode
 
+		debugPrint("DosimeterCollectionTask(): About to collect Dosimeter payload data.\n");
+
 		// collect all readings from dosimeter
 		error = dosimeterCollectData();
 
-		// if an error was detected, try again once (if it fails again, no data will be taken this time)
-		if (error)
+		// if an error was detected, try again once more (if it fails again, no data will be taken this time)
+		if (error != 0)
 			dosimeterCollectData();
 
-		// delay
-		vTaskDelay(DOSIMETER_DELAY_MS);
+		vTaskDelay(DOSIMETER_COLLECTION_TASK_DELAY_MS);
 	}
 }
