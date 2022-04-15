@@ -101,7 +101,7 @@ When bringing a new feature into flight code, you must merge your feature branch
 	- This will update your local branch with any changes that were made to the alpha branch since you started working on your feature.
 - Resolve all merge conflicts through the terminal or your IDE. These are where your branch and the current alpha branch are different and you must decide what is used in your PR. Conflicts will be marked similar to this:
 	```
-	<<<<<<< HEAD (Current Cahnge)
+	<<<<<<< HEAD (Current Change)
 	This is an edit on your current branch
 	=======
 	This is an edit on the alpha branch
