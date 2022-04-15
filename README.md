@@ -98,7 +98,8 @@ When bringing a new feature into flight code, you must merge your feature branch
 - Get any remote updates from the remote alpha using ```git pull```
 - Checkout your local branch using ```git checkout <branch-name-you-want-to-PR>```
 - Merge the remote changes to alpha into your local feature branch using ```git merge alpha```
-- Resolve all merge conflicts through the terminal or your IDE. These are where you branch and the current alpha branch are different and you must decide what is used in your PR. Conflicts will be marked similar to this:
+	- This will update your local branch with any changes that were made to the alpha branch since you started working on your feature.
+- Resolve all merge conflicts through the terminal or your IDE. These are where your branch and the current alpha branch are different and you must decide what is used in your PR. Conflicts will be marked similar to this:
 	```
 	<<<<<<< HEAD (Current Cahnge)
 	This is an edit on your current branch
@@ -106,16 +107,16 @@ When bringing a new feature into flight code, you must merge your feature branch
 	This is an edit on the alpha branch
 	>>>>>>> alpha (Incoming Change)
 	```
-- Incomming changes are those from the alpha branch and the current change are what's on your feature branch.
-- As a general rule of thumb, if your branch sin't working on a section with a merge conflict, accept the incomming change.
+- Incoming changes are those from the alpha branch and the current changes are what's on your feature branch.
+- As a general rule of thumb, if your branch doesn't affect a section with a merge conflict, accept the incomming change from ```alpha```.
 - After your conflicts are resolved, commit your local feature branch using ```git commit```
-- Push your local branch to the remote repo using ```git push```
-- To make your pull request, go to the remote repository on your browser. You should see a prompt above the Directory structure promting you to make a PR from a recent branch push. Click on that promtp or go to the "Pull Requests" tab and select "New pull request".
-- Once you've started your PR, Give it a meaningfull name and a comment on what is in the PR. If your PR is associated with any issues, in the comment section, type `close #` followed by the name or number of the issue. This will automatically close and issue once the PR is approved and keeps the repo clean.
-- Add Reviewers to the PR to notify them to look it over and get feedback.
+- Push your local branch to the remote repository using ```git push```
+- To make your pull request, go to the remote repository on your browser. You should see a prompt above the directory structure prompting you to make a PR from a recent branch push. Click on that prompt or go to the "Pull Requests" tab and select "New pull request".
+- Once you've started your PR, Give it a meaningfull name and a comment on what is in the PR. If your PR is associated with any issues, in the comment section, type `close #` followed by the name or number of the issue(s). This will automatically close the issue(S) once the PR is approved and keeps the repo clean.
+- Add Reviewers to the PR to notify them to look it over and get feedback. We require at least two reviewers, but you can assign however many extra you want.
 - Assign yourself and any of your co-workers to the PR to stay up-to-date on the feedback and so we know who to ask about it.
 - Finally click "Create Pull Request"
-- All PRs will have to be explained at the next team meeting where you and your co-workers will go over what the prupose of the PR is, what design choices you made and why you made them.
+- All PRs will have to be explained at the next team meeting where you and your co-workers will go over what the prupose of the PR is, what design choices you made, and why you made them.
 
 ## Directory Structure
 We have chosen to follow a layered approach to code organization, partitioning our project into six *Layers*. From the top-down:
