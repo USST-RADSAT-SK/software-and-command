@@ -99,11 +99,13 @@ When bringing a new feature into flight code, you must merge your feature branch
 - Checkout your local branch using ```git checkout <branch-name-you-want-to-PR>```
 - Merge the remote changes to alpha into your local feature branch using ```git merge alpha```
 - Resolve all merge conflicts through the terminal or your IDE. These are where you branch and the current alpha branch are different and you must decide what is used in your PR. Conflicts will be marked similar to this:
-	- ```<<<<<<< HEAD (Current Cahnge)
+	```
+	<<<<<<< HEAD (Current Cahnge)
 	This is an edit on your current branch
 	=======
 	This is an edit on the alpha branch
-	>>>>>>> alpha (Incoming Change)```
+	>>>>>>> alpha (Incoming Change)
+	```
 - Incomming changes are those from the alpha branch and the current change are what's on your feature branch.
 - As a general rule of thumb, if your branch sin't working on a section with a merge conflict, accept the incomming change.
 - After your conflicts are resolved, commit your local feature branch using ```git commit```
