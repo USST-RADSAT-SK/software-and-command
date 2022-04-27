@@ -12,21 +12,21 @@
 syntax = "proto3";
 
 // top level File Transfer message object
-message FileTransferMessage {
+message file_transfer_message {
 	oneof message {
-		ObcTelemetry obcTelemetry					= 1;
-		TransceiverTelemetry transceiverTelemetry	= 2;
-		CameraTelemetry cameraTelemetry				= 3;
-		EpsTelemetry epsTelemetry					= 4;
-		BatteryTelemetry batteryTelemetry			= 5;
-		AntennaTelemetry antennaTelemetry			= 6;
-		DosimeterData dosimeterData					= 7;
-		ImagePacket imagePacket						= 8;
+		obc_telemetry obcTelemetry					= 1;
+		transceiver_telemetry transceiverTelemetry	= 2;
+		camera_telemetry cameraTelemetry			= 3;
+		eps_telemetry epsTelemetry					= 4;
+		battery_telemetry batteryTelemetry			= 5;
+		antenna_telemetry antennaTelemetry			= 6;
+		dosimeter_data dosimeterData				= 7;
+		image_packet imagePacket					= 8;
 	}
 }
 
 // Information about the state of the OBC
-message ObcTelemetry {
+message obc_telemetry {
 	uint32 mode				= 1;	///< Mode of operation at time of recording
 	uint32 uptime			= 2;	///< Uptime (in ticks) since last reset (of any kind)
 	uint32 rtcTime			= 3;	///< RTC Time (in unix time; seconds since Unix Epoch)
@@ -34,90 +34,90 @@ message ObcTelemetry {
 }
 
 
+// Telemetry for the Receiver
+message receiver_telemetry {
+	float rx_doppler	= 1; 	///< Rx Telemetry receiver doppler.
+	float rx_rssi		= 2; 	///< Rx Telemetry rssi measurement.
+	float bus_volt		= 3; 	///< Rx Telemetry bus voltage.
+	float vutotal_curr	= 4; 	///< Tx Telemetry total current.
+	float vutx_curr		= 5; 	///< Tx Telemetry transmitter current.
+	float vurx_curr		= 6; 	///< Tx Telemetry receiver current.
+	float vupa_curr		= 7; 	///< Tx Telemetry power amplifier current.
+	float pa_temp		= 8; 	///< Rx Telemetry power amplifier temperature
+	float board_temp	= 9; 	///< Rx Telemetry board temperature.
+	uint32 uptime		= 10;	///< Rx Uptime in Seconds.
+	uint32 frames		= 11;	///< Rx Frames currently in Receive Buffer.
+}
+
+// Telemetry for the Transmitter
+message transmitter_telemetry {
+	float tx_reflpwr	= 1; 	///< Tx Telemetry reflected power.
+	float tx_fwrdpwr	= 2; 	///< Tx Telemetry forward power.
+	float bus_volt		= 3; 	///< Tx Telemetry bus voltage.
+	float vutotal_curr	= 4; 	///< Tx Telemetry total current.
+	float vutx_curr		= 5; 	///< Tx Telemetry transmitter current.
+	float vurx_curr		= 6; 	///< Tx Telemetry receiver current.
+	float vupa_curr		= 7; 	///< Tx Telemetry power amplifier current.
+	float pa_temp		= 8; 	///< Tx Telemetry power amplifier temperature.
+	float board_temp	= 9; 	///< Tx Telemetry board temperature.
+	uint32 uptime		= 10;	///< Tx Uptime in Seconds.
+}
 
 // Information about the state of the Transceiver
-message TransceiverTelemetry {
-	// Telemetry for the Receiver
-	message receiverTelemetry {
-		float rx_doppler	= 1; 	///< Rx Telemetry receiver doppler.
-		float rx_rssi		= 2; 	///< Rx Telemetry rssi measurement.
-		float bus_volt		= 3; 	///< Rx Telemetry bus voltage.
-		float vutotal_curr	= 4; 	///< Tx Telemetry total current.
-		float vutx_curr		= 5; 	///< Tx Telemetry transmitter current.
-		float vurx_curr		= 6; 	///< Tx Telemetry receiver current.
-		float vupa_curr		= 7; 	///< Tx Telemetry power amplifier current.
-		float pa_temp		= 8; 	///< Rx Telemetry power amplifier temperature
-		float board_temp	= 9; 	///< Rx Telemetry board temperature.
-		uint32 uptime		= 10;	///< Rx Uptime in Seconds.
-		uint32 frames		= 11;	///< Rx Frames currently in Receive Buffer.
-	}
-
-	// Telemetry for the Transmitter
-	message transmitterTelemetry {
-		float tx_reflpwr	= 1; 	///< Tx Telemetry reflected power.
-		float tx_fwrdpwr	= 2; 	///< Tx Telemetry forward power.
-		float bus_volt		= 3; 	///< Tx Telemetry bus voltage.
-		float vutotal_curr	= 4; 	///< Tx Telemetry total current.
-		float vutx_curr		= 5; 	///< Tx Telemetry transmitter current.
-		float vurx_curr		= 6; 	///< Tx Telemetry receiver current.
-		float vupa_curr		= 7; 	///< Tx Telemetry power amplifier current.
-		float pa_temp		= 8; 	///< Tx Telemetry power amplifier temperature.
-		float board_temp	= 9; 	///< Tx Telemetry board temperature.
-		uint32 uptime		= 10;	///< Tx Uptime in Seconds.
-	}
-
-	receiverTelemetry receiver 			= 1;	///< Receiver Telemetry
-	transmitterTelemetry transmitter	= 2;	///< Transmitter Telemetry
+message transceiver_telemetry {
+	receiver_telemetry receiver 		= 1;	///< Receiver Telemetry
+	transmitter_telemetry transmitter	= 2;	///< Transmitter Telemetry
 }
 
 // Information about the state of the Camera
-message CameraTelemetry {
+message camera_telemetry {
 	uint32 upTime	= 1;	///< Local uptime (since last startup) in seconds
 }
 
 // Information about the state of the Electrical Power Supply
-message EpsTelemetry {
+message eps_telemetry {
 
 }
 
 // Information about the state of the Battery
-message BatteryTelemetry {
+message battery_telemetry {
 
 }
 
 // Information about the state of the Antenna
-message AntennaTelemetry {
+message antenna_telemetry {
 
 }
 
+message dosimeter_board_data {
+	float ChannelZero	= 1;	///< COTS 2048mV REF IC, Shielding: none
+	float ChannelOne		= 2;	///< COTS 2048mV REF IC, Shielding: 50 mil
+	float ChannelTwo		= 3;	///< COTS 2048mV REF IC, Shielding: 100 mil
+	float ChannelThree	= 4;	///< COTS 2048mV REF IC, Shielding: 200 mil
+	float ChannelFour	= 5;	///< COTS 2048mV REF IC, Shielding: 20 mil
+	float ChannelFive	= 6;	///< RADFET Experimental Dosimeter, Shielding: none
+	float ChannelSix		= 7;	///< COTS 2048mV REF IC, Shielding: 300 mil
+	float ChannelSeven	= 8;	///< Temperature Sensor
+}
 
 // Dosimeter Payload Data (both boards)
-message DosimeterData {
+message dosimeter_data {
 	// Payload Data for a single Dosimeter board
-	message DosimeterBoardData {
-		float voltageChannelZero	= 1;	///< COTS 2048mV REF IC, Shielding: none
-		float voltageChannelOne		= 2;	///< COTS 2048mV REF IC, Shielding: 50 mil
-		float voltageChannelTwo		= 3;	///< COTS 2048mV REF IC, Shielding: 100 mil
-		float voltageChannelThree	= 4;	///< COTS 2048mV REF IC, Shielding: 200 mil
-		float voltageChannelFour	= 5;	///< COTS 2048mV REF IC, Shielding: 20 mil
-		float voltageChannelFive	= 6;	///< RADFET Experimental Dosimeter, Shielding: none
-		float voltageChannelSix		= 7;	///< COTS 2048mV REF IC, Shielding: 300 mil
-		float voltageChannelSeven	= 8;	///< Temperature Sensor
-	}
 
-	DosimeterBoardData boardOne	= 1;	///< Payload Data from the first Dosimeter Board ("bottom" of the Satellite, beneath OBC)
-	DosimeterBoardData boardTwo	= 2;	///< Payload Data from the second Dosimeter Board ("top" of the Satellite, beneath Antenna)
+	dosimeter_board_data boardOne	= 1;	///< Payload Data from the first Dosimeter Board ("bottom" of the Satellite, beneath OBC)
+	dosimeter_board_data boardTwo	= 2;	///< Payload Data from the second Dosimeter Board ("top" of the Satellite, beneath Antenna)
+}
+
+enum image_type {
+	fullResolution		= 0;	///< 1024 x 1024 = 1MB
+	halfResolution		= 1;	///< 512  x 512  = 256kB
+	quarterResolution	= 2;	///< 256  x 256  = 64kB
+	thumbnail			= 3;	///< 64   x 64   = 4kB
 }
 
 // Image Packet
-message ImagePacket {
+message image_packet {
 	uint32 id			= 1;	///< ID of the image
-	enum image_type_t {
-		fullResolution		= 0;	///< 1024 x 1024 = 1MB
-		halfResolution		= 1;	///< 512  x 512  = 256kB
-		quarterResolution	= 2;	///< 256  x 256  = 64kB
-		thumbnail			= 3;	///< 64   x 64   = 4kB
-	}
-	image_type_t type	= 2;	///< Size of the image
+	image_type type		= 2;	///< Size of the image
 	bytes data			= 3;	///< The raw image data
 }

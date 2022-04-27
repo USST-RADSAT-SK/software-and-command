@@ -12,17 +12,17 @@
 syntax = "proto3";
 
 // top level File Transfer message object
-message ProtocolMessage {
+message protocol_message {
 	oneof message {
-		Ack ack     = 1;
-		Nack nack   = 2;
+		ack ack     = 1;
+		nack nack   = 2;
 	}
 }
 
 // Positive Acknowledgement
-message Ack {
+message ack {
 }
 
 // Negative Acknowledgement
-message Nack {
+message nack {
 }
