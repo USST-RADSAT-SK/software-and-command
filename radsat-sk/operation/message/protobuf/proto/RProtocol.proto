@@ -14,8 +14,8 @@ syntax = "proto3";
 // top level File Transfer message object
 message protocol_message {
 	oneof message {
-		ack ack     = 1;
-		nack nack   = 2;
+		ack Ack     = 1;
+		nack Nack   = 2;
 	}
 }
 

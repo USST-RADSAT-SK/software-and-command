@@ -15,11 +15,11 @@
 /**
  * Encode (serialize) a raw protobuf message with NanoPB into a buffer.
  *
- * @param rawMessage The raw (non-serialized) RadsatMessage struct to encode.
+ * @param rawMessage The raw (non-serialized) radsat_message struct to encode.
  * @param outgoingBuffer The buffer that will hold the encoded message.
  * @return The size of the encoded message (max 255); 0 if encoding failed.
  */
-uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer) {
+uint8_t protoEncode(radsat_message* rawMessage, uint8_t* outgoingBuffer) {
 
 	// ensure incoming buffers are not NULL
 	if (rawMessage == 0 || outgoingBuffer == 0)
@@ -29,7 +29,7 @@ uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer) {
 	pb_ostream_t stream = pb_ostream_from_buffer((uint8_t*)rawMessage, PROTO_MAX_ENCODED_SIZE);
 
 	// encode the message into the byte array
-	if (pb_encode(&stream, RadsatMessage_fields, outgoingBuffer))
+	if (pb_encode(&stream, radsat_message_fields, outgoingBuffer))
 		return stream.bytes_written;
 
 	// if the encoding failed, return 0
@@ -44,7 +44,7 @@ uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer) {
  * @param decodedMessage The message that will be populated with the decoded message.
  * @return 0 if the message is decoded successfully, otherwise error occured.
  */
-int protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage) {
+int protoDecode(uint8_t* incomingBuffer, radsat_message* decodedMessage) {
 
 	// ensure incoming buffers are not NULL
 	if (incomingBuffer == 0 || decodedMessage == 0)
@@ -54,7 +54,7 @@ int protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage) {
 	pb_istream_t stream = pb_istream_from_buffer((uint8_t*)incomingBuffer, PROTO_MAX_ENCODED_SIZE);
 
 	// decode the message into the empty message struct
-	uint8_t success = pb_decode(&stream, RadsatMessage_fields, decodedMessage);
+	uint8_t success = pb_decode(&stream, radsat_message_fields, decodedMessage);
 
 	return !success;
 }

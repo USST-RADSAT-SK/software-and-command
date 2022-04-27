@@ -26,11 +26,11 @@ uint8_t protocolGenerate(uint16_t messageTag, uint8_t* wrappedMessage) {
 		return 0;
 
 	// generate new RADSAT-SK message to serialize
-	RadsatMessage rawMessage = { 0 };
+	radsat_message rawMessage = { 0 };
 
 	// populate the simple protocol message
-	rawMessage.which_service = RadsatMessage_protocolMessage_tag;
-	rawMessage.protocolMessage.which_message = messageTag;
+	rawMessage.which_service = radsat_message_ProtocolMessage_tag;
+	rawMessage.ProtocolMessage.which_message = messageTag;
 
 	// prepare the message
 	uint8_t finalSize = messageWrap(&rawMessage, wrappedMessage);
@@ -54,7 +54,7 @@ uint8_t protocolHandle(uint8_t* wrappedMessage, uint8_t size) {
 		return 0;
 
 	// generate new RADSAT-SK message to populate
-	RadsatMessage rawMessage = { 0 };
+	radsat_message rawMessage = { 0 };
 
 	// unwrap the message
 	uint8_t rawSize = messageUnwrap(wrappedMessage, size, &rawMessage);
@@ -64,11 +64,11 @@ uint8_t protocolHandle(uint8_t* wrappedMessage, uint8_t size) {
 		return 0;
 
 	// exit if this message is not a telecommand message
-	if (rawMessage.which_service != RadsatMessage_protocolMessage_tag)
+	if (rawMessage.which_service != radsat_message_ProtocolMessage_tag)
 		return 0;
 
 	// obtain and return the response
-	uint8_t response = (uint8_t) rawMessage.protocolMessage.which_message;
+	uint8_t response = (uint8_t) rawMessage.ProtocolMessage.which_message;
 
 	return response;
 }

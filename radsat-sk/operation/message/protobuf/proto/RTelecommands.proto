@@ -13,18 +13,18 @@ syntax = "proto3";
 // top level File Transfer message object
 message telecommand_message {
 	oneof message {
-		begin_pass beginPass						= 1;
-		begin_file_transfer beginFileTransfer		= 2;
-		cease_transmission ceaseTransmission		= 3;
-		resume_transmission resumeTransmission		= 4;
-		update_time updateTime						= 5;
-		reset resetDevice							= 6;
+		begin_pass BeginPass					= 1;
+		begin_file_transfer BeginFileTransfer	= 2;
+		cease_transmission CeaseTransmission	= 3;
+		resume_transmission ResumeTransmission	= 4;
+		update_time UpdateTime					= 5;
+		reset Reset								= 6;
 	}
 }
 
 // Inform OBC that it is within the Pass range; Subsequent Telecommands will follow
 message begin_pass {
-	uint32 passLength = 1;
+	uint32 PassLength = 1;
 }
 
 // Inform OBC that there are no more telecommands; Ground Station is ready to receive Files (telemetry, images, etc.)
@@ -33,7 +33,7 @@ message begin_file_transfer {
 
 // Inform the OBC that it is to cease all downlink transmissions immediately (no ACK will follow this message)
 message cease_transmission {
-	uint32 duration = 1;
+	uint32 Duration = 1;
 }
 
 // Inform the OBC that it can end its previous halting of all downlink transmissions
@@ -42,18 +42,18 @@ message resume_transmission {
 
 // Update the OBC's local time on its Real-Time Clock
 message update_time {
-	uint32 unixTime = 1;
+	uint32 UnixTime = 1;
 }
 
 // Instruct the OBC to reset a certain component via Software reset (hard=0) or Power-Cycle (hard=1)
 message reset {
 	enum device_t {
-		obc				= 0;
-		transmitter		= 1;
-		receiver		= 2;
-		antennaSideA	= 3;
-		antennaSideB	= 4;
+		Obc				= 0;
+		Transmitter		= 1;
+		Receiver		= 2;
+		AntennaSideA	= 3;
+		AntennaSideB	= 4;
 	}
-	device_t device	= 1;
-	uint32 hard 	= 2;
+	device_t Device	= 1;
+	uint32 Hard 	= 2;
 }

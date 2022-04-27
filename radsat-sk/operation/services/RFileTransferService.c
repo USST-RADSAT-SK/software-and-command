@@ -114,13 +114,13 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 		return ERROR_CURSOR;
 
 	// create new RADSAT-SK message to populate
-	RadsatMessage newMessage = { 0 };
-	newMessage.which_service = RadsatMessage_fileTransferMessage_tag;
-	newMessage.fileTransferMessage.which_message = messageTag;
+	radsat_message newMessage = { 0 };
+	newMessage.which_service = radsat_message_FileTransferMessage_tag;
+	newMessage.FileTransferMessage.which_message = messageTag;
 
 	// internal message data will go immediately after the "which message" property of the struct
 	// TODO: confirm that this works
-	void* newMessageAddr = &(newMessage.fileTransferMessage.which_message) + sizeof(newMessage.fileTransferMessage.which_message);
+	void* newMessageAddr = &(newMessage.FileTransferMessage.which_message) + sizeof(newMessage.FileTransferMessage.which_message);
 	memcpy(newMessageAddr, message, size);
 
 	// wrap new message

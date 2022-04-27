@@ -142,7 +142,7 @@ int antennaDeploymentAttempt(void) {
 		antennaDeploymentAttempts += 1;
 	}
 
-	// Reset attempt counter for Side B
+	// reset_t attempt counter for Side B
 	antennaDeploymentAttempts = 0;
 
 	// B Side deployment Attempt

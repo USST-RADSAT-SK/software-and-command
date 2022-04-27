@@ -19,8 +19,8 @@ import "proto/RFileTransfer.proto";
 // top level RADSAT message object
 message radsat_message {
 	oneof service {
-		protocol_message protocolMessage 			= 1;
-		file_transfer_message fileTransferMessage	= 2;
-		telecommand_message telecommandMessage		= 3;
+		protocol_message ProtocolMessage 			= 1;
+		file_transfer_message FileTransferMessage	= 2;
+		telecommand_message TelecommandMessage		= 3;
 	}
 }

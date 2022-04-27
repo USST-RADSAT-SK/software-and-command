@@ -14,64 +14,64 @@ syntax = "proto3";
 // top level File Transfer message object
 message file_transfer_message {
 	oneof message {
-		obc_telemetry obcTelemetry					= 1;
-		transceiver_telemetry transceiverTelemetry	= 2;
-		camera_telemetry cameraTelemetry			= 3;
-		eps_telemetry epsTelemetry					= 4;
-		battery_telemetry batteryTelemetry			= 5;
-		antenna_telemetry antennaTelemetry			= 6;
-		dosimeter_data dosimeterData				= 7;
-		image_packet imagePacket					= 8;
+		obc_telemetry ObcTelemetry					= 1;
+		transceiver_telemetry TransceiverTelemetry	= 2;
+		camera_telemetry CameraTelemetry			= 3;
+		eps_telemetry EpsTelemetry					= 4;
+		battery_telemetry BatteryTelemetry			= 5;
+		antenna_telemetry AntennaTelemetry			= 6;
+		dosimeter_data DosimeterData				= 7;
+		image_packet ImagePacket					= 8;
 	}
 }
 
 // Information about the state of the OBC
 message obc_telemetry {
-	uint32 mode				= 1;	///< Mode of operation at time of recording
-	uint32 uptime			= 2;	///< Uptime (in ticks) since last reset (of any kind)
-	uint32 rtcTime			= 3;	///< RTC Time (in unix time; seconds since Unix Epoch)
-	uint32 rtcTemperature	= 4;	///< 10bit Temperature recorded by OBC's RTC
+	uint32 Mode				= 1;	///< Mode of operation at time of recording
+	uint32 Uptime			= 2;	///< Uptime (in ticks) since last reset (of any kind)
+	uint32 RtcTime			= 3;	///< RTC Time (in unix time; seconds since Unix Epoch)
+	uint32 RtcTemperature	= 4;	///< 10bit Temperature recorded by OBC's RTC
 }
 
 
 // Telemetry for the Receiver
 message receiver_telemetry {
-	float rx_doppler	= 1; 	///< Rx Telemetry receiver doppler.
-	float rx_rssi		= 2; 	///< Rx Telemetry rssi measurement.
-	float bus_volt		= 3; 	///< Rx Telemetry bus voltage.
-	float vutotal_curr	= 4; 	///< Tx Telemetry total current.
-	float vutx_curr		= 5; 	///< Tx Telemetry transmitter current.
-	float vurx_curr		= 6; 	///< Tx Telemetry receiver current.
-	float vupa_curr		= 7; 	///< Tx Telemetry power amplifier current.
-	float pa_temp		= 8; 	///< Rx Telemetry power amplifier temperature
-	float board_temp	= 9; 	///< Rx Telemetry board temperature.
-	uint32 uptime		= 10;	///< Rx Uptime in Seconds.
-	uint32 frames		= 11;	///< Rx Frames currently in Receive Buffer.
+	float RxDoppler					= 1; 	///< Rx Telemetry receiver doppler.
+	float RxRssi					= 2; 	///< Rx Telemetry rssi measurement.
+	float BusVoltage				= 3; 	///< Rx Telemetry bus voltage.
+	float TotalCurrent				= 4; 	///< Tx Telemetry total current.
+	float TxCurrent					= 5; 	///< Tx Telemetry transmitter current.
+	float RxCurrent					= 6; 	///< Tx Telemetry receiver current.
+	float PowerAmplifierCurrent		= 7; 	///< Tx Telemetry power amplifier current.
+	float PowerAmplifierTemperature	= 8; 	///< Rx Telemetry power amplifier temperature
+	float BoardTemperature			= 9; 	///< Rx Telemetry board temperature.
+	uint32 Uptime					= 10;	///< Rx Uptime in Seconds.
+	uint32 Frames					= 11;	///< Rx Frames currently in Receive Buffer.
 }
 
 // Telemetry for the Transmitter
 message transmitter_telemetry {
-	float tx_reflpwr	= 1; 	///< Tx Telemetry reflected power.
-	float tx_fwrdpwr	= 2; 	///< Tx Telemetry forward power.
-	float bus_volt		= 3; 	///< Tx Telemetry bus voltage.
-	float vutotal_curr	= 4; 	///< Tx Telemetry total current.
-	float vutx_curr		= 5; 	///< Tx Telemetry transmitter current.
-	float vurx_curr		= 6; 	///< Tx Telemetry receiver current.
-	float vupa_curr		= 7; 	///< Tx Telemetry power amplifier current.
-	float pa_temp		= 8; 	///< Tx Telemetry power amplifier temperature.
-	float board_temp	= 9; 	///< Tx Telemetry board temperature.
-	uint32 uptime		= 10;	///< Tx Uptime in Seconds.
+	float ReflectedPower			= 1; 	///< Tx Telemetry reflected power.
+	float ForwardPower				= 2; 	///< Tx Telemetry forward power.
+	float BusVoltage				= 3; 	///< Tx Telemetry bus voltage.
+	float TotalCurrent				= 4; 	///< Tx Telemetry total current.
+	float TxCurrent					= 5; 	///< Tx Telemetry transmitter current.
+	float RxCurrent					= 6; 	///< Tx Telemetry receiver current.
+	float PowerAmplifierCurrent		= 7; 	///< Tx Telemetry power amplifier current.
+	float PowerAmplifierTemperature	= 8; 	///< Tx Telemetry power amplifier temperature.
+	float BoardTemperature			= 9; 	///< Tx Telemetry board temperature.
+	uint32 Uptime					= 10;	///< Tx Uptime in Seconds.
 }
 
 // Information about the state of the Transceiver
 message transceiver_telemetry {
-	receiver_telemetry receiver 		= 1;	///< Receiver Telemetry
-	transmitter_telemetry transmitter	= 2;	///< Transmitter Telemetry
+	receiver_telemetry Receiver 		= 1;	///< Receiver Telemetry
+	transmitter_telemetry Transmitter	= 2;	///< Transmitter Telemetry
 }
 
 // Information about the state of the Camera
 message camera_telemetry {
-	uint32 upTime	= 1;	///< Local uptime (since last startup) in seconds
+	uint32 UpTime	= 1;	///< Local uptime (since last startup) in seconds
 }
 
 // Information about the state of the Electrical Power Supply
@@ -89,6 +89,7 @@ message antenna_telemetry {
 
 }
 
+// Payload Data for a single Dosimeter board
 message dosimeter_board_data {
 	float ChannelZero	= 1;	///< COTS 2048mV REF IC, Shielding: none
 	float ChannelOne		= 2;	///< COTS 2048mV REF IC, Shielding: 50 mil
@@ -102,22 +103,20 @@ message dosimeter_board_data {
 
 // Dosimeter Payload Data (both boards)
 message dosimeter_data {
-	// Payload Data for a single Dosimeter board
-
-	dosimeter_board_data boardOne	= 1;	///< Payload Data from the first Dosimeter Board ("bottom" of the Satellite, beneath OBC)
-	dosimeter_board_data boardTwo	= 2;	///< Payload Data from the second Dosimeter Board ("top" of the Satellite, beneath Antenna)
+	dosimeter_board_data BoardOne	= 1;	///< Payload Data from the first Dosimeter Board ("bottom" of the Satellite, beneath OBC)
+	dosimeter_board_data BoardTwo	= 2;	///< Payload Data from the second Dosimeter Board ("top" of the Satellite, beneath Antenna)
 }
 
-enum image_type {
-	fullResolution		= 0;	///< 1024 x 1024 = 1MB
-	halfResolution		= 1;	///< 512  x 512  = 256kB
-	quarterResolution	= 2;	///< 256  x 256  = 64kB
-	thumbnail			= 3;	///< 64   x 64   = 4kB
+enum image_type_t {
+	FullResolution		= 0;	///< 1024 x 1024 = 1MB
+	HalfResolution		= 1;	///< 512  x 512  = 256kB
+	QuarterResolution	= 2;	///< 256  x 256  = 64kB
+	Thumbnail			= 3;	///< 64   x 64   = 4kB
 }
 
 // Image Packet
 message image_packet {
-	uint32 id			= 1;	///< ID of the image
-	image_type type		= 2;	///< Size of the image
-	bytes data			= 3;	///< The raw image data
+	uint32 Id			= 1;	///< ID of the image
+	image_type_t Type	= 2;	///< Size of the image
+	bytes Data			= 3;	///< The raw image data
 }

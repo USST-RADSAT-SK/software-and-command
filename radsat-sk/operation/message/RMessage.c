@@ -23,7 +23,7 @@
  * @param wrappedMessage The final wrapped message. Filled by function.
  * @return The total size of the message, including the header. 0 on failure.
  */
-uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage) {
+uint8_t messageWrap(radsat_message* rawMessage, uint8_t* wrappedMessage) {
 
 	// ensure the input pointers are not NULL
 	if (rawMessage == 0 || wrappedMessage == 0)
@@ -64,7 +64,7 @@ uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage) {
  * @param rawMessage The final extracted message. Filled by function.
  * @return The size of the message, not including the header. 0 on failure.
  */
-uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, RadsatMessage* rawMessage) {
+uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* rawMessage) {
 
 	// ensure the input pointers are not NULL
 	if (wrappedMessage == 0 || rawMessage == 0)

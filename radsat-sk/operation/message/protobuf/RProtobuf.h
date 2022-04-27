@@ -18,15 +18,15 @@
 ***************************************************************************************************/
 
 /** The maximum size of a NanoPB encoded message (not including the message header). */
-#define PROTO_MAX_ENCODED_SIZE	((uint16_t)RadsatMessage_size)
+#define PROTO_MAX_ENCODED_SIZE	((uint16_t)radsat_message_size)
 
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
-uint8_t protoEncode(RadsatMessage* rawMessage, uint8_t* outgoingBuffer);
-int protoDecode(uint8_t* incomingBuffer, RadsatMessage* decodedMessage);
+uint8_t protoEncode(radsat_message* rawMessage, uint8_t* outgoingBuffer);
+int protoDecode(uint8_t* incomingBuffer, radsat_message* decodedMessage);
 
 
 #endif /* RPROTOBUF_H_ */
