@@ -158,24 +158,24 @@ int dosimeterCollectData(void)
 	// format protobuf message with recorded values
 
 	// board one
-	data.BoardOne.ChannelZero = results[dosimeterBoardOne][adcChannelZero];
-	data.BoardOne.ChannelOne = results[dosimeterBoardOne][adcChannelOne];
-	data.BoardOne.ChannelTwo = results[dosimeterBoardOne][adcChannelTwo];
-	data.BoardOne.ChannelThree = results[dosimeterBoardOne][adcChannelThree];
-	data.BoardOne.ChannelFour = results[dosimeterBoardOne][adcChannelFour];
-	data.BoardOne.ChannelFive = results[dosimeterBoardOne][adcChannelFive];
-	data.BoardOne.ChannelSix = results[dosimeterBoardOne][adcChannelSix];
-	data.BoardOne.ChannelSeven = results[dosimeterBoardOne][adcChannelSeven];
+	data.boardOne.channelZero = results[dosimeterBoardOne][adcChannelZero];
+	data.boardOne.channelOne = results[dosimeterBoardOne][adcChannelOne];
+	data.boardOne.channelTwo = results[dosimeterBoardOne][adcChannelTwo];
+	data.boardOne.channelThree = results[dosimeterBoardOne][adcChannelThree];
+	data.boardOne.channelFour = results[dosimeterBoardOne][adcChannelFour];
+	data.boardOne.channelFive = results[dosimeterBoardOne][adcChannelFive];
+	data.boardOne.channelSix = results[dosimeterBoardOne][adcChannelSix];
+	data.boardOne.channelSeven = results[dosimeterBoardOne][adcChannelSeven];
 
 	// board two
-	data.BoardTwo.ChannelZero = results[dosimeterBoardTwo][adcChannelZero];
-	data.BoardTwo.ChannelOne = results[dosimeterBoardTwo][adcChannelOne];
-	data.BoardTwo.ChannelTwo = results[dosimeterBoardTwo][adcChannelTwo];
-	data.BoardTwo.ChannelThree = results[dosimeterBoardTwo][adcChannelThree];
-	data.BoardTwo.ChannelFour = results[dosimeterBoardTwo][adcChannelFour];
-	data.BoardTwo.ChannelFive = results[dosimeterBoardTwo][adcChannelFive];
-	data.BoardTwo.ChannelSix = results[dosimeterBoardTwo][adcChannelSix];
-	data.BoardTwo.ChannelSeven = results[dosimeterBoardTwo][adcChannelSeven];
+	data.boardTwo.channelZero = results[dosimeterBoardTwo][adcChannelZero];
+	data.boardTwo.channelOne = results[dosimeterBoardTwo][adcChannelOne];
+	data.boardTwo.channelTwo = results[dosimeterBoardTwo][adcChannelTwo];
+	data.boardTwo.channelThree = results[dosimeterBoardTwo][adcChannelThree];
+	data.boardTwo.channelFour = results[dosimeterBoardTwo][adcChannelFour];
+	data.boardTwo.channelFive = results[dosimeterBoardTwo][adcChannelFive];
+	data.boardTwo.channelSix = results[dosimeterBoardTwo][adcChannelSix];
+	data.boardTwo.channelSeven = results[dosimeterBoardTwo][adcChannelSeven];
 
 	// send formatted protobuf messages to downlink manager
 	fileTransferAddMessage(&data, sizeof(data), file_transfer_message_DosimeterData_tag);

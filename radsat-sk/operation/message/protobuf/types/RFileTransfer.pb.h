@@ -31,69 +31,69 @@ typedef struct _eps_telemetry {
 } eps_telemetry;
 
 typedef struct _camera_telemetry {
-    uint32_t UpTime;
+    uint32_t uptime;
 } camera_telemetry;
 
 typedef struct _dosimeter_board_data {
-    float ChannelZero;
-    float ChannelOne;
-    float ChannelTwo;
-    float ChannelThree;
-    float ChannelFour;
-    float ChannelFive;
-    float ChannelSix;
-    float ChannelSeven;
+    float channelZero;
+    float channelOne;
+    float channelTwo;
+    float channelThree;
+    float channelFour;
+    float channelFive;
+    float channelSix;
+    float channelSeven;
 } dosimeter_board_data;
 
-typedef PB_BYTES_ARRAY_T(200) image_packet_Data_t;
+typedef PB_BYTES_ARRAY_T(200) image_packet_data_t;
 typedef struct _image_packet {
-    uint32_t Id;
-    image_type_t Type;
-    image_packet_Data_t Data;
+    uint32_t id;
+    image_type_t type;
+    image_packet_data_t data;
 } image_packet;
 
 typedef struct _obc_telemetry {
-    uint32_t Mode;
-    uint32_t Uptime;
-    uint32_t RtcTime;
-    uint32_t RtcTemperature;
+    uint32_t mode;
+    uint32_t uptime;
+    uint32_t rtcTime;
+    uint32_t rtcTemperature;
 } obc_telemetry;
 
 typedef struct _receiver_telemetry {
-    float RxDoppler;
-    float RxRssi;
-    float BusVoltage;
-    float TotalCurrent;
-    float TxCurrent;
-    float RxCurrent;
-    float PowerAmplifierCurrent;
-    float PowerAmplifierTemperature;
-    float BoardTemperature;
-    uint32_t Uptime;
-    uint32_t Frames;
+    float rxDoppler;
+    float rxRssi;
+    float busVoltage;
+    float totalCurrent;
+    float txCurrent;
+    float rxCurrent;
+    float powerAmplifierCurrent;
+    float powerAmplifierTemperature;
+    float boardTemperature;
+    uint32_t uptime;
+    uint32_t frames;
 } receiver_telemetry;
 
 typedef struct _transmitter_telemetry {
-    float ReflectedPower;
-    float ForwardPower;
-    float BusVoltage;
-    float TotalCurrent;
-    float TxCurrent;
-    float RxCurrent;
-    float PowerAmplifierCurrent;
-    float PowerAmplifierTemperature;
-    float BoardTemperature;
-    uint32_t Uptime;
+    float reflectedPower;
+    float forwardPower;
+    float busVoltage;
+    float totalCurrent;
+    float txCurrent;
+    float rxCurrent;
+    float powerAmplifierCurrent;
+    float powerAmplifierTemperature;
+    float boardTemperature;
+    uint32_t uptime;
 } transmitter_telemetry;
 
 typedef struct _dosimeter_data {
-    dosimeter_board_data BoardOne;
-    dosimeter_board_data BoardTwo;
+    dosimeter_board_data boardOne;
+    dosimeter_board_data boardTwo;
 } dosimeter_data;
 
 typedef struct _transceiver_telemetry {
-    receiver_telemetry Receiver;
-    transmitter_telemetry Transmitter;
+    receiver_telemetry receiver;
+    transmitter_telemetry transmitter;
 } transceiver_telemetry;
 
 typedef struct _file_transfer_message {
@@ -148,47 +148,47 @@ extern "C" {
 #define image_packet_init_zero                   {0, _image_type_t_MIN, {0, {0}}}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define camera_telemetry_UpTime_tag              1
-#define dosimeter_board_data_ChannelZero_tag     1
-#define dosimeter_board_data_ChannelOne_tag      2
-#define dosimeter_board_data_ChannelTwo_tag      3
-#define dosimeter_board_data_ChannelThree_tag    4
-#define dosimeter_board_data_ChannelFour_tag     5
-#define dosimeter_board_data_ChannelFive_tag     6
-#define dosimeter_board_data_ChannelSix_tag      7
-#define dosimeter_board_data_ChannelSeven_tag    8
-#define image_packet_Id_tag                      1
-#define image_packet_Type_tag                    2
-#define image_packet_Data_tag                    3
-#define obc_telemetry_Mode_tag                   1
-#define obc_telemetry_Uptime_tag                 2
-#define obc_telemetry_RtcTime_tag                3
-#define obc_telemetry_RtcTemperature_tag         4
-#define receiver_telemetry_RxDoppler_tag         1
-#define receiver_telemetry_RxRssi_tag            2
-#define receiver_telemetry_BusVoltage_tag        3
-#define receiver_telemetry_TotalCurrent_tag      4
-#define receiver_telemetry_TxCurrent_tag         5
-#define receiver_telemetry_RxCurrent_tag         6
-#define receiver_telemetry_PowerAmplifierCurrent_tag 7
-#define receiver_telemetry_PowerAmplifierTemperature_tag 8
-#define receiver_telemetry_BoardTemperature_tag  9
-#define receiver_telemetry_Uptime_tag            10
-#define receiver_telemetry_Frames_tag            11
-#define transmitter_telemetry_ReflectedPower_tag 1
-#define transmitter_telemetry_ForwardPower_tag   2
-#define transmitter_telemetry_BusVoltage_tag     3
-#define transmitter_telemetry_TotalCurrent_tag   4
-#define transmitter_telemetry_TxCurrent_tag      5
-#define transmitter_telemetry_RxCurrent_tag      6
-#define transmitter_telemetry_PowerAmplifierCurrent_tag 7
-#define transmitter_telemetry_PowerAmplifierTemperature_tag 8
-#define transmitter_telemetry_BoardTemperature_tag 9
-#define transmitter_telemetry_Uptime_tag         10
-#define dosimeter_data_BoardOne_tag              1
-#define dosimeter_data_BoardTwo_tag              2
-#define transceiver_telemetry_Receiver_tag       1
-#define transceiver_telemetry_Transmitter_tag    2
+#define camera_telemetry_uptime_tag              1
+#define dosimeter_board_data_channelZero_tag     1
+#define dosimeter_board_data_channelOne_tag      2
+#define dosimeter_board_data_channelTwo_tag      3
+#define dosimeter_board_data_channelThree_tag    4
+#define dosimeter_board_data_channelFour_tag     5
+#define dosimeter_board_data_channelFive_tag     6
+#define dosimeter_board_data_channelSix_tag      7
+#define dosimeter_board_data_channelSeven_tag    8
+#define image_packet_id_tag                      1
+#define image_packet_type_tag                    2
+#define image_packet_data_tag                    3
+#define obc_telemetry_mode_tag                   1
+#define obc_telemetry_uptime_tag                 2
+#define obc_telemetry_rtcTime_tag                3
+#define obc_telemetry_rtcTemperature_tag         4
+#define receiver_telemetry_rxDoppler_tag         1
+#define receiver_telemetry_rxRssi_tag            2
+#define receiver_telemetry_busVoltage_tag        3
+#define receiver_telemetry_totalCurrent_tag      4
+#define receiver_telemetry_txCurrent_tag         5
+#define receiver_telemetry_rxCurrent_tag         6
+#define receiver_telemetry_powerAmplifierCurrent_tag 7
+#define receiver_telemetry_powerAmplifierTemperature_tag 8
+#define receiver_telemetry_boardTemperature_tag  9
+#define receiver_telemetry_uptime_tag            10
+#define receiver_telemetry_frames_tag            11
+#define transmitter_telemetry_reflectedPower_tag 1
+#define transmitter_telemetry_forwardPower_tag   2
+#define transmitter_telemetry_busVoltage_tag     3
+#define transmitter_telemetry_totalCurrent_tag   4
+#define transmitter_telemetry_txCurrent_tag      5
+#define transmitter_telemetry_rxCurrent_tag      6
+#define transmitter_telemetry_powerAmplifierCurrent_tag 7
+#define transmitter_telemetry_powerAmplifierTemperature_tag 8
+#define transmitter_telemetry_boardTemperature_tag 9
+#define transmitter_telemetry_uptime_tag         10
+#define dosimeter_data_boardOne_tag              1
+#define dosimeter_data_boardTwo_tag              2
+#define transceiver_telemetry_receiver_tag       1
+#define transceiver_telemetry_transmitter_tag    2
 #define file_transfer_message_ObcTelemetry_tag   1
 #define file_transfer_message_TransceiverTelemetry_tag 2
 #define file_transfer_message_CameraTelemetry_tag 3
@@ -220,52 +220,52 @@ X(a, STATIC,   ONEOF,    MESSAGE,  (message,ImagePacket,ImagePacket),   8)
 #define file_transfer_message_message_ImagePacket_MSGTYPE image_packet
 
 #define obc_telemetry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   Mode,              1) \
-X(a, STATIC,   SINGULAR, UINT32,   Uptime,            2) \
-X(a, STATIC,   SINGULAR, UINT32,   RtcTime,           3) \
-X(a, STATIC,   SINGULAR, UINT32,   RtcTemperature,    4)
+X(a, STATIC,   SINGULAR, UINT32,   mode,              1) \
+X(a, STATIC,   SINGULAR, UINT32,   uptime,            2) \
+X(a, STATIC,   SINGULAR, UINT32,   rtcTime,           3) \
+X(a, STATIC,   SINGULAR, UINT32,   rtcTemperature,    4)
 #define obc_telemetry_CALLBACK NULL
 #define obc_telemetry_DEFAULT NULL
 
 #define receiver_telemetry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    RxDoppler,         1) \
-X(a, STATIC,   SINGULAR, FLOAT,    RxRssi,            2) \
-X(a, STATIC,   SINGULAR, FLOAT,    BusVoltage,        3) \
-X(a, STATIC,   SINGULAR, FLOAT,    TotalCurrent,      4) \
-X(a, STATIC,   SINGULAR, FLOAT,    TxCurrent,         5) \
-X(a, STATIC,   SINGULAR, FLOAT,    RxCurrent,         6) \
-X(a, STATIC,   SINGULAR, FLOAT,    PowerAmplifierCurrent,   7) \
-X(a, STATIC,   SINGULAR, FLOAT,    PowerAmplifierTemperature,   8) \
-X(a, STATIC,   SINGULAR, FLOAT,    BoardTemperature,   9) \
-X(a, STATIC,   SINGULAR, UINT32,   Uptime,           10) \
-X(a, STATIC,   SINGULAR, UINT32,   Frames,           11)
+X(a, STATIC,   SINGULAR, FLOAT,    rxDoppler,         1) \
+X(a, STATIC,   SINGULAR, FLOAT,    rxRssi,            2) \
+X(a, STATIC,   SINGULAR, FLOAT,    busVoltage,        3) \
+X(a, STATIC,   SINGULAR, FLOAT,    totalCurrent,      4) \
+X(a, STATIC,   SINGULAR, FLOAT,    txCurrent,         5) \
+X(a, STATIC,   SINGULAR, FLOAT,    rxCurrent,         6) \
+X(a, STATIC,   SINGULAR, FLOAT,    powerAmplifierCurrent,   7) \
+X(a, STATIC,   SINGULAR, FLOAT,    powerAmplifierTemperature,   8) \
+X(a, STATIC,   SINGULAR, FLOAT,    boardTemperature,   9) \
+X(a, STATIC,   SINGULAR, UINT32,   uptime,           10) \
+X(a, STATIC,   SINGULAR, UINT32,   frames,           11)
 #define receiver_telemetry_CALLBACK NULL
 #define receiver_telemetry_DEFAULT NULL
 
 #define transmitter_telemetry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    ReflectedPower,    1) \
-X(a, STATIC,   SINGULAR, FLOAT,    ForwardPower,      2) \
-X(a, STATIC,   SINGULAR, FLOAT,    BusVoltage,        3) \
-X(a, STATIC,   SINGULAR, FLOAT,    TotalCurrent,      4) \
-X(a, STATIC,   SINGULAR, FLOAT,    TxCurrent,         5) \
-X(a, STATIC,   SINGULAR, FLOAT,    RxCurrent,         6) \
-X(a, STATIC,   SINGULAR, FLOAT,    PowerAmplifierCurrent,   7) \
-X(a, STATIC,   SINGULAR, FLOAT,    PowerAmplifierTemperature,   8) \
-X(a, STATIC,   SINGULAR, FLOAT,    BoardTemperature,   9) \
-X(a, STATIC,   SINGULAR, UINT32,   Uptime,           10)
+X(a, STATIC,   SINGULAR, FLOAT,    reflectedPower,    1) \
+X(a, STATIC,   SINGULAR, FLOAT,    forwardPower,      2) \
+X(a, STATIC,   SINGULAR, FLOAT,    busVoltage,        3) \
+X(a, STATIC,   SINGULAR, FLOAT,    totalCurrent,      4) \
+X(a, STATIC,   SINGULAR, FLOAT,    txCurrent,         5) \
+X(a, STATIC,   SINGULAR, FLOAT,    rxCurrent,         6) \
+X(a, STATIC,   SINGULAR, FLOAT,    powerAmplifierCurrent,   7) \
+X(a, STATIC,   SINGULAR, FLOAT,    powerAmplifierTemperature,   8) \
+X(a, STATIC,   SINGULAR, FLOAT,    boardTemperature,   9) \
+X(a, STATIC,   SINGULAR, UINT32,   uptime,           10)
 #define transmitter_telemetry_CALLBACK NULL
 #define transmitter_telemetry_DEFAULT NULL
 
 #define transceiver_telemetry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, MESSAGE,  Receiver,          1) \
-X(a, STATIC,   SINGULAR, MESSAGE,  Transmitter,       2)
+X(a, STATIC,   SINGULAR, MESSAGE,  receiver,          1) \
+X(a, STATIC,   SINGULAR, MESSAGE,  transmitter,       2)
 #define transceiver_telemetry_CALLBACK NULL
 #define transceiver_telemetry_DEFAULT NULL
-#define transceiver_telemetry_Receiver_MSGTYPE receiver_telemetry
-#define transceiver_telemetry_Transmitter_MSGTYPE transmitter_telemetry
+#define transceiver_telemetry_receiver_MSGTYPE receiver_telemetry
+#define transceiver_telemetry_transmitter_MSGTYPE transmitter_telemetry
 
 #define camera_telemetry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   UpTime,            1)
+X(a, STATIC,   SINGULAR, UINT32,   uptime,            1)
 #define camera_telemetry_CALLBACK NULL
 #define camera_telemetry_DEFAULT NULL
 
@@ -285,29 +285,29 @@ X(a, STATIC,   SINGULAR, UINT32,   UpTime,            1)
 #define antenna_telemetry_DEFAULT NULL
 
 #define dosimeter_board_data_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    ChannelZero,       1) \
-X(a, STATIC,   SINGULAR, FLOAT,    ChannelOne,        2) \
-X(a, STATIC,   SINGULAR, FLOAT,    ChannelTwo,        3) \
-X(a, STATIC,   SINGULAR, FLOAT,    ChannelThree,      4) \
-X(a, STATIC,   SINGULAR, FLOAT,    ChannelFour,       5) \
-X(a, STATIC,   SINGULAR, FLOAT,    ChannelFive,       6) \
-X(a, STATIC,   SINGULAR, FLOAT,    ChannelSix,        7) \
-X(a, STATIC,   SINGULAR, FLOAT,    ChannelSeven,      8)
+X(a, STATIC,   SINGULAR, FLOAT,    channelZero,       1) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelOne,        2) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelTwo,        3) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelThree,      4) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelFour,       5) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelFive,       6) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelSix,        7) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelSeven,      8)
 #define dosimeter_board_data_CALLBACK NULL
 #define dosimeter_board_data_DEFAULT NULL
 
 #define dosimeter_data_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, MESSAGE,  BoardOne,          1) \
-X(a, STATIC,   SINGULAR, MESSAGE,  BoardTwo,          2)
+X(a, STATIC,   SINGULAR, MESSAGE,  boardOne,          1) \
+X(a, STATIC,   SINGULAR, MESSAGE,  boardTwo,          2)
 #define dosimeter_data_CALLBACK NULL
 #define dosimeter_data_DEFAULT NULL
-#define dosimeter_data_BoardOne_MSGTYPE dosimeter_board_data
-#define dosimeter_data_BoardTwo_MSGTYPE dosimeter_board_data
+#define dosimeter_data_boardOne_MSGTYPE dosimeter_board_data
+#define dosimeter_data_boardTwo_MSGTYPE dosimeter_board_data
 
 #define image_packet_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   Id,                1) \
-X(a, STATIC,   SINGULAR, UENUM,    Type,              2) \
-X(a, STATIC,   SINGULAR, BYTES,    Data,              3)
+X(a, STATIC,   SINGULAR, UINT32,   id,                1) \
+X(a, STATIC,   SINGULAR, UENUM,    type,              2) \
+X(a, STATIC,   SINGULAR, BYTES,    data,              3)
 #define image_packet_CALLBACK NULL
 #define image_packet_DEFAULT NULL
 

@@ -24,7 +24,7 @@ message telecommand_message {
 
 // Inform OBC that it is within the Pass range; Subsequent Telecommands will follow
 message begin_pass {
-	uint32 PassLength = 1;
+	uint32 passLength = 1;
 }
 
 // Inform OBC that there are no more telecommands; Ground Station is ready to receive Files (telemetry, images, etc.)
@@ -33,7 +33,7 @@ message begin_file_transfer {
 
 // Inform the OBC that it is to cease all downlink transmissions immediately (no ACK will follow this message)
 message cease_transmission {
-	uint32 Duration = 1;
+	uint32 duration = 1;
 }
 
 // Inform the OBC that it can end its previous halting of all downlink transmissions
@@ -42,7 +42,7 @@ message resume_transmission {
 
 // Update the OBC's local time on its Real-Time Clock
 message update_time {
-	uint32 UnixTime = 1;
+	uint32 unixTime = 1;
 }
 
 // Instruct the OBC to reset a certain component via Software reset (hard=0) or Power-Cycle (hard=1)
@@ -54,6 +54,6 @@ message reset {
 		AntennaSideA	= 3;
 		AntennaSideB	= 4;
 	}
-	device_t Device	= 1;
-	uint32 Hard 	= 2;
+	device_t device	= 1;
+	uint32 hard 	= 2;
 }

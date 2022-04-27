@@ -4,4 +4,4 @@
 *.*								anonymous_oneof:1
 
 // max size of outgoing data packet is 235 bytes (allowing room for overhead)
-image_packet.Data         max_size:200
+image_packet.data         max_size:200

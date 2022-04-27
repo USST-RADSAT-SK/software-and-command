@@ -28,20 +28,20 @@ typedef struct _resume_transmission {
 } resume_transmission;
 
 typedef struct _begin_pass {
-    uint32_t PassLength;
+    uint32_t passLength;
 } begin_pass;
 
 typedef struct _cease_transmission {
-    uint32_t Duration;
+    uint32_t duration;
 } cease_transmission;
 
 typedef struct _reset {
-    reset_device_t Device;
-    uint32_t Hard;
+    reset_device_t device;
+    uint32_t hard;
 } reset;
 
 typedef struct _update_time {
-    uint32_t UnixTime;
+    uint32_t unixTime;
 } update_time;
 
 typedef struct _telecommand_message {
@@ -84,11 +84,11 @@ extern "C" {
 #define reset_init_zero                          {_reset_device_t_MIN, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define begin_pass_PassLength_tag                1
-#define cease_transmission_Duration_tag          1
-#define reset_Device_tag                         1
-#define reset_Hard_tag                           2
-#define update_time_UnixTime_tag                 1
+#define begin_pass_passLength_tag                1
+#define cease_transmission_duration_tag          1
+#define reset_device_tag                         1
+#define reset_hard_tag                           2
+#define update_time_unixTime_tag                 1
 #define telecommand_message_BeginPass_tag        1
 #define telecommand_message_BeginFileTransfer_tag 2
 #define telecommand_message_CeaseTransmission_tag 3
@@ -114,7 +114,7 @@ X(a, STATIC,   ONEOF,    MESSAGE,  (message,Reset,Reset),   6)
 #define telecommand_message_message_Reset_MSGTYPE reset
 
 #define begin_pass_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   PassLength,        1)
+X(a, STATIC,   SINGULAR, UINT32,   passLength,        1)
 #define begin_pass_CALLBACK NULL
 #define begin_pass_DEFAULT NULL
 
@@ -124,7 +124,7 @@ X(a, STATIC,   SINGULAR, UINT32,   PassLength,        1)
 #define begin_file_transfer_DEFAULT NULL
 
 #define cease_transmission_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   Duration,          1)
+X(a, STATIC,   SINGULAR, UINT32,   duration,          1)
 #define cease_transmission_CALLBACK NULL
 #define cease_transmission_DEFAULT NULL
 
@@ -134,13 +134,13 @@ X(a, STATIC,   SINGULAR, UINT32,   Duration,          1)
 #define resume_transmission_DEFAULT NULL
 
 #define update_time_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   UnixTime,          1)
+X(a, STATIC,   SINGULAR, UINT32,   unixTime,          1)
 #define update_time_CALLBACK NULL
 #define update_time_DEFAULT NULL
 
 #define reset_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UENUM,    Device,            1) \
-X(a, STATIC,   SINGULAR, UINT32,   Hard,              2)
+X(a, STATIC,   SINGULAR, UENUM,    device,            1) \
+X(a, STATIC,   SINGULAR, UINT32,   hard,              2)
 #define reset_CALLBACK NULL
 #define reset_DEFAULT NULL
 
