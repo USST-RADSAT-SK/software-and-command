@@ -93,7 +93,12 @@ Notice that all six of the directories used are based off of the Project names f
 
 ### Pull Request Procedure
 When bringing a new feature into flight code, you must merge your feature branch into the alpha branch after a review process know as Pull Requests or PR. To create a PR from your local machine:
-- Commit your local changes using ```git commit```
+- Check that all of the edited files that you want to be included with your pull request are being tracked by running ```git status```
+	- You can add files to the commit tracking in several ways:
+		- Add files individually ```git add path/to/file.c```
+		- Add files using wildcards (ex: all files in sub directory) ```git add path/to/files/*```
+		- Add all files that have tracked changes ```git add -A```
+- Commit your local changes using ```git commit -m "Commit message"```
 - Checkout the alpha branch using ```git checkout alpha```
 - Get any remote updates from the remote alpha using ```git pull```
 - Checkout your local branch using ```git checkout <branch-name-you-want-to-PR>```
