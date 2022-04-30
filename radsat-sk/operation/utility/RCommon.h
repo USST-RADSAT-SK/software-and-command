@@ -7,7 +7,7 @@
 #ifndef RCOMMON_H_
 #define RCOMMON_H_
 
-#include <hal/errors.h>
+#include <RErrorManager.h>
 #include <RDebug.h>
 
 
