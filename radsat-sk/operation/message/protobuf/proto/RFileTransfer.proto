@@ -22,6 +22,9 @@ message file_transfer_message {
 		antenna_telemetry AntennaTelemetry			= 6;
 		dosimeter_data DosimeterData				= 7;
 		image_packet ImagePacket					= 8;
+		module_error_report ModuleErrorReport		= 9;
+		component_error_report ComponentErrorReport	= 10;
+		error_report_summary ErrorReportSummary		= 11;
 	}
 }
 
@@ -35,6 +38,7 @@ message obc_telemetry {
 
 
 // Telemetry for the Receiver
+// Used internally; not sent as standalone message
 message receiver_telemetry {
 	float rxDoppler					= 1; 	///< Rx Telemetry receiver doppler.
 	float rxRssi					= 2; 	///< Rx Telemetry rssi measurement.
@@ -50,6 +54,7 @@ message receiver_telemetry {
 }
 
 // Telemetry for the Transmitter
+// Used internally; not sent as standalone message
 message transmitter_telemetry {
 	float reflectedPower			= 1; 	///< Tx Telemetry reflected power.
 	float forwardPower				= 2; 	///< Tx Telemetry forward power.
@@ -90,6 +95,7 @@ message antenna_telemetry {
 }
 
 // Payload Data for a single Dosimeter board
+// Used internally; not sent as standalone message
 message dosimeter_board_data {
 	float channelZero	= 1;	///< COTS 2048mV REF IC, Shielding: none
 	float channelOne	= 2;	///< COTS 2048mV REF IC, Shielding: 50 mil
@@ -107,6 +113,7 @@ message dosimeter_data {
 	dosimeter_board_data boardTwo	= 2;	///< Payload Data from the second Dosimeter Board ("top" of the Satellite, beneath Antenna)
 }
 
+// Enum for image types (i.e. sizes)
 enum image_type_t {
 	FullResolution		= 0;	///< 1024 x 1024 = 1MB
 	HalfResolution		= 1;	///< 512  x 512  = 256kB
@@ -119,4 +126,29 @@ message image_packet {
 	uint32 id			= 1;	///< ID of the image
 	image_type_t type	= 2;	///< Size of the image
 	bytes data			= 3;	///< The raw image data
+}
+
+// Error Report (single module)
+message module_error_report {
+	uint32 module		= 1;	///< The unique ID of the module
+	int32 error			= 2;	///< The ID of the error that occurred
+}
+
+// Error Report (single module)
+message component_error_report {
+	uint32 component	= 1;	///< The unique ID of the component
+	int32 error			= 2;	///< The ID of the error that occurred
+}
+
+// record of the current error status for a particular module or component
+// Used internally; not sent as standalone message
+message error_record {
+	uint32 timeRecorded	= 1;	///< Tick time that the last error was recorded
+	uint32 count		= 2;	///< Current count of tracked errors
+}
+
+// Error Report (summary)
+message error_report_summary {
+	repeated uint32 moduleErrorCount	= 1;	///< Error counts for all modules
+	repeated uint32 componentErrorCount	= 2;	///< Error counts for all components
 }

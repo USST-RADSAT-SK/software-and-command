@@ -42,5 +42,17 @@ PB_BIND(dosimeter_data, dosimeter_data, AUTO)
 PB_BIND(image_packet, image_packet, AUTO)
 
 
+PB_BIND(module_error_report, module_error_report, AUTO)
+
+
+PB_BIND(component_error_report, component_error_report, AUTO)
+
+
+PB_BIND(error_record, error_record, AUTO)
+
+
+PB_BIND(error_report_summary, error_report_summary, AUTO)
+
+
 
 

@@ -1,7 +1,7 @@
 /**
  * @file RErrorManager.h
  * @date April 30, 2022
- * @author Tyrel Kostyk
+ * @author Tyrel Kostyk (tck290)
  */
 
 #ifndef RERRORMANAGER_H_
@@ -9,13 +9,22 @@
 
 #include <stdint.h>
 #include <hal/errors.h>
+#include <RFileTransfer.pb.h>
 
 
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
 
-/** Unique IDs for every internal RADSAT-SK software module. */
+/** Success flag. Used to indicate success, in the absence of errors. */
+#define SUCCESS			(0)
+/** Generic Error flag. Used to indicate a general error, when further elaboration is not necessary. */
+#define E_GENERIC		(-1)
+
+/**
+ * Unique IDs for every internal RADSAT-SK software module.
+ * NOTE: Ensure that "error_report_summary.modules" has "max_count" equal to "moduleCount" below.
+ */
 typedef enum _module_t {
 	// Application Modules
 	moduleMain 			= 0,
@@ -54,11 +63,14 @@ typedef enum _module_t {
 	moduleUart	= 28,
 
 	// Number of Internal Software Modules
-	moduleCount
+	moduleCount = 29
 } module_t;
 
 
-/** Unique IDs for every external component (HAL drivers, satellite components, etc.). */
+/**
+ * Unique IDs for every external component (HAL drivers, satellite components, etc.).
+ * NOTE: Ensure that "error_report_summary.components" has "max_count" equal to "componentCount" below.
+ */
 typedef enum _component_t {
 	// Physical Satellite Components
 	componentObc				= 0,
@@ -74,28 +86,29 @@ typedef enum _component_t {
 	componentHalI2c			= 8,
 	componentHalFram		= 9,
 	componentHalUart		= 10,
-	componentHalRtc			= 11,
-	componentHalWdogTask	= 12,
-	componentHalFreeRtos	= 13,
+	componentHalRtc			= 11,	// Also accounts for RTT module
+	componentHalTime		= 12,
+	componentHalSupervisor	= 13,
+	componentHalOther		= 14,	// Misc uncommon HAL features
+	componentHalWdogTask	= 15,
+	componentHalFreeRtos	= 16,
 
 	// Satellite Subsystem Interface (SSI) Drivers
-	componentSsiTransceiver	= 14,
-	componentSsiAntenna		= 15,
+	componentSsiTransceiver	= 17,
+	componentSsiAntenna		= 18,
 
 	// Number of External Components
-	componentCount
+	componentCount = 19
 } component_t;
 
-
-// TODO: define telemetry struct/proto message for error telemetry (i.e. a summary using the error records)
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
-void errorReportInternal(module_t module, int error);
-void errorReportExternal(component_t component, int error);
+int errorReportInternal(module_t module, int errorReported);
+int errorReportExternal(component_t component, int errorReported);
 
-void errorTelemetry(void* errors);
+int errorTelemetry(error_report_summary* summary);
 
 #endif /* RERROR_H_ */

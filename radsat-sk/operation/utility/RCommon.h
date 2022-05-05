@@ -7,8 +7,9 @@
 #ifndef RCOMMON_H_
 #define RCOMMON_H_
 
-#include <RErrorManager.h>
-#include <RDebug.h>
+#include <RErrorManager.h>	// Error Reporting, Handling
+#include <RProtobuf.h>		// Message Struct Definitions (telemetry, etc.)
+#include <RDebug.h>			// Debugging Printing
 
 
 /***************************************************************************************************
@@ -25,10 +26,5 @@
 #define MS_PER_DAY			(1000 * 60 * 60 * 24)
 /** How many ms in a week. */
 #define MS_PER_WEEK			(1000 * 60 * 60 * 24 * 7)
-
-/** Success flag. Used to indicate success, in the absence of errors. */
-#define SUCCESS			(0)
-/** Generic Error flag. Used to indicate a general error, when further elaboration is not necessary. */
-#define E_GENERIC		(-1)
 
 #endif /* RCOMMON_H_ */

@@ -34,6 +34,11 @@ typedef struct _camera_telemetry {
     uint32_t uptime;
 } camera_telemetry;
 
+typedef struct _component_error_report {
+    uint32_t component;
+    int32_t error;
+} component_error_report;
+
 typedef struct _dosimeter_board_data {
     float channelZero;
     float channelOne;
@@ -45,12 +50,27 @@ typedef struct _dosimeter_board_data {
     float channelSeven;
 } dosimeter_board_data;
 
+typedef struct _error_record {
+    uint32_t timeRecorded;
+    uint8_t count;
+} error_record;
+
+typedef struct _error_report_summary {
+    uint8_t moduleErrorCount[29];
+    uint8_t componentErrorCount[19];
+} error_report_summary;
+
 typedef PB_BYTES_ARRAY_T(200) image_packet_data_t;
 typedef struct _image_packet {
     uint32_t id;
     image_type_t type;
     image_packet_data_t data;
 } image_packet;
+
+typedef struct _module_error_report {
+    uint32_t module;
+    int32_t error;
+} module_error_report;
 
 typedef struct _obc_telemetry {
     uint32_t mode;
@@ -107,6 +127,9 @@ typedef struct _file_transfer_message {
         antenna_telemetry AntennaTelemetry;
         dosimeter_data DosimeterData;
         image_packet ImagePacket;
+        module_error_report ModuleErrorReport;
+        component_error_report ComponentErrorReport;
+        error_report_summary ErrorReportSummary;
     };
 } file_transfer_message;
 
@@ -134,6 +157,10 @@ extern "C" {
 #define dosimeter_board_data_init_default        {0, 0, 0, 0, 0, 0, 0, 0}
 #define dosimeter_data_init_default              {dosimeter_board_data_init_default, dosimeter_board_data_init_default}
 #define image_packet_init_default                {0, _image_type_t_MIN, {0, {0}}}
+#define module_error_report_init_default         {0, 0}
+#define component_error_report_init_default      {0, 0}
+#define error_record_init_default                {0, 0}
+#define error_report_summary_init_default        {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 #define file_transfer_message_init_zero          {0, {obc_telemetry_init_zero}}
 #define obc_telemetry_init_zero                  {0, 0, 0, 0}
 #define receiver_telemetry_init_zero             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
@@ -146,9 +173,15 @@ extern "C" {
 #define dosimeter_board_data_init_zero           {0, 0, 0, 0, 0, 0, 0, 0}
 #define dosimeter_data_init_zero                 {dosimeter_board_data_init_zero, dosimeter_board_data_init_zero}
 #define image_packet_init_zero                   {0, _image_type_t_MIN, {0, {0}}}
+#define module_error_report_init_zero            {0, 0}
+#define component_error_report_init_zero         {0, 0}
+#define error_record_init_zero                   {0, 0}
+#define error_report_summary_init_zero           {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 
 /* Field tags (for use in manual encoding/decoding) */
 #define camera_telemetry_uptime_tag              1
+#define component_error_report_component_tag     1
+#define component_error_report_error_tag         2
 #define dosimeter_board_data_channelZero_tag     1
 #define dosimeter_board_data_channelOne_tag      2
 #define dosimeter_board_data_channelTwo_tag      3
@@ -157,9 +190,15 @@ extern "C" {
 #define dosimeter_board_data_channelFive_tag     6
 #define dosimeter_board_data_channelSix_tag      7
 #define dosimeter_board_data_channelSeven_tag    8
+#define error_record_timeRecorded_tag            1
+#define error_record_count_tag                   2
+#define error_report_summary_moduleErrorCount_tag 1
+#define error_report_summary_componentErrorCount_tag 2
 #define image_packet_id_tag                      1
 #define image_packet_type_tag                    2
 #define image_packet_data_tag                    3
+#define module_error_report_module_tag           1
+#define module_error_report_error_tag            2
 #define obc_telemetry_mode_tag                   1
 #define obc_telemetry_uptime_tag                 2
 #define obc_telemetry_rtcTime_tag                3
@@ -197,6 +236,9 @@ extern "C" {
 #define file_transfer_message_AntennaTelemetry_tag 6
 #define file_transfer_message_DosimeterData_tag  7
 #define file_transfer_message_ImagePacket_tag    8
+#define file_transfer_message_ModuleErrorReport_tag 9
+#define file_transfer_message_ComponentErrorReport_tag 10
+#define file_transfer_message_ErrorReportSummary_tag 11
 
 /* Struct field encoding specification for nanopb */
 #define file_transfer_message_FIELDLIST(X, a) \
@@ -207,7 +249,10 @@ X(a, STATIC,   ONEOF,    MESSAGE,  (message,EpsTelemetry,EpsTelemetry),   4) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (message,BatteryTelemetry,BatteryTelemetry),   5) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (message,AntennaTelemetry,AntennaTelemetry),   6) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (message,DosimeterData,DosimeterData),   7) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,ImagePacket,ImagePacket),   8)
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,ImagePacket,ImagePacket),   8) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,ModuleErrorReport,ModuleErrorReport),   9) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,ComponentErrorReport,ComponentErrorReport),  10) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,ErrorReportSummary,ErrorReportSummary),  11)
 #define file_transfer_message_CALLBACK NULL
 #define file_transfer_message_DEFAULT NULL
 #define file_transfer_message_message_ObcTelemetry_MSGTYPE obc_telemetry
@@ -218,6 +263,9 @@ X(a, STATIC,   ONEOF,    MESSAGE,  (message,ImagePacket,ImagePacket),   8)
 #define file_transfer_message_message_AntennaTelemetry_MSGTYPE antenna_telemetry
 #define file_transfer_message_message_DosimeterData_MSGTYPE dosimeter_data
 #define file_transfer_message_message_ImagePacket_MSGTYPE image_packet
+#define file_transfer_message_message_ModuleErrorReport_MSGTYPE module_error_report
+#define file_transfer_message_message_ComponentErrorReport_MSGTYPE component_error_report
+#define file_transfer_message_message_ErrorReportSummary_MSGTYPE error_report_summary
 
 #define obc_telemetry_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UINT32,   mode,              1) \
@@ -311,6 +359,30 @@ X(a, STATIC,   SINGULAR, BYTES,    data,              3)
 #define image_packet_CALLBACK NULL
 #define image_packet_DEFAULT NULL
 
+#define module_error_report_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   module,            1) \
+X(a, STATIC,   SINGULAR, INT32,    error,             2)
+#define module_error_report_CALLBACK NULL
+#define module_error_report_DEFAULT NULL
+
+#define component_error_report_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   component,         1) \
+X(a, STATIC,   SINGULAR, INT32,    error,             2)
+#define component_error_report_CALLBACK NULL
+#define component_error_report_DEFAULT NULL
+
+#define error_record_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   timeRecorded,      1) \
+X(a, STATIC,   SINGULAR, UINT32,   count,             2)
+#define error_record_CALLBACK NULL
+#define error_record_DEFAULT NULL
+
+#define error_report_summary_FIELDLIST(X, a) \
+X(a, STATIC,   FIXARRAY, UINT32,   moduleErrorCount,   1) \
+X(a, STATIC,   FIXARRAY, UINT32,   componentErrorCount,   2)
+#define error_report_summary_CALLBACK NULL
+#define error_report_summary_DEFAULT NULL
+
 extern const pb_msgdesc_t file_transfer_message_msg;
 extern const pb_msgdesc_t obc_telemetry_msg;
 extern const pb_msgdesc_t receiver_telemetry_msg;
@@ -323,6 +395,10 @@ extern const pb_msgdesc_t antenna_telemetry_msg;
 extern const pb_msgdesc_t dosimeter_board_data_msg;
 extern const pb_msgdesc_t dosimeter_data_msg;
 extern const pb_msgdesc_t image_packet_msg;
+extern const pb_msgdesc_t module_error_report_msg;
+extern const pb_msgdesc_t component_error_report_msg;
+extern const pb_msgdesc_t error_record_msg;
+extern const pb_msgdesc_t error_report_summary_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
 #define file_transfer_message_fields &file_transfer_message_msg
@@ -337,6 +413,10 @@ extern const pb_msgdesc_t image_packet_msg;
 #define dosimeter_board_data_fields &dosimeter_board_data_msg
 #define dosimeter_data_fields &dosimeter_data_msg
 #define image_packet_fields &image_packet_msg
+#define module_error_report_fields &module_error_report_msg
+#define component_error_report_fields &component_error_report_msg
+#define error_record_fields &error_record_msg
+#define error_report_summary_fields &error_report_summary_msg
 
 /* Maximum encoded size of messages (where known) */
 #define file_transfer_message_size               214
@@ -351,6 +431,10 @@ extern const pb_msgdesc_t image_packet_msg;
 #define dosimeter_board_data_size                40
 #define dosimeter_data_size                      84
 #define image_packet_size                        211
+#define module_error_report_size                 17
+#define component_error_report_size              17
+#define error_record_size                        9
+#define error_report_summary_size                144
 
 #ifdef __cplusplus
 } /* extern "C" */

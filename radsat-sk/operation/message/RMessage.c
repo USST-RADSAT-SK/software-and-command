@@ -5,6 +5,7 @@
  */
 
 #include <RMessage.h>
+#include <RCommon.h>
 #include <RXorCipher.h>
 #include <hal/Timing/Time.h>
 
@@ -38,11 +39,11 @@ uint8_t messageWrap(radsat_message* rawMessage, uint8_t* wrappedMessage) {
 	radsat_sk_header_t *header = (radsat_sk_header_t *)wrappedMessage;
 	header->preamble = RADSAT_SK_MESSAGE_PREAMBLE;
 	header->size = (uint8_t) encodedSize;
-	int error = Time_getUnixEpoch((unsigned int*)&(header->timestamp));
-
-	// TODO: report error to system manager (or equivalent)
-	if (error != 0)
+	int error = Time_getUnixEpoch((unsigned int *)&(header->timestamp));
+	if (error != SUCCESS) {
+		errorReportExternal(componentHalTime, error);
 		return 0;
+	}
 
 	// calculate the CRC of entire message (except for preamble and crc itself)
 	header->crc = crcFast(&wrappedMessage[RADSAT_SK_HEADER_CRC_OFFSET],
