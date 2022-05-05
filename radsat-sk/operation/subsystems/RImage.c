@@ -63,10 +63,6 @@
 #define TOP_HALVE                       ((uint8_t) 0)
 #define BOTTOM_HALVE                    ((uint8_t) 1)
 
-/***************************************************************************************************
-                                          PRIVATE GLOBALS
-***************************************************************************************************/
-
 
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
@@ -384,13 +380,13 @@ int tcAdvanceImageDownload(uint16_t nextFrameNumber) {
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
 int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
-uint8_t* telemetryBuffer;
-uint16_t sizeOfBuffer;
-int error;
+	uint8_t* telemetryBuffer;
+	uint16_t sizeOfBuffer;
+	int error;
 
-    //  Ensure the input pointers are not NULL
-if (telemetry_reply == 0)
-return E_GENERIC;
+	//  Ensure the input pointers are not NULL
+	if (telemetry_reply == 0)
+		return E_GENERIC;
 
     // Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
     telemetryBuffer = MessageBuilder(TELEMETRY_REQUEST_LEN);

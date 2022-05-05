@@ -210,17 +210,13 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 ***************************************************************************************************/
 /*
  * Used to capture an image with CubeSense Camera
- *  */
+ *
+ * @return error, 0 on successful, otherwise failure
+ * */
  int capture(void){
-
 	int error;
-
-	uint8_t imagemean;
-
-
-	tlm_telecommand_ack_t *telecommand_ack;
-	tlm_detection_result_and_trigger_t *sensor_two_result;
-
+	tlm_telecommand_ack_t *telecommand_ack = {0};
+	tlm_detection_result_and_trigger_t *sensor_two_result = {0};
 
 	// Send Telecommand to Camera to Take a Photo
 	error = tcImageCaputre(SRAM1, BOTTOM_HALVE);
@@ -240,12 +236,18 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 		// Request for sensor 2 (Camera) results
 		error = tlmSensorTwoResult(sensor_two_result);
 
-			if (error != SUCCESS)
-				return error;
+		if (error != SUCCESS)
+			return error;
 
-			return SUCCESS;
-		}
+		// Checks if the image was successfully captured
+		if (sensor_two_result->captureResult != 2)
+			return E_GENERIC;
+
+		return SUCCESS;
+
 	}
+	return error;
+}
 
 
 
@@ -256,6 +258,8 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
  * @param location defines which SRAM slot to use within selected SRAM, 0 = top, 1 = bottom
  * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
  * @param image where the entire photo will reside with an image ID
+ *
+ * @return error, 0 on success, otherwise failure
  * */
 int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *image) {
 	unsigned int startTime;
@@ -275,11 +279,11 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 
 	// From size of image download determine loop variable
 	switch(size) {
-		case 0: numOfFrames = 8192; break;
+		case 0: numOfFrames = 8192; break; 	// 1024x1024
 		case 1: numOfFrames = 2048; break;
 		case 2: numOfFrames = 512; break;
 		case 3: numOfFrames = 128; break;
-		case 4: numOfFrames = 32; break;
+		case 4: numOfFrames = 32; break; 	// 64x64
 		default: numOfFrames = 32; break;
 	}
 
@@ -320,7 +324,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 		}
 
 		// Store Image Frame inside master struct
-		image->imageFrames[i] = *imageFrame;
+		image->imageFrames[i] = imageFrame;
 
 		// Advance Image Download to Continue to the next Frame
 		error = tcAdvanceImageDownload(i);
@@ -335,27 +339,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 	return SUCCESS;
 }
 
-/*
- * Used to calculate the mean of each image.
- * A threshold is defined to filter out useless images.
- * Adjust thresholds accordingly.
- * */
-int filtering(image) {
 
-	float imagemean;
-
-	uint8_t  lowThreshold= 500;
-	uint8_t  highThreshold= 1000000;
-
-
-	// Call the function to calculate the mean
-	imagemean = calculateMeanOfTheImage(image);
-
-	// Check if the image is entirely white or entirely black
-	if ( lowThreshold < imagemean < highThreshold )
-		return SUCCESS;
-
-	}
 
 /*
  * Used to created a 3D vector from a detection of both sensors
@@ -369,6 +353,7 @@ int detectionAndInterpret(detection_results_t *data){
 	uint16_t alphaSunSensor;
 	uint16_t betaSunSensor;
 	uint16_t alphaImageSensor;
+
 	uint16_t betaImageSensor;
 	tlm_detection_result_and_trigger_adcs_t *sun_sensor_data = {0};
 	tlm_detection_result_and_trigger_adcs_t *image_sensor_data = {0};
