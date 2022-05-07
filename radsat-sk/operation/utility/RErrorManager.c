@@ -6,7 +6,10 @@
 
 #include <RErrorManager.h>
 #include <RFileTransferService.h>
+#include <RTransceiver.h>
+
 #include <hal/supervisor.h>
+
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -84,7 +87,7 @@ int errorReportModule(module_t module, int errorReported) {
 
 		// TODO: verify that this does in fact reset the OBC; look into alternatives?
 		supervisor_generic_reply_t emptyReply = { 0 };
-		Supervisor_reset(&emptyReply, SUPERVISOR_SPI_INDEX);
+		error = Supervisor_reset(&emptyReply, SUPERVISOR_SPI_INDEX);
 		if (error != SUCCESS) {
 			errorReportComponent(componentHalSupervisor, error);
 		}
@@ -143,6 +146,9 @@ int errorReportComponent(component_t component, int errorReported) {
 		// reset the error count for the component in question
 		componentErrors[component].count = 0;
 
+		// generic reply object for
+		supervisor_generic_reply_t emptyReply = { 0 };
+
 		switch (component) {
 
 		// Dosimeters - no reset functionality; power-cycle OBC
@@ -156,34 +162,39 @@ int errorReportComponent(component_t component, int errorReported) {
 		case (componentHalRtc):
 		case (componentHalSupervisor):
 			// power-cycle OBC board (hard reset)
-			supervisor_generic_reply_t emptyReply = { 0 };
-			Supervisor_powerCycleIobc(&emptyReply, SUPERVISOR_SPI_INDEX);
+			error = Supervisor_powerCycleIobc(&emptyReply, SUPERVISOR_SPI_INDEX);
 			if (error != SUCCESS) {
 				errorReportComponent(componentHalSupervisor, error);
 			}
 
 			break;
 
+		// Transceiver
 		case (componentTransceiver):
 		case (componentSsiTransceiver):
-			// TODO: reset transceiver
+			// reset transceiver
+			transceiverPowerCycle();
 			break;
 
+		// Antenna
+		case (componentAntenna):
+		case (componentSsiAntenna):
+			// TODO: reset Antenna
+			break;
+
+		// Camera
 		case (componentCamera):
 			// TODO: reset camera
 			break;
 
+		// Power Distribution Board
 		case (componentPdb):
 			// TODO: reset PDB
 			break;
 
+		// Battery
 		case (componentBattery):
 			// TODO: reset Battery
-			break;
-
-		case (componentAntenna):
-		case (componentSsiAntenna):
-			// TODO: reset Antenna
 			break;
 
 		// OBC Internal Software
@@ -193,8 +204,11 @@ int errorReportComponent(component_t component, int errorReported) {
 		case (componentHalFreeRtos):
 			// TODO: soft reset OBC processor
 			break;
-		}
 
+		// do nothing
+		default:
+			break;
+		}
 	}
 
 	return error;
