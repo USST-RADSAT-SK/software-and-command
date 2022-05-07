@@ -106,8 +106,8 @@ typedef enum _component_t {
                                              PUBLIC API
 ***************************************************************************************************/
 
-int errorReportInternal(module_t module, int errorReported);
-int errorReportExternal(component_t component, int errorReported);
+int errorReportModule(module_t module, int errorReported);
+int errorReportComponent(component_t component, int errorReported);
 
 int errorTelemetry(error_report_summary* summary);
 

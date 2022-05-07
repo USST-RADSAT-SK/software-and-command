@@ -44,7 +44,7 @@ static error_record componentErrors[componentCount] = { 0 };
  * @param errorReported The exact error code returned from the module.
  * @return 0 for Success, otherwise failure.
  */
-int errorReportInternal(module_t module, int errorReported) {
+int errorReportModule(module_t module, int errorReported) {
 
 	int error = SUCCESS;
 
@@ -69,19 +69,24 @@ int errorReportInternal(module_t module, int errorReported) {
 	report.error = errorReported;
 	report.module = module;
 
-	// send error report to the file transfer service
-	error = fileTransferAddMessage(&report, sizeof(report), file_transfer_message_ModuleErrorReport_tag);
-	if (error != SUCCESS) {
-		errorReportInternal(moduleFileTransferService, error);
+	// send error report to the file transfer service (unless the error came from there)
+	if (module != moduleFileTransferService) {
+		error = fileTransferAddMessage(&report, sizeof(report), file_transfer_message_ModuleErrorReport_tag);
+		if (error != SUCCESS) {
+			errorReportModule(moduleFileTransferService, error);
+		}
 	}
 
 	// reset the OBC if any module exceeds the internal error threshold
 	if (moduleErrors[module].count > MODULE_ERROR_THRESHOLD) {
+		// reset the error count
+		moduleErrors[module].count = 0;
+
 		// TODO: verify that this does in fact reset the OBC; look into alternatives?
-		supervisor_generic_reply_t genericReply = { 0 };
-		Supervisor_reset(&genericReply, SUPERVISOR_SPI_INDEX);
+		supervisor_generic_reply_t emptyReply = { 0 };
+		Supervisor_reset(&emptyReply, SUPERVISOR_SPI_INDEX);
 		if (error != SUCCESS) {
-			errorReportExternal(componentHalSupervisor, error);
+			errorReportComponent(componentHalSupervisor, error);
 		}
 	}
 
@@ -101,7 +106,7 @@ int errorReportInternal(module_t module, int errorReported) {
  * @param errorReported The exact error code returned from the component.
  * @return 0 for Success, otherwise failure.
  */
-int errorReportExternal(component_t component, int errorReported) {
+int errorReportComponent(component_t component, int errorReported) {
 
 	int error = SUCCESS;
 
@@ -129,13 +134,67 @@ int errorReportExternal(component_t component, int errorReported) {
 	// send error report to the file transfer service
 	error = fileTransferAddMessage(&report, sizeof(report), file_transfer_message_ComponentErrorReport_tag);
 	if (error != SUCCESS) {
-		errorReportInternal(moduleFileTransferService, error);
+		errorReportModule(moduleFileTransferService, error);
 	}
 
-	// reset the component or OBC when they exceed the internal error threshold
+	// reset the component or OBC when they exceed the error threshold
 	if (componentErrors[component].count > COMPONENT_ERROR_THRESHOLD) {
-		// TODO: reset OBC (if error in certain HAL, SSI, drivers)
-		// TODO: reset Component
+
+		// reset the error count for the component in question
+		componentErrors[component].count = 0;
+
+		switch (component) {
+
+		// Dosimeters - no reset functionality; power-cycle OBC
+		case (componentDosimeterTop):
+		case (componentDosimeterBottom):
+		// OBC Software & Hardware
+		case (componentObc):
+		case (componentHalI2c):
+		case (componentHalFram):
+		case (componentHalUart):
+		case (componentHalRtc):
+		case (componentHalSupervisor):
+			// power-cycle OBC board (hard reset)
+			supervisor_generic_reply_t emptyReply = { 0 };
+			Supervisor_powerCycleIobc(&emptyReply, SUPERVISOR_SPI_INDEX);
+			if (error != SUCCESS) {
+				errorReportComponent(componentHalSupervisor, error);
+			}
+
+			break;
+
+		case (componentTransceiver):
+		case (componentSsiTransceiver):
+			// TODO: reset transceiver
+			break;
+
+		case (componentCamera):
+			// TODO: reset camera
+			break;
+
+		case (componentPdb):
+			// TODO: reset PDB
+			break;
+
+		case (componentBattery):
+			// TODO: reset Battery
+			break;
+
+		case (componentAntenna):
+		case (componentSsiAntenna):
+			// TODO: reset Antenna
+			break;
+
+		// OBC Internal Software
+		case (componentHalTime):
+		case (componentHalOther):
+		case (componentHalWdogTask):
+		case (componentHalFreeRtos):
+			// TODO: soft reset OBC processor
+			break;
+		}
+
 	}
 
 	return error;
@@ -152,7 +211,7 @@ int errorTelemetry(error_report_summary* summary) {
 
 	// ensure input pointer is valid
 	if (summary == 0) {
-		errorReportInternal(moduleError, E_INPUT_POINTER_NULL);
+		errorReportModule(moduleError, E_INPUT_POINTER_NULL);
 		return E_INPUT_POINTER_NULL;
 	}
 

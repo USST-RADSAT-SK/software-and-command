@@ -41,7 +41,7 @@ uint8_t messageWrap(radsat_message* rawMessage, uint8_t* wrappedMessage) {
 	header->size = (uint8_t) encodedSize;
 	int error = Time_getUnixEpoch((unsigned int *)&(header->timestamp));
 	if (error != SUCCESS) {
-		errorReportExternal(componentHalTime, error);
+		errorReportComponent(componentHalTime, error);
 		return 0;
 	}
 
