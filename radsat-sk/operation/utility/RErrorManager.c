@@ -32,6 +32,18 @@ static error_record componentErrors[componentCount] = { 0 };
                                              PUBLIC API
 ***************************************************************************************************/
 
+/**
+ * Report an error that occured on an internal software module.
+ *
+ * Records error counts, and if a threshold is exceeded, active measures are taken to remedy the
+ * issue (resets, etc.). Error counts are reset if no errors are recorded for a certain duration
+ * of time. When an error occurs, a single error report is sent to the File Transfer Service. A
+ * cohesive summary report is also available for all modules/components via @sa errorTelemetry().
+ *
+ * @param module The unique ID of the module which experienced an error (returned with error code).
+ * @param errorReported The exact error code returned from the module.
+ * @return 0 for Success, otherwise failure.
+ */
 int errorReportInternal(module_t module, int errorReported) {
 
 	int error = SUCCESS;
@@ -77,6 +89,18 @@ int errorReportInternal(module_t module, int errorReported) {
 }
 
 
+/**
+ * Report an error that occured on an external component (HAL, SSI, Satellite Component, etc.).
+ *
+ * Records error counts, and if threshold is exceeded, active measures are taken to remedy the
+ * issue (resets, etc.). Error counts are reset if no errors are recorded for a certain duration
+ * of time. When an error occurs, a single error report is sent to the File Transfer Service. A
+ * cohesive summary report is also available for all modules/components via @sa errorTelemetry().
+ *
+ * @param component The unique ID of the component which experienced an error (returned with error code).
+ * @param errorReported The exact error code returned from the component.
+ * @return 0 for Success, otherwise failure.
+ */
 int errorReportExternal(component_t component, int errorReported) {
 
 	int error = SUCCESS;
@@ -118,6 +142,12 @@ int errorReportExternal(component_t component, int errorReported) {
 }
 
 
+/**
+ * Provides a summary report of the recently tracked errors on the system.
+ *
+ * @param summary A message struct containing (active) error counts for all modules.
+ * @return 0 for Success, otherwise failure.
+ */
 int errorTelemetry(error_report_summary* summary) {
 
 	// ensure input pointer is valid
