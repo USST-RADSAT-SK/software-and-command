@@ -282,3 +282,18 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 
 	return 0;
 }
+
+int antennaReset(RAntennaI2Caddress, antenna_telemetry_t* telemetry){
+
+	int error;
+
+	if(error != 0) {
+
+		// TODO: record errors (if present) to System Manager
+		return error;
+	}
+
+
+
+	return 0;
+}
