@@ -283,6 +283,9 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	return 0;
 }
 
+// Author - Atharva (iya789)
+// May 7, 2022
+
 /**
  *Resets microcontroller of the antenna
  *
