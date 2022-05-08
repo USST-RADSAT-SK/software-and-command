@@ -59,7 +59,6 @@ typedef struct _antenna_telemetry_t {
 int antennaInit(void);
 int antennaDeploymentAttempt(void);
 int antennaTelemetry(antenna_telemetry_t* telemetry);
-//TODO: add reset function
-int antennaReset(RAntennaI2Caddress, antenna_telemetry_t* telemetry);
+int antennaReset(void);
 
 #endif /* RANTENNA_H_ */

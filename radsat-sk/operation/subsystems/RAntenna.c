@@ -283,17 +283,28 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	return 0;
 }
 
-int antennaReset(RAntennaI2Caddress, antenna_telemetry_t* telemetry){
+/**
+ *Resets microcontroller of the antenna
+ *
+ * @return 0 for success, non-zero for failure. See hal/errors.h for details.
+ */
+int antennaReset(void){
 
 	int error;
 
+	//command code for reset: 10101010 (section 6.2 of antenna user manual)
+
+	// form SSI library
+
+	IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA );  //reset on side A
+	IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB );  //reset on side B
+
+
 	if(error != 0) {
 
-		// TODO: record errors (if present) to System Manager
-		return error;
-	}
-
-
+			// TODO: record errors (if present) to System Manager
+			return error;
+		}
 
 	return 0;
 }
