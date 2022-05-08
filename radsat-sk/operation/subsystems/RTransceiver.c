@@ -281,10 +281,29 @@ int transceiverResetWatchDogs(void) {
 	return error;
 }
 
+// Author of this function - Atharva (iya789)
+// May 8, 2022
+
+/**
+ *  Soft Reset the ISIS TRXVU VU_RC and VU_TC.
+ * @return	Error code; 0 for success, otherwise see hal/errors.h.
+ */
+int transceiverSoftReset(void){
+
+	int error = IsisTrxvu_softReset(TRANSCEIVER_RX_I2C_SLAVE_ADDR);
+
+	//TODO: record errors (if present) to System Manager
+	if (error != 0)
+			return error;
+
+	return 0;
+
+}
+
 
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
-***************************************************************************************************/
+*******************************************  ********************************************************/
 
 /**
  * Gets the receiver's current up time.
