@@ -293,20 +293,24 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
  */
 int antennaReset(void){
 
-	int error;
-
 	//command code for reset: 10101010 (section 6.2 of antenna user manual)
 
 	// form SSI library
 
-	IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA );  //reset on side A
-	IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB );  //reset on side B
+	int errorA = IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA );  //reset on side A
+	int errorB = IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB );  //reset on side B
 
 
-	if(error != 0) {
+	if(errorA != 0) {
 
 			// TODO: record errors (if present) to System Manager
-			return error;
+			return errorA;
+		}
+
+	if(errorB != 0) {
+
+			// TODO: record errors (if present) to System Manager
+			return errorB;
 		}
 
 	return 0;
