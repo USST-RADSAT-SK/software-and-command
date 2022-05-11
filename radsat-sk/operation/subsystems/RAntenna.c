@@ -295,13 +295,15 @@ int antennaReset(void){
 	// Reset both side A/B antennas. See section 6.2 of Antenna System User Manual
 
 	int errorA = IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideA);  //reset on side A
-	int errorB = IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideB);  //reset on side B
 
-	if(errorA != 0) {
+	if (errorA != 0) {
 			// TODO: record errors (if present) to System Manager
 			return errorA;
 		}
-	if(errorB != 0) {
+
+	int errorB = IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideB);  //reset on side B
+
+	if (errorB != 0) {
 			// TODO: record errors (if present) to System Manager
 			return errorB;
 		}
