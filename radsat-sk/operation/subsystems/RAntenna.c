@@ -288,23 +288,22 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
  *
  *  @return 0 for success, non-zero for failure. See hal/errors.h for details.
  */
-int antennaReset(void){
+int antennaReset(void) {
 
 	// Reset both side A/B antennas. See section 6.2 of Antenna System User Manual
-
 	int errorA = IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideA);  //reset on side A
 
 	if (errorA != 0) {
-			// TODO: record errors (if present) to System Manager
-			return errorA;
-		}
+		// TODO: record errors (if present) to System Manager
+		return errorA;
+	}
 
 	int errorB = IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideB);  //reset on side B
 
 	if (errorB != 0) {
-			// TODO: record errors (if present) to System Manager
-			return errorB;
-		}
+		// TODO: record errors (if present) to System Manager
+		return errorB;
+	}
 
 	return 0;
 }
