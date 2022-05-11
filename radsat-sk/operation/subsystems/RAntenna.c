@@ -2,6 +2,8 @@
  * @file RAntenna.c
  * @date Jan 15, 2022
  * @author Addi Amaya (caa746)
+ * @edit date - May 7, 2022
+ * @edit author - Atharva (iya789)
  */
 
 #include <RAntenna.h>
@@ -283,32 +285,23 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	return 0;
 }
 
-// Author - Atharva (iya789)
-// May 7, 2022
-
 /**
- *Resets microcontroller of the antenna
+ * Resets microcontroller of the antenna
  *
- * @return 0 for success, non-zero for failure. See hal/errors.h for details.
+ *  @return 0 for success, non-zero for failure. See hal/errors.h for details.
  */
 int antennaReset(void){
 
-	//command code for reset: 10101010 (section 6.2 of antenna user manual)
+	// Reset both side A/B antennas. See section 6.2 of Antenna System User Manual
 
-	// form SSI library
-
-	int errorA = IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA );  //reset on side A
-	int errorB = IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB );  //reset on side B
-
+	int errorA = IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideA);  //reset on side A
+	int errorB = IsisAntS_reset(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideB);  //reset on side B
 
 	if(errorA != 0) {
-
 			// TODO: record errors (if present) to System Manager
 			return errorA;
 		}
-
 	if(errorB != 0) {
-
 			// TODO: record errors (if present) to System Manager
 			return errorB;
 		}
