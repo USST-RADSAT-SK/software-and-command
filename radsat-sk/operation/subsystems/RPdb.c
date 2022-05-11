@@ -140,7 +140,7 @@ static int pdbTalk(uint8_t* command, uint8_t* response);
  * @param A pointer to a sun_sensor_status_t object, which will be filled with the converted ADC data for each sun sensor
  * @return an error code, or 0 if no error
  */
-int getSunSensorData(sun_sensor_status_t* sunData) {
+int pdbSunSensorData(sun_sensor_status_t* sunData) {
 
 	// Create temporary variables for sending and receiving I2C data
 	uint8_t command[PDB_TELEM_COMMAND_LENGTH] = {0};
@@ -190,13 +190,13 @@ int getSunSensorData(sun_sensor_status_t* sunData) {
  * @param A pointer to an PDBStatus object containing all of the telemetry for the PDB system
  * @return either 0 or an error code
  */
-int getPdbTelemetry(pdb_status_t* dataStorage) {
+int pdbTelemetry(pdb_status_t* dataStorage) {
 
 	// Create an empty sunSensorData structure
 	sun_sensor_status_t sunSensorData;
 
 	// Get sun sensor data and store it in the new pdb_status_t Structure
-	getSunSensorData(&dataStorage->sunSensorData);
+	pdbSunSensorData(&dataStorage->sunSensorData);
 
 	// Create temporary variables for sending and receiving I2C data
 	uint8_t command[PDB_TELEM_COMMAND_LENGTH] = {0};
@@ -277,7 +277,7 @@ int getPdbTelemetry(pdb_status_t* dataStorage) {
  * Pet the Communications watchdog on the PDB using code 0x22
  * @return either an error if it occurred, or 0
  */
-int petPdbWatchdog(void) {
+int pdbPetWatchdog(void) {
 	// One way communication so just use transmit using reset watchdog command 0x22
 	int error = i2cTransmit(PDB_I2C_SLAVE_ADDR, pdbWatchdogResetCommand, PDB_COMMAND_LENGTH);
 
