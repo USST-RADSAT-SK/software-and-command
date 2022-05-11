@@ -1,9 +1,7 @@
 /**
  * @file RAntenna.c
  * @date Jan 15, 2022
- * @author Addi Amaya (caa746)
- * @edit date - May 7, 2022
- * @edit author - Atharva (iya789)
+ * @author Addi Amaya (caa746) and Atharva Kulkarni (iya789)
  */
 
 #include <RAntenna.h>
