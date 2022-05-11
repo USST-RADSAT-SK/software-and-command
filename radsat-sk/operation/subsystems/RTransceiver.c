@@ -1,9 +1,7 @@
 /**
  * @file RTransceiver.h
  * @date December 23, 2021
- * @author Tyrel Kostyk (tck290) and Matthew Buglass (mab839)
- * @edit May 8,2022
- * @edit author Atharva(iya789)
+ * @author Tyrel Kostyk (tck290) and Matthew Buglass (mab839) and Atharva Kulkarni (iya789)
  */
 
 #include <RTransceiver.h>
