@@ -2,6 +2,8 @@
  * @file RTransceiver.h
  * @date December 23, 2021
  * @author Tyrel Kostyk (tck290) and Matthew Buglass (mab839)
+ * @edit May 8,2022
+ * @edit author Atharva(iya789)
  */
 
 #include <RTransceiver.h>
@@ -281,9 +283,6 @@ int transceiverResetWatchDogs(void) {
 	return error;
 }
 
-// Author of this function - Atharva (iya789)
-// May 8, 2022
-
 /**
  *  Soft Reset the ISIS TRXVU VU_RC and VU_TC.
  * @return	Error code; 0 for success, otherwise see hal/errors.h.
@@ -297,7 +296,6 @@ int transceiverSoftReset(void){
 			return error;
 
 	return 0;
-
 }
 
 
