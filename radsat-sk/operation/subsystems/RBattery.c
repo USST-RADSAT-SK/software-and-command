@@ -20,6 +20,7 @@
 #define ADC_COUNT_TO_5V_BUS_OUTPUT_VOLTAGE			((float) 0.005865)
 #define ADC_COUNT_TO_3V3_BUS_OUTPUT_VOLTAGE			((float) 0.004311)
 
+#define BATTERY_VOLTAGE_SAFEMODE_THRESHOLD			((float) 6.5)
 
 /** Used in: (mAmps = Constant * ADC Count) */
 #define ADC_COUNT_TO_BATTERY_OUTPUT_CURRENT_MAG		((float) 14.662757)
@@ -75,9 +76,9 @@
                                           PRIVATE GLOBALS
 ***************************************************************************************************/
 /** Charging or discharging enum for current direction of the battery */
-enum _batteryCurrentDirection {
-	discharging,
-	charging
+static enum _battery_current_direction {
+	batteryDischarging,
+	batteryCharging
 };
 
 /**
@@ -124,7 +125,10 @@ static int checkSafeFlag(uint8_t* safeFlag);
 /**
  * Request and store all of the relevant data (voltage, current, temperature) from the battery board
  * 		and battery daughter boards
- * @return A battery_status_t object containing all of the telemetry of the battery board
+ *
+ * @param a pointer to a battery_status_t structure
+ *
+ * @return 0 on success, else an error
  */
 int batteryTelemetry(battery_status_t* dataStorage) {
 
@@ -184,11 +188,11 @@ int batteryTelemetry(battery_status_t* dataStorage) {
 	dataStorage->outputCurrent3V3Bus = ADC_COUNT_TO_3V3_BUS_CURRENT_DRAW * storedData[2];
 
 	// An if/else to assign forward/backwards directionality to batteryCurrentDirection
-	if (storedData[3] < 512) {
-		dataStorage->batteryCurrentDirection = charging;
+	if (storedData[3] < BATTERY_CURRENT_DIRECTION_THRESHOLD) {
+		dataStorage->batteryCurrentDirection = batteryCharging;
 	}
 	else {
-		dataStorage->batteryCurrentDirection = discharging;
+		dataStorage->batteryCurrentDirection = batteryDischarging;
 	}
 
 	// Send 4 commands to get ADC temperature readings from the Battery
@@ -204,7 +208,7 @@ int batteryTelemetry(battery_status_t* dataStorage) {
 			return error;
 		}
 
-		memset(&storedTemperatureData[i], 0, sizeof(&storedTemperatureData[i]));
+		memset(&storedTemperatureData[i], 0, sizeof(storedTemperatureData[i]));
 		memcpy(&storedTemperatureData[i], response, BATTERY_RESPONSE_LENGTH);
 	}
 
@@ -224,7 +228,13 @@ int batteryTelemetry(battery_status_t* dataStorage) {
 	return SUCCESS;
 }
 
-
+/**
+ * Set the safeFlag to show if the current voltage of the battery is below our threshold value
+ *
+ * @param a pointer to the safeFlag (a uint8_t)
+ *
+ * @return 0 on success, else an error
+ */
 int batteryIsNotSafe(uint8_t* safeFlag) {
 
 	int error = checkSafeFlag(safeFlag);
@@ -241,6 +251,15 @@ int batteryIsNotSafe(uint8_t* safeFlag) {
                                          PRIVATE FUNCTIONS
 ***************************************************************************************************/
 
+/**
+ * Communicates with the Battery board over I2C using the i2cTalk() commands
+ *
+ * @param A pointer to a array containing the command to be sent to the Battery
+ *
+ * @param A pointer to the array in which the response from the battery will be stored
+ *
+ * @return 0 on success, else an error
+ */
 static int batteryTalk(uint8_t* command, uint8_t* response) {
 
 	// Create a temporary variable for receiving I2C data
@@ -279,8 +298,11 @@ static int batteryTalk(uint8_t* command, uint8_t* response) {
 
 
 /**
- * Send a telecommand via I2C to check on the current battery voltage, and if under 6.5V, raise the global safeFlag
- * @return nothing.
+ * Send a telecommand via I2C to check on the current battery voltage, and if under 6.5V, raise the safeFlag
+ *
+ * @param a pointer to the safeFlag variable
+ *
+ * @return 0 on success, else an error
  */
 static int checkSafeFlag(uint8_t* safeFlag) {
 
@@ -303,7 +325,7 @@ static int checkSafeFlag(uint8_t* safeFlag) {
 	float converted_value = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE * (float)(*response);
 
 	// If the voltage is less than 6.5V then raise the safeFlag to send the cubeSat into safe mode.
-	if (converted_value < 6.5) {
+	if (converted_value < BATTERY_VOLTAGE_SAFEMODE_THRESHOLD) {
 		*safeFlag = 1;
 	}
 	else {
