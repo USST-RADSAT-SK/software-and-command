@@ -549,7 +549,7 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 }
 
 /*
- * Filtering out bad images
+ * Filtering out bad images using a gray scale filter
  *
  * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
  * @param image where the entire photo will reside with an image ID
@@ -574,22 +574,30 @@ int GrayScaleFilter(uint8_t size, full_image_t *image) {
 	tlm_image_frame_t *imageFrame = {0};
 	uint8_t frameArray = imageFrame->image_bytes;
 
-	//average of one frame bytes
-	for (int i = 0; i <= FRAME_BYTES ; i ++ ) {
+	//average of one frame's bytes
+//	for (int i = 0; i <= FRAME_BYTES ; i ++ ) {
+//
+//		sum += frameArray[i];
+//		avg = sum/FRAME_BYTES;
+//
+//		//average of all the average of all frame bytes
+//		for (int j; j <= numOfFrames; j++){
+//
+//			uint16_t sumOfAverages = avg[j];
+//			int allFrameAverage = sumOfAverages/numOfFrames;
+//		}
+//	}
 
-		sum += frameArray[i];
-		avg = sum/128;
-	}
-	//average of all the average of all frame bytes
+	for (int j; j <= numOfFrames; j++) {
+		uint16_t sumOfAverages = avg[j];
+		int allFrameAverage = sumOfAverages/numOfFrames;
 
-	for (uint8_t i = 0; i < size; i++) {
-
-			sum += size[i];
+		for (int i = 0; i <= FRAME_BYTES ; i ++ ) {
+			sum += frameArray[i];
+			avg = sum/FRAME_BYTES;
 		}
+	}
 
-	//average over all the averages of the frames
-
-	uint16_t AvgFrames = sum/size;
 	//check if the overall average is in "resonable" range
 
 	return 0;
