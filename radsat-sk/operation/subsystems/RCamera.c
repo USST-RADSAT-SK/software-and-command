@@ -1,7 +1,7 @@
 /**
  * @file RCamera.c
  * @date December 23, 2021
- * @author Shiva Moghtaderi (shm153) & Addi Amaya (caa746)
+ * @author Shiva Moghtaderi (shm153) & Addi Amaya (caa746) & Atharva Kulkarni (iya789)
  */
 
 #include <RCamera.h>
@@ -115,6 +115,9 @@
 
 #define TC_NO_ERROR						((uint8_t) 0)
 
+//number of bytes in one frame of an image
+#define FRAME_BYTES						128
+
 /* Struct for telmetry status, ID 0*/
 typedef struct _tlm_status_t {
 	uint8_t  nodeType;
@@ -213,9 +216,10 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
  *
  * @return error, 0 on successful, otherwise failure
  * */
- int capture(void){
+ int capture(void) {
+
 	int error;
-	tlm_telecommand_ack_t *telecommand_ack = {0};
+	tlm_telecommand_ack_t *telecommand_ack = {0};    //pointer to struct
 	tlm_detection_result_and_trigger_t *sensor_two_result = {0};
 
 	// Send Telecommand to Camera to Take a Photo
@@ -273,7 +277,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 
 	// Send telecommand 64 to initialized a download
 	error = tcInitImageDownload(sram,location,size);
-	if (error != SUCCESS){
+	if (error != SUCCESS) {
 		return error;
 	}
 
@@ -295,7 +299,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 	memset(image->imageFrames,0,sizeof(image->imageFrames));
 
 	// Loop for the amount of frames that are being downloaded
-	for (uint16_t i = 0; i < numOfFrames; i++){
+	for (uint16_t i = 0; i < numOfFrames; i++) {
 
 		// Start a timer and record start time, resets timer on function call
 		RTT_start();
@@ -319,7 +323,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 
 		// Collect Image Frame with TLM 64
 		error = tlmImageFrame(imageFrame);
-		if(error != SUCCESS){
+		if(error != SUCCESS) {
 			return error;
 		}
 
@@ -328,7 +332,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 
 		// Advance Image Download to Continue to the next Frame
 		error = tcAdvanceImageDownload(i);
-		if(error != SUCCESS){
+		if(error != SUCCESS) {
 			return error;
 		}
 	}
@@ -348,7 +352,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
  * @param data a struct that will contain the components of 2 3D vectors
  * @return 0 on success, otherwise failure
  */
-int detectionAndInterpret(detection_results_t *data){
+int detectionAndInterpret(detection_results_t *data) {
 	int error;
 	uint16_t alphaSunSensor;
 	uint16_t betaSunSensor;
@@ -382,7 +386,7 @@ int detectionAndInterpret(detection_results_t *data){
 	}
 
 	// If it was still a failure, set alpha and beta to zero
-	if (sun_sensor_data->detectionResult != 7){
+	if (sun_sensor_data->detectionResult != 7) {
 		alphaSunSensor = 0;
 		betaSunSensor = 0;
 	}
@@ -412,7 +416,7 @@ int detectionAndInterpret(detection_results_t *data){
 	}
 
 	// If it was still a failure, set alpha and beta to zero
-	if (image_sensor_data->detectionResult != 7){
+	if (image_sensor_data->detectionResult != 7) {
 		alphaSunSensor = 0;
 		betaSunSensor = 0;
 	}
@@ -499,25 +503,25 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 
 	// Update Auto adjust for camera one
 	error = tcCameraOneAutoAdjust(cameraTelemetry->cameraOneTelemetry.autoAdjustMode);
-	if(error != SUCCESS){
+	if(error != SUCCESS) {
 		return error;
 	}
 
 	// Update Auto adjust for camera two
 	error = tcCameraTwoAutoAdjust(cameraTelemetry->cameraTwoTelemetry.autoAdjustMode);
-	if (error != SUCCESS){
+	if (error != SUCCESS) {
 		return error;
 	}
 
 	// Update detection Threshold for camera one
 	error = tcCameraOneDetectionThreshold(cameraTelemetry->cameraOneTelemetry.detectionThreshold);
-	if (error != SUCCESS){
+	if (error != SUCCESS) {
 		return error;
 	}
 
 	// Update detection Threshold for camera two
 	error = tcCameraTwoDetectionThreshold(cameraTelemetry->cameraTwoTelemetry.detectionThreshold);
-	if (error != SUCCESS){
+	if (error != SUCCESS) {
 		return error;
 	}
 
@@ -526,7 +530,7 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 				cameraTelemetry->cameraOneTelemetry.autoGainControl,
 				cameraTelemetry->cameraOneTelemetry.blueGain,
 				cameraTelemetry->cameraOneTelemetry.redGain);
-	if(error != SUCCESS){
+	if(error != SUCCESS) {
 		return error;
 	}
 
@@ -535,13 +539,60 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 				cameraTelemetry->cameraTwoTelemetry.autoGainControl,
 				cameraTelemetry->cameraTwoTelemetry.blueGain,
 				cameraTelemetry->cameraTwoTelemetry.redGain);
-	if(error != SUCCESS){
+	if(error != SUCCESS) {
 		return error;
 	}
 
 
 
 	return SUCCESS;
+}
+
+/*
+ * Filtering out bad images
+ *
+ * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
+ * @param image where the entire photo will reside with an image ID
+ * @return 0 on success, otherwise faliure
+ * */
+int GrayScaleFilter(uint8_t size, full_image_t *image) {
+
+	uint8_t numOfFrames;
+	uint8_t sum;
+	uint16_t avg;
+
+	switch(size) {
+		case 0: numOfFrames = 8192; break; 	// 1024x1024
+		case 1: numOfFrames = 2048; break;
+		case 2: numOfFrames = 512; break;
+		case 3: numOfFrames = 128; break;
+		case 4: numOfFrames = 32; break; 	// 64x64
+		default: numOfFrames = 32; break;
+	}
+
+	tlm_image_frame_info_t *imageFrameInfo = {0};
+	tlm_image_frame_t *imageFrame = {0};
+	uint8_t frameArray = imageFrame->image_bytes;
+
+	//average of one frame bytes
+	for (int i = 0; i <= FRAME_BYTES ; i ++ ) {
+
+		sum += frameArray[i];
+		avg = sum/128;
+	}
+	//average of all the average of all frame bytes
+
+	for (uint8_t i = 0; i < size; i++) {
+
+			sum += size[i];
+		}
+
+	//average over all the averages of the frames
+
+	uint16_t AvgFrames = sum/size;
+	//check if the overall average is in "resonable" range
+
+	return 0;
 }
 
 /***************************************************************************************************
@@ -556,7 +607,7 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
  * @param response_size defines how many data bytes are required in the buffer
  * @return dynamically allocated buffer
  * */
-static uint8_t * MessageBuilder(uint8_t response_size){
+static uint8_t * MessageBuilder(uint8_t response_size) {
 
 	// Define the total size the buffer should be
     uint8_t total_buffer_length = response_size + BASE_MESSAGE_LEN;
@@ -565,16 +616,16 @@ static uint8_t * MessageBuilder(uint8_t response_size){
     uint8_t* tlmBuffer = (uint8_t*) malloc(total_buffer_length * sizeof(uint8_t));
 
     // Initialize all elements in the buffer with zero
-    for (uint8_t i = 0; i < total_buffer_length; i++){
+    for (uint8_t i = 0; i < total_buffer_length; i++) {
     	tlmBuffer[i] = 0;
     }
 
     // Fill Buffer with default values
-    for(uint8_t i = 0; i<total_buffer_length;i++){
-        if (i == 0){
+    for(uint8_t i = 0; i<total_buffer_length;i++) {
+        if (i == 0) {
         	tlmBuffer[i] = START_IDENTIFIER1;
         }
-        else if (i == 1){
+        else if (i == 1) {
             tlmBuffer[i] = START_IDENTIFIER2;
         }
         else if (i == total_buffer_length-2) {
@@ -583,7 +634,7 @@ static uint8_t * MessageBuilder(uint8_t response_size){
         else if (i == total_buffer_length-1) {
         	tlmBuffer[i] = END_IDENTIFIER2;
         }
-        else{
+        else {
         	tlmBuffer[i] = FILLER;
         }
     }
@@ -629,7 +680,7 @@ static int tlmStatus(tlm_status_t *telemetry_reply) {
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
 	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_0_LEN);
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
@@ -862,7 +913,7 @@ static int tcCameraOneDetectionThreshold(uint8_t detectionThreshold) {
 	// Read automatically reply to telecommand
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -872,7 +923,7 @@ static int tcCameraOneDetectionThreshold(uint8_t detectionThreshold) {
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
 
-	if (tcErrorFlag != 0){
+	if (tcErrorFlag != 0) {
 		return E_GENERIC;
 	}
 
@@ -905,7 +956,7 @@ static int tcCameraTwoDetectionThreshold(uint8_t detectionThreshold) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -929,7 +980,7 @@ static int tcCameraTwoDetectionThreshold(uint8_t detectionThreshold) {
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
 
-	if (tcErrorFlag != 0){
+	if (tcErrorFlag != 0) {
 		return E_GENERIC;
 	}
 
@@ -962,7 +1013,7 @@ static int tcCameraOneAutoAdjust(uint8_t enabler) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -976,7 +1027,7 @@ static int tcCameraOneAutoAdjust(uint8_t enabler) {
 	// Read automatically reply to telecommand
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -986,7 +1037,7 @@ static int tcCameraOneAutoAdjust(uint8_t enabler) {
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
 
-	if (tcErrorFlag != 0){
+	if (tcErrorFlag != 0) {
 		return E_GENERIC;
 	}
 
@@ -1030,7 +1081,7 @@ static int tcCameraOneSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -1044,7 +1095,7 @@ static int tcCameraOneSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 	// Read automatically reply to telecommand
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -1054,7 +1105,7 @@ static int tcCameraOneSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
 
-	if (tcErrorFlag != 0){
+	if (tcErrorFlag != 0) {
 		return E_GENERIC;
 	}
 
@@ -1087,7 +1138,7 @@ static int tcCameraTwoAutoAdjust(uint8_t enabler) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -1101,7 +1152,7 @@ static int tcCameraTwoAutoAdjust(uint8_t enabler) {
 	// Read automatically reply to telecommand
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -1111,7 +1162,7 @@ static int tcCameraTwoAutoAdjust(uint8_t enabler) {
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
 
-	if (tcErrorFlag != 0){
+	if (tcErrorFlag != 0) {
 		return E_GENERIC;
 	}
 
@@ -1155,7 +1206,7 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -1169,7 +1220,7 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 	// Read automatically reply to telecommand
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -1179,10 +1230,13 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
 
-	if (tcErrorFlag != 0){
+	if (tcErrorFlag != 0) {
 		return E_GENERIC;
 	}
 
 	return SUCCESS;
 }
+
+
+
 
