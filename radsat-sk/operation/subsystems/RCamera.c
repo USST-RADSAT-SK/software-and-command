@@ -574,31 +574,27 @@ int GrayScaleFilter(uint8_t size, full_image_t *image) {
 	tlm_image_frame_t *imageFrame = {0};
 	uint8_t frameArray = imageFrame->image_bytes;
 
-	//average of one frame's bytes
-//	for (int i = 0; i <= FRAME_BYTES ; i ++ ) {
-//
-//		sum += frameArray[i];
-//		avg = sum/FRAME_BYTES;
-//
-//		//average of all the average of all frame bytes
-//		for (int j; j <= numOfFrames; j++){
-//
-//			uint16_t sumOfAverages = avg[j];
-//			int allFrameAverage = sumOfAverages/numOfFrames;
-//		}
-//	}
-
+	//average of all the average of all frame bytes
 	for (int j; j <= numOfFrames; j++) {
 		uint16_t sumOfAverages = avg[j];
 		int allFrameAverage = sumOfAverages/numOfFrames;
 
+		//average of one frame's bytes
 		for (int i = 0; i <= FRAME_BYTES ; i ++ ) {
 			sum += frameArray[i];
 			avg = sum/FRAME_BYTES;
 		}
-	}
+		// checking if the overall average is in reasonable range
+		if (allFrameAverage < 5) {
+			return 1;
 
-	//check if the overall average is in "resonable" range
+		} else if (allFrameAverage > 240) {
+			return 1;
+
+		} else {
+			return 0;
+		}
+	}
 
 	return 0;
 }
