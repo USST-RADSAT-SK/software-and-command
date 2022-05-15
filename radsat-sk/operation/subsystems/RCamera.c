@@ -555,7 +555,7 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
  * @param image where the entire photo will reside with an image ID
  * @return 0 on success, otherwise faliure
  * */
-int GrayScaleFilter(uint8_t size, full_image_t *image) {
+int SaturationFilter(uint8_t size, full_image_t *image) {
 
 	uint8_t numOfFrames;
 	uint8_t sum;
@@ -587,11 +587,11 @@ int GrayScaleFilter(uint8_t size, full_image_t *image) {
 		// checking if the overall average is in reasonable range
 		if (allFrameAverage < 5) {
 			return 1;
-
-		} else if (allFrameAverage > 240) {
+		}
+		else if (allFrameAverage > 240) {
 			return 1;
-
-		} else {
+		}
+		else {
 			return 0;
 		}
 	}
