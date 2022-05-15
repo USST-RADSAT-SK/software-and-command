@@ -1243,18 +1243,17 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 
 	return SUCCESS;
 }
+
 /*
  * Converts Hexadecimal into decimal
  * @param hex a hex input
  * @return decimal value of hex input
  */
-
 static HexToDec(char hex) {
 
     long long decimal = 0, base = 1;
     int i = 0, value, length;
 
-    /* Get hexadecimal value from user */
     fflush(stdin);
     fgets(hex,ARRAY_SIZE,stdin);
     length = strlen(hex);
