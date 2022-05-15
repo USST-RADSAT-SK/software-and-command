@@ -118,6 +118,9 @@
 //number of bytes in one frame of an image
 #define FRAME_BYTES						128
 
+//array size to convert hex to decimal
+#define ARRAY_SIZE 						20
+
 /* Struct for telmetry status, ID 0*/
 typedef struct _tlm_status_t {
 	uint8_t  nodeType;
@@ -559,7 +562,7 @@ int SaturationFilter(uint8_t size, full_image_t *image) {
 
 	uint8_t numOfFrames;
 	uint8_t sum;
-	uint16_t avg;
+	uint16_t avg = 0;
 
 	switch(size) {
 		case 0: numOfFrames = 8192; break; 	// 1024x1024
@@ -581,7 +584,7 @@ int SaturationFilter(uint8_t size, full_image_t *image) {
 
 		//average of one frame's bytes
 		for (int i = 0; i <= FRAME_BYTES ; i ++ ) {
-			sum += frameArray[i];
+			sum += HexToDec(frameArray)[i];
 			avg = sum/FRAME_BYTES;
 		}
 		// checking if the overall average is in reasonable range
@@ -1240,6 +1243,42 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 
 	return SUCCESS;
 }
+/*
+ * Converts Hexadecimal into decimal
+ * @param hex a hex input
+ * @return decimal value of hex input
+ */
+
+static HexToDec(char hex) {
+
+    long long decimal = 0, base = 1;
+    int i = 0, value, length;
+
+    /* Get hexadecimal value from user */
+    fflush(stdin);
+    fgets(hex,ARRAY_SIZE,stdin);
+    length = strlen(hex);
+
+    for(i = length--; i >= 0; i--) {
+
+        if(hex[i] >= '0' && hex[i] <= '9') {
+            decimal += (hex[i] - 48) * base;
+            base *= 16;
+        }
+        else if(hex[i] >= 'A' && hex[i] <= 'F') {
+            decimal += (hex[i] - 55) * base;
+            base *= 16;
+        }
+        else if(hex[i] >= 'a' && hex[i] <= 'f') {
+            decimal += (hex[i] - 87) * base;
+            base *= 16;
+        }
+    }
+    return decimal;
+}
+
+
+
 
 
 
