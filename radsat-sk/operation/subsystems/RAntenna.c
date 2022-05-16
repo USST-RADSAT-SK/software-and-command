@@ -315,9 +315,10 @@ int antennaTemperature(void) {
 
 int antennaWatchdog(void) {
 
-	int error = i2cTransmit();
+	int error = i2cTransmit(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,  );
 
 	if (error != 0) {
+		// TODO: record errors (if present) to System Manager
 		return error;
 	}
 	return 0;
