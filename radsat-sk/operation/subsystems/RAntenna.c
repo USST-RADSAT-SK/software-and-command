@@ -292,18 +292,18 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 int antennaReset(void) {
 
 	// Reset both side A/B antennas. See section 6.2 of Antenna System User Manual
-	int errorA = IsisAntS_reset(ANTENNA_INDEX, isisants_sideA);
+	int error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideA);
 
-	if (errorA != 0) {
+	if (error != 0) {
 		// TODO: record errors (if present) to System Manager
-		return errorA;
+		return error;
 	}
 
-	int errorB = IsisAntS_reset(ANTENNA_INDEX, isisants_sideB);
+	int error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideB);
 
-	if (errorB != 0) {
+	if (error != 0) {
 		// TODO: record errors (if present) to System Manager
-		return errorB;
+		return error;
 	}
 
 	return 0;
