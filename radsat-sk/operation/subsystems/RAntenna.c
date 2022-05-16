@@ -26,6 +26,8 @@ static int antennaInitialized = 0;
 /** Track Number of times the antenna attempted to deploy*/
 static int antennaDeploymentAttempts = 0;
 
+/** Index of the Antenna*/
+#define ANTENNA_INDEX 0
 
 /***************************************************************************************************
                                              PUBLIC API
@@ -279,6 +281,40 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	telemetry->sideB.deployStatus.AntennaArmed = !RISISantsTelemetry.fields.ants_deployment.fields.armed;
 	telemetry->sideB.board_temp = 0.00322581 * RISISantsTelemetry.fields.ants_temperature;
 	telemetry->sideB.uptime = RISISantsTelemetry.fields.ants_uptime;
+
+	return 0;
+}
+
+/**
+ * Gives temperature of both sides of the antenna
+ * @return 0 for success, non-zero for failure. See hal/errors.h for details.
+ */
+int antennaTemperature(void) {
+
+	// initialize short for temperature
+	unsigned short* temperature = 0;
+
+	// get temperature from both sides of antenna
+	int errorA = IsisAntS_getTemperature(ANTENNA_INDEX, isisants_sideA, &temperature);
+
+	if (errorA != 0) {
+		// TODO: record errors (if present) to System Manager
+		return errorA;
+	}
+
+	int errorB = IsisAntS_getTemperature(ANTENNA_INDEX, isisants_sideB, &temperature);
+
+	if (errorB != 0) {
+		// TODO: record errors (if present) to System Manager
+		return errorB;
+	}
+
+	return 0;
+}
+
+int antennaWatchdog(void) {
+
+
 
 	return 0;
 }
