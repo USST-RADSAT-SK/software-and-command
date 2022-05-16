@@ -553,7 +553,7 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 
 /*
  * Filtering out bad images using a filter
- *
+ * Use the images within range of 40 to 240 on the grayscale range
  * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
  * @param image where the entire photo will reside with an image ID
  * @return 0 on success, otherwise faliure
@@ -587,6 +587,7 @@ int SaturationFilter(uint8_t size, full_image_t *image) {
 			sum += HexToDec(frameArray)[i];
 			avg = sum/FRAME_BYTES;
 		}
+
 		// checking if the overall average is in reasonable range
 		if (allFrameAverage < 40) {
 			return 1;
@@ -599,7 +600,12 @@ int SaturationFilter(uint8_t size, full_image_t *image) {
 		}
 	}
 
-	return 0;
+	int error = tlmImageFrame(imageFrame);
+	if(error != SUCCESS) {
+		return error;
+	}
+
+	return SUCCESS;
 }
 
 /***************************************************************************************************
