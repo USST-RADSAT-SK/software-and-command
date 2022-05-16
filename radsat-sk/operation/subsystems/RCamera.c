@@ -552,7 +552,7 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 }
 
 /*
- * Filtering out bad images using a gray scale filter
+ * Filtering out bad images using a filter
  *
  * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
  * @param image where the entire photo will reside with an image ID
@@ -588,7 +588,7 @@ int SaturationFilter(uint8_t size, full_image_t *image) {
 			avg = sum/FRAME_BYTES;
 		}
 		// checking if the overall average is in reasonable range
-		if (allFrameAverage < 5) {
+		if (allFrameAverage < 40) {
 			return 1;
 		}
 		else if (allFrameAverage > 240) {
