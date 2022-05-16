@@ -9,6 +9,7 @@
 #include <string.h>
 #include <hal/errors.h>
 #include <hal/Timing/Time.h>
+#include <RI2c.c>
 
 /***************************************************************************************************
                                   PRIVATE DEFINITIONS AND VARIABLES
@@ -295,18 +296,18 @@ int antennaTemperature(void) {
 	unsigned short* temperature = 0;
 
 	// get temperature from both sides of antenna
-	int errorA = IsisAntS_getTemperature(ANTENNA_INDEX, isisants_sideA, &temperature);
+	int error = IsisAntS_getTemperature(ANTENNA_INDEX, isisants_sideA, &temperature);
 
-	if (errorA != 0) {
+	if (error != 0) {
 		// TODO: record errors (if present) to System Manager
-		return errorA;
+		return error;
 	}
 
-	int errorB = IsisAntS_getTemperature(ANTENNA_INDEX, isisants_sideB, &temperature);
+	int error = IsisAntS_getTemperature(ANTENNA_INDEX, isisants_sideB, &temperature);
 
-	if (errorB != 0) {
+	if (error != 0) {
 		// TODO: record errors (if present) to System Manager
-		return errorB;
+		return error;
 	}
 
 	return 0;
@@ -314,7 +315,21 @@ int antennaTemperature(void) {
 
 int antennaWatchdog(void) {
 
+	int error = i2cTransmit();
 
-
+	if (error != 0) {
+		return error;
+	}
 	return 0;
+}
+
+int pdbPetWatchdog(void) {
+	// One way communication so just use transmit using reset watchdog command 0x22
+	int error = i2cTransmit(PDB_I2C_SLAVE_ADDR, pdbWatchdogResetCommand, PDB_COMMAND_LENGTH);
+
+	if (error != SUCCESS) {
+		return error;
+	}
+
+	return SUCCESS;
 }
