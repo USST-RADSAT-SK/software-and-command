@@ -1,7 +1,7 @@
 /**
  * @file RAntenna.c
  * @date Jan 15, 2022
- * @author Addi Amaya (caa746)
+ * @author Addi Amaya (caa746) and Atharva Kulkanri (iya789)
  */
 
 #include <RAntenna.h>
@@ -295,7 +295,7 @@ int antennaTemperature(void) {
 	// initialize short for temperature
 	unsigned short* temperature = 0;
 
-	// get temperature from both sides of antenna
+	// get temperature from both sides (A and B) of antenna
 	int error = IsisAntS_getTemperature(ANTENNA_INDEX, isisants_sideA, &temperature);
 
 	if (error != 0) {
@@ -313,24 +313,3 @@ int antennaTemperature(void) {
 	return 0;
 }
 
-int antennaWatchdog(void) {
-
-	int error = i2cTransmit(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,  );
-
-	if (error != 0) {
-		// TODO: record errors (if present) to System Manager
-		return error;
-	}
-	return 0;
-}
-
-int pdbPetWatchdog(void) {
-	// One way communication so just use transmit using reset watchdog command 0x22
-	int error = i2cTransmit(PDB_I2C_SLAVE_ADDR, pdbWatchdogResetCommand, PDB_COMMAND_LENGTH);
-
-	if (error != SUCCESS) {
-		return error;
-	}
-
-	return SUCCESS;
-}
