@@ -20,7 +20,7 @@
 #define ANTENNA_I2C_SLAVE_ADDR_REDUNANT (0x32)
 
 /** number of attached Antennas in the system */
-#define ANTENNAS_ON_BOARD 4
+#define ANTENNAS_ON_BOARD 1
 
 /** Number of Attempts allowed for deployment */
 #define MAX_DEPLOYMENT_ATTEMPTS 5
@@ -59,6 +59,6 @@ typedef struct _antenna_telemetry_t {
 int antennaInit(void);
 int antennaDeploymentAttempt(void);
 int antennaTelemetry(antenna_telemetry_t* telemetry);
-
+int antennaReset(void);
 
 #endif /* RANTENNA_H_ */
