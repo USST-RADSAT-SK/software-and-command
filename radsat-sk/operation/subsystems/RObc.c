@@ -1,5 +1,5 @@
 /**
- * @file RObc.h
+ * @file RObc.c
  * @date April 2, 2022
  * @author Matthew Buglass (mab839)
  */
@@ -19,25 +19,17 @@
  *
  * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
-int obcTelemetry(obcTelemetry_t* obcTelemetryBuffer){
+int obcTelemetry(obcTelemetry_t* telemetry){
 	float temperature = 0;
 	int error = RTC_getTemperature(&temperature);
 
 	if (error != SUCCESS) {
+		// TODO: record errors (if present) to System Manager
 		return error;
 	}
 
-	obcTelemetryBuffer->temperature = temperature;
+	telemetry->temperature = temperature;
 	return SUCCESS;
 
-}
-
-/**
- * Pet the watchdog on the OBC
- *
- * @return	N/A
- */
-void obcPetWatchdogs(void){
-	WDT_forceKick();
 }
 
