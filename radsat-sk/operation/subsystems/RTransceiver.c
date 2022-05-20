@@ -1,7 +1,7 @@
 /**
  * @file RTransceiver.h
  * @date December 23, 2021
- * @author Tyrel Kostyk (tck290) and Matthew Buglass (mab839) and Atharva Kulkarni (iya789)
+ * @author Tyrel Kostyk (tck290), Matthew Buglass (mab839) and Atharva Kulkarni (iya789)
  */
 
 #include <RTransceiver.h>
@@ -184,6 +184,22 @@ int transceiverPowerCycle(void) {
 	return error;
 }
 
+/**
+ * Soft Reset the ISIS TRXVU VU_RC and VU_TC.
+ *
+ * @return	Error code; 0 for success, otherwise see hal/errors.h.
+ */
+int transceiverSoftReset(void){
+
+	//send full soft reset command
+	int error = IsisTrxvu_softReset(TRANSCEIVER_INDEX);
+
+	//TODO: record errors (if present) to System Manager
+	if (error != 0)
+			return error;
+
+	return 0;
+}
 
 /**
  * Gets the receiver's current telemetry.
@@ -279,21 +295,6 @@ int transceiverResetWatchDogs(void) {
 		return error;
 
 	return error;
-}
-
-/**
- *  Soft Reset the ISIS TRXVU VU_RC and VU_TC.
- * @return	Error code; 0 for success, otherwise see hal/errors.h.
- */
-int transceiverSoftReset(void){
-
-	int error = IsisTrxvu_softReset(TRANSCEIVER_RX_I2C_SLAVE_ADDR);
-
-	//TODO: record errors (if present) to System Manager
-	if (error != 0)
-			return error;
-
-	return 0;
 }
 
 
