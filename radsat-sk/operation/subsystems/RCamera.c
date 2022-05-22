@@ -546,14 +546,13 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 		return error;
 	}
 
-
-
 	return SUCCESS;
 }
 
 /*
  * Filtering out bad images using a filter
  * Use the images within range of 40 to 240 on the grayscale range
+ *
  * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
  * @param image where the entire photo will reside with an image ID
  * @return 0 on success, otherwise faliure
@@ -561,8 +560,9 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 int SaturationFilter(uint8_t size, full_image_t *image) {
 
 	uint8_t numOfFrames;
-	uint8_t sum;
-	uint16_t avg = 0;
+	int sum;
+	int avg[] = {0};
+	int allFrameAverage;
 
 	switch(size) {
 		case 0: numOfFrames = 8192; break; 	// 1024x1024
@@ -573,32 +573,32 @@ int SaturationFilter(uint8_t size, full_image_t *image) {
 		default: numOfFrames = 32; break;
 	}
 
-	tlm_image_frame_info_t *imageFrameInfo = {0};
-	tlm_image_frame_t *imageFrame = {0};
-	uint8_t frameArray = imageFrame->image_bytes;
+	tlm_image_frame_t *imageFrame;
+	uint8_t* frameArray[] = {0};
+	*frameArray = imageFrame->image_bytes;
 
-	//average of all the average of all frame bytes
-	for (int j; j <= numOfFrames; j++) {
-		uint16_t sumOfAverages = avg[j];
-		int allFrameAverage = sumOfAverages/numOfFrames;
+	//average of one frame's bytes
+	for (int i = 0; i <= FRAME_BYTES ; i ++ ) {
+		sum += frameArray[i];
+		int avgOfFrames = sum/FRAME_BYTES;
 
-		//average of one frame's bytes
-		for (int i = 0; i <= FRAME_BYTES ; i ++ ) {
-			sum += HexToDec(frameArray)[i];
-			avg = sum/FRAME_BYTES;
-		}
-
-		// checking if the overall average is in reasonable range
-		if (allFrameAverage < 40) {
-			return 1;
-		}
-		else if (allFrameAverage > 240) {
-			return 1;
-		}
-		else {
-			return 0;
-		}
+		//average of all the average of all frame bytes
+		for (int j; j <= numOfFrames; j++) {
+			uint16_t sumOfAverages = avg[avgOfFrames];
+			allFrameAverage = sumOfAverages/numOfFrames;
 	}
+
+	// checking if the overall average is in reasonable range
+	if (allFrameAverage < 40) {
+		return 1;
+	}
+	else if (allFrameAverage > 240) {
+		return 1;
+	}
+	else {
+		return 0;
+	}
+}
 
 	int error = tlmImageFrame(imageFrame);
 	if(error != SUCCESS) {
@@ -1255,34 +1255,34 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
  * @param hex a hex input
  * @return decimal value of hex input
  */
-static HexToDec(char hex) {
-
-    long long decimal = 0, base = 1;
-    int i = 0, value, length;
-
-    fflush(stdin);
-    fgets(hex,ARRAY_SIZE,stdin);
-    length = strlen(hex);
-
-    for(i = length--; i >= 0; i--) {
-
-        if(hex[i] >= '0' && hex[i] <= '9') {
-            decimal += (hex[i] - 48) * base;
-            base *= 16;
-        }
-        else if(hex[i] >= 'A' && hex[i] <= 'F') {
-            decimal += (hex[i] - 55) * base;
-            base *= 16;
-        }
-        else if(hex[i] >= 'a' && hex[i] <= 'f') {
-            decimal += (hex[i] - 87) * base;
-            base *= 16;
-        }
-    }
-    return decimal;
-}
-
-
+//static HexToDec(char hex) {
+//
+//    long long decimal = 0, base = 1;
+//    int i = 0, value, length;
+//
+//    fflush(stdin);
+//    fgets(hex,ARRAY_SIZE,stdin);
+//    length = strlen(hex);
+//
+//    for(i = length--; i >= 0; i--) {
+//
+//        if(hex[i] >= '0' && hex[i] <= '9') {
+//            decimal += (hex[i] - 48) * base;
+//            base *= 16;
+//        }
+//        else if(hex[i] >= 'A' && hex[i] <= 'F') {
+//            decimal += (hex[i] - 55) * base;
+//            base *= 16;
+//        }
+//        else if(hex[i] >= 'a' && hex[i] <= 'f') {
+//            decimal += (hex[i] - 87) * base;
+//            base *= 16;
+//        }
+//    }
+//    return decimal;
+//}
+//
+//
 
 
 
