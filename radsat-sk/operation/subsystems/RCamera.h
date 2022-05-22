@@ -61,11 +61,16 @@ typedef struct _full_image_t {
 	tlm_image_frame_t *imageFrames[8192];
 }full_image_t;
 
-/*************************************************s**************************************************
+/****************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *image);
 int detectionAndInterpret(detection_results_t *data);
 int cameraTelemetry(CameraTelemetry *cameraTelemetry);
+
+/****************************************************************************************************
+                                          PRIVATE FUNCTIONS
+***************************************************************************************************/
+static int hexToDec(char hex[17]);
 
 #endif /* RCAMERA_H_ */

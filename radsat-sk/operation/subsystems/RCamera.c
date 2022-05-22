@@ -1,7 +1,7 @@
 /**
  * @file RCamera.c
  * @date December 23, 2021
- * @author Shiva Moghtaderi (shm153) & Addi Amaya (caa746) & Atharva Kulkarni (iya789)
+ * @author Shiva Moghtaderi (shm153), Addi Amaya (caa746) and Atharva Kulkarni (iya789)
  */
 
 #include <RCamera.h>
@@ -14,6 +14,7 @@
 #include <RADCS.h>
 #include <RCommon.h>
 #include <hal/Timing/RTT.h>
+#include <math.h>
 
 /***************************************************************************************************
                                PRIVATE DEFINITIONS AND VARIABLES
@@ -220,7 +221,6 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
  * @return error, 0 on successful, otherwise failure
  * */
  int capture(void) {
-
 	int error;
 	tlm_telecommand_ack_t *telecommand_ack = {0};    //pointer to struct
 	tlm_detection_result_and_trigger_t *sensor_two_result = {0};
@@ -251,8 +251,8 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 			return E_GENERIC;
 
 		return SUCCESS;
-
 	}
+
 	return error;
 }
 
@@ -557,12 +557,12 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
  * @param image where the entire photo will reside with an image ID
  * @return 0 on success, otherwise faliure
  * */
-int SaturationFilter(uint8_t size, full_image_t *image) {
+int SaturationFilter(uint8_t size) {
 
 	uint8_t numOfFrames;
 	int sum;
 	int avg[] = {0};
-	int allFrameAverage;
+	uint16_t allFrameAverage;
 
 	switch(size) {
 		case 0: numOfFrames = 8192; break; 	// 1024x1024
@@ -575,16 +575,17 @@ int SaturationFilter(uint8_t size, full_image_t *image) {
 
 	tlm_image_frame_t *imageFrame;
 	uint8_t* frameArray[] = {0};
+	//TODO: resolve warnings on build
 	*frameArray = imageFrame->image_bytes;
 
 	//average of one frame's bytes
 	for (int i = 0; i <= FRAME_BYTES ; i ++ ) {
-		sum += frameArray[i];
+		sum += hexToDec(frameArray[i]);
 		int avgOfFrames = sum/FRAME_BYTES;
 
 		//average of all the average of all frame bytes
 		for (int j; j <= numOfFrames; j++) {
-			uint16_t sumOfAverages = avg[avgOfFrames];
+			uint16_t sumOfAverages = hexToDec(avg[avgOfFrames]);
 			allFrameAverage = sumOfAverages/numOfFrames;
 	}
 
@@ -601,7 +602,7 @@ int SaturationFilter(uint8_t size, full_image_t *image) {
 }
 
 	int error = tlmImageFrame(imageFrame);
-	if(error != SUCCESS) {
+	if (error != SUCCESS) {
 		return error;
 	}
 
@@ -1252,38 +1253,50 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 
 /*
  * Converts Hexadecimal into decimal
+ *
  * @param hex a hex input
  * @return decimal value of hex input
  */
-//static HexToDec(char hex) {
-//
-//    long long decimal = 0, base = 1;
-//    int i = 0, value, length;
-//
-//    fflush(stdin);
-//    fgets(hex,ARRAY_SIZE,stdin);
-//    length = strlen(hex);
-//
-//    for(i = length--; i >= 0; i--) {
-//
-//        if(hex[i] >= '0' && hex[i] <= '9') {
-//            decimal += (hex[i] - 48) * base;
-//            base *= 16;
-//        }
-//        else if(hex[i] >= 'A' && hex[i] <= 'F') {
-//            decimal += (hex[i] - 55) * base;
-//            base *= 16;
-//        }
-//        else if(hex[i] >= 'a' && hex[i] <= 'f') {
-//            decimal += (hex[i] - 87) * base;
-//            base *= 16;
-//        }
-//    }
-//    return decimal;
-//}
-//
-//
+static int hexToDec(char hex[17]) {
+    long long decimal, place;
+    int i = 0, val, len;
 
+    decimal = 0;
+    place = 1;
+
+    // Input hexadecimal number from user
+    printf("Enter any hexadecimal number: ");
+    gets(hex);
+
+    // Find the length of total number of hex digit
+    len = strlen(hex);
+    len--;
+
+
+    //Iterate over each hex digit
+    for(i=0; hex[i]!='\0'; i++)
+    {
+
+        // Find the decimal representation of hex[i]
+        if (hex[i]>='0' && hex[i]<='9') {
+            val = hex[i] - 48;
+        }
+        else if (hex[i]>='a' && hex[i]<='f') {
+            val = hex[i] - 97 + 10;
+        }
+        else if (hex[i]>='A' && hex[i]<='F') {
+            val = hex[i] - 65 + 10;
+        }
+
+        decimal += val * pow(16, len);
+        len--;
+    }
+
+    printf("Hexadecimal number = %s\n", hex);
+    printf("Decimal number = %lld", decimal);
+
+    return 0;
+}
 
 
 
