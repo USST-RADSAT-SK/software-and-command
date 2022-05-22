@@ -10,6 +10,7 @@ Code and Documentation for USST’s first Canadian CubeSat Project: The RADSAT-S
     1. [Strategy](#Strategy)
     2. [Procedure](#Procedure)
     3. [Naming](#Naming)
+	4. [Pull Request Procedure](#Pull-Request-Procedure)
 4. [Directory Structure](#Directory-Structure)
 5. [Coding Standard](#Coding-Standard)
     1. [Indentation](#Indentation)
@@ -90,6 +91,37 @@ GitHub (and most other Git platforms) allow you to use branch folders, simply by
 
 Notice that all six of the directories used are based off of the Project names for the RADSAT-SK GitHub repo (minus hotfix, which is for quick fixes on alpha or beta branches).
 
+### Pull Request Procedure
+When bringing a new feature into flight code, you must merge your feature branch into the alpha branch after a review process know as Pull Requests or PR. To create a PR from your local machine:
+- Check that all of the edited files that you want to be included with your pull request are being tracked by running ```git status```
+	- You can add files to the commit tracking in several ways:
+		- Add files individually ```git add path/to/file.c```
+		- Add files using wildcards (ex: all files in sub directory) ```git add path/to/files/*```
+		- Add all files that have tracked changes ```git add -A```
+- Commit your local changes using ```git commit -m "Commit message"```
+- Checkout the alpha branch using ```git checkout alpha```
+- Get any remote updates from the remote alpha using ```git pull```
+- Checkout your local branch using ```git checkout <branch-name-you-want-to-PR>```
+- Merge the remote changes to alpha into your local feature branch using ```git merge alpha```
+	- This will update your local branch with any changes that were made to the alpha branch since you started working on your feature.
+- Resolve all merge conflicts through the terminal or your IDE. These are where your branch and the current alpha branch are different and you must decide what is used in your PR. Conflicts will be marked similar to this:
+	```
+	<<<<<<< HEAD (Current Change)
+	This is an edit on your current branch
+	=======
+	This is an edit on the alpha branch
+	>>>>>>> alpha (Incoming Change)
+	```
+- Incoming changes are those from the alpha branch and the current changes are what's on your feature branch.
+- As a general rule of thumb, if your branch doesn't affect a section with a merge conflict, accept the incomming change from ```alpha```.
+- After your conflicts are resolved, commit your local feature branch using ```git commit```
+- Push your local branch to the remote repository using ```git push```
+- To make your pull request, go to the remote repository on your browser. You should see a prompt above the directory structure prompting you to make a PR from a recent branch push. Click on that prompt or go to the "Pull Requests" tab and select "New pull request".
+- Once you've started your PR, Give it a meaningfull name and a comment on what is in the PR. If your PR is associated with any issues, in the comment section, type `close #` followed by the name or number of the issue(s). This will automatically close the issue(S) once the PR is approved and keeps the repo clean.
+- Add Reviewers to the PR to notify them to look it over and get feedback. We require at least two reviewers, but you can assign however many extra you want.
+- Assign yourself and any of your co-workers to the PR to stay up-to-date on the feedback and so we know who to ask about it.
+- Finally click "Create Pull Request"
+- All PRs will have to be explained at the next team meeting where you and your co-workers will go over what the prupose of the PR is, what design choices you made, and why you made them.
 
 ## Directory Structure
 We have chosen to follow a layered approach to code organization, partitioning our project into six *Layers*. From the top-down:
