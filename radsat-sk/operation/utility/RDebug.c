@@ -37,8 +37,11 @@ void debugPrint(const char* stringFormat, ...) {
 	// done with the variadic arguments
 	va_end(arguments);
 
-	// transmit the UART message across the debug (secondary) serial port
-	uartTransmit(UART_DEBUG_BUS, (const uint8_t *)buffer, length);
+	// transmit the UART message across UART_DEBUG_BUS/serial port 2
+	// uartTransmit(UART_DEBUG_BUS, (const uint8_t *)buffer, length);
+
+	// transmit the UART message across the debug serial port on jtag connector
+	printf(buffer);
 
 #endif /* DEBUG */
 }
