@@ -1,7 +1,7 @@
 /**
  * @file RI2c.c
  * @date June 7, 2021
- * @author Addi Amaya (caa746)
+ * @author Addi Amaya (caa746) and Atharva Kulkarni (iya789)
  */
 
 #include <RI2c.h>
@@ -43,7 +43,6 @@ int i2cInit(void) {
 	int error = I2C_start(I2C_BUS_SPEED_HZ, I2C_TRANSFER_TIMEOUT);
 
 	// TODO: record errors (if present) to System Manager
-
 	if (error == 0)
 		initialized = 1;
 
@@ -71,6 +70,8 @@ int i2cTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_t size) {
 	int error = I2C_write(slaveAddress, data, size);
 
 	// TODO: record errors (if present) to System Manager
+	if (error == 0)
+		initialized = 1;
 
 	return error;
 }
@@ -96,6 +97,8 @@ int i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size) {
 	int error = I2C_read(slaveAddress, data, size);
 
 	// TODO: record errors (if present) to System Manager
+	if (error == 0)
+		initialized = 1;
 
 	return error;
 }
@@ -134,6 +137,8 @@ int i2cTalk(uint16_t slaveAddress, uint16_t writeSize, uint16_t readSize, uint8_
 	int error = I2C_writeRead(&transfer);
 
 	// TODO: record errors (if present) to System Manager
+	if (error == 0)
+		initialized = 1;
 
 	return error;
 }
