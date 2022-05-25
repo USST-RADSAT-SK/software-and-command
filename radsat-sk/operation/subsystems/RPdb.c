@@ -282,7 +282,7 @@ int pdbPetWatchdog(void) {
 	uint8_t command[PDB_COMMAND_LENGTH] = {0};
 
 	memset(command, 0, sizeof(command));
-	memcpy(command, &pdbWatchdogResetCommand, PDB_TELEM_COMMAND_LENGTH);
+	memcpy(command, &pdbWatchdogResetCommand, PDB_COMMAND_LENGTH);
 
 	// One way communication so just use transmit using reset watchdog command 0x22
 	int error = i2cTransmit(PDB_I2C_SLAVE_ADDR, command, PDB_COMMAND_LENGTH);
