@@ -9,6 +9,7 @@
 #include <RFileTransfer.pb.h>
 #include <RI2c.h>
 #include <string.h>
+#include <RCommon.h>
 
 
 /***************************************************************************************************
@@ -178,9 +179,9 @@ int dosimeterCollectData(void)
 	data.boardTwo.voltageChannelSeven = results[dosimeterBoardTwo][adcChannelSeven];
 
 	// send formatted protobuf messages to downlink manager
-	fileTransferAddMessage(&data, sizeof(data), FileTransferMessage_dosimeterData_tag);
+	int error = fileTransferAddMessage(&data, sizeof(data), FileTransferMessage_dosimeterData_tag);
 
-	return 0;
+	return  error;
 }
 
 
@@ -203,9 +204,9 @@ int16_t dosimeterTemperature(dosimeterBoard_t board) {
 						DOSIMETER_RESPONSE_LENGTH, &dosimeterCommandBytes[adcChannel],
 						dataResponse, DOSIMETER_I2C_DELAY);
 
-	// return 0 if an error occurs
+	// return 1 if an error occurs
 	if (error != 0)
-		return 0;
+		return E_GENERIC;
 
 	// obtain the voltage reading
 	float voltageReading = convertCountsToVoltage(dataResponse[0], dataResponse[1]);

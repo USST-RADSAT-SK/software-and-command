@@ -6,6 +6,7 @@
 
 #include <RUart.h>
 #include <hal/errors.h>
+#include <RCommon.h>
 
 
 /***************************************************************************************************
@@ -50,7 +51,7 @@ int uartInit(UARTbus bus) {
 
 	// only allow initialization once (exit gracefully)
 	if (initialized[bus])
-		return 0;
+		return SUCCESS;
 
 	// select appropriate pre-made configuration
 	UARTconfig config = {0};
@@ -59,7 +60,7 @@ int uartInit(UARTbus bus) {
 	else if (bus == UART_DEBUG_BUS)
 		config = debugConfig;
 	else
-		return -1;
+		return E_GENERIC;
 
 	// start the UART bus
 	int error = UART_start(bus, config);

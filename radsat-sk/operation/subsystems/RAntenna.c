@@ -9,6 +9,7 @@
 #include <string.h>
 #include <hal/errors.h>
 #include <hal/Timing/Time.h>
+#include <RCommon.h>
 
 /***************************************************************************************************
                                   PRIVATE DEFINITIONS AND VARIABLES
@@ -41,7 +42,7 @@ int antennaInit(void) {
 
 	// Only allow initialization once (return without error if already initialized)
 	if (antennaInitialized)
-		return 0;
+		return SUCCESS;
 
 	// Isis Function call for antenna initialization
 	int error = IsisAntS_initialize(&RAntennaI2Caddress, ANTENNAS_ON_BOARD);
@@ -223,7 +224,7 @@ int antennaDeploymentAttempt(void) {
 	}
 
 
-	return 0;
+	return SUCCESS;
 }
 
 /**
@@ -281,7 +282,7 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	telemetry->sideB.board_temp = 0.00322581 * RISISantsTelemetry.fields.ants_temperature;
 	telemetry->sideB.uptime = RISISantsTelemetry.fields.ants_uptime;
 
-	return 0;
+	return SUCCESS;
 }
 
 /**
@@ -306,5 +307,5 @@ int antennaReset(void) {
 		return error;
 	}
 
-	return 0;
+	return SUCCESS;
 }

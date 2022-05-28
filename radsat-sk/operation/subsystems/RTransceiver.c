@@ -9,6 +9,7 @@
 #include <satellite-subsystems/IsisTRXVU.h>
 #include <hal/errors.h>
 #include <string.h>
+#include <RCommon.h>
 
 
 /***************************************************************************************************
@@ -48,7 +49,7 @@ int transceiverInit(void) {
 
 	// only allow initialization once (return without error if already initialized)
 	if (initialized)
-		return 0;
+		return SUCCESS;
 
 	// define I2C addresses for individual receiver and transmitter
 	ISIStrxvuI2CAddress addresses = {
@@ -198,7 +199,7 @@ int transceiverSoftReset(void){
 	if (error != 0)
 			return error;
 
-	return 0;
+	return SUCCESS;
 }
 
 /**
