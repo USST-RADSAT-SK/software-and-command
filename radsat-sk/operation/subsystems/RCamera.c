@@ -552,6 +552,7 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 /*
  * Filtering out unwanted images. Use the images within range of 40 to 240 on the grayscale range
  *
+ * @post return 0 if image is in desired range 1 if it is not
  * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
  * @param image where the entire photo will reside with an image ID
  * @return 0 on success, otherwise faliure
@@ -574,7 +575,6 @@ int SaturationFilter(uint8_t size) {
 
 	tlm_image_frame_t *imageFrame = {0};
 	uint8_t* frameArray[] = {0};
-	//TODO: resolve warnings on build
 	*frameArray = imageFrame->image_bytes;
 
 	//average of one frame's bytes
