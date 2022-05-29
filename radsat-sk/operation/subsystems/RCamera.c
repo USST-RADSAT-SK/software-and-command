@@ -550,8 +550,7 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 }
 
 /*
- * Filtering out bad images using a filter
- * Use the images within range of 40 to 240 on the grayscale range
+ * Filtering out unwanted images. Use the images within range of 40 to 240 on the grayscale range
  *
  * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
  * @param image where the entire photo will reside with an image ID
@@ -559,10 +558,10 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
  * */
 int SaturationFilter(uint8_t size) {
 
-	uint8_t numOfFrames;
-	int sum;
+	unsigned short numOfFrames = 0;
+	int sum = 0;
 	int avg[] = {0};
-	uint16_t allFrameAverage;
+	uint16_t allFrameAverage = 0;
 
 	switch(size) {
 		case 0: numOfFrames = 8192; break; 	// 1024x1024
@@ -573,19 +572,19 @@ int SaturationFilter(uint8_t size) {
 		default: numOfFrames = 32; break;
 	}
 
-	tlm_image_frame_t *imageFrame;
+	tlm_image_frame_t *imageFrame = {0};
 	uint8_t* frameArray[] = {0};
 	//TODO: resolve warnings on build
 	*frameArray = imageFrame->image_bytes;
 
 	//average of one frame's bytes
-	for (int i = 0; i <= FRAME_BYTES ; i ++ ) {
-		sum += hexToDec(frameArray[i]);
+	for (int i = 0; i < FRAME_BYTES ; i ++ ) {
+		sum += (int) frameArray[i];
 		int avgOfFrames = sum/FRAME_BYTES;
 
 		//average of all the average of all frame bytes
 		for (int j; j <= numOfFrames; j++) {
-			uint16_t sumOfAverages = hexToDec(avg[avgOfFrames]);
+			uint16_t sumOfAverages = avg[avgOfFrames];
 			allFrameAverage = sumOfAverages/numOfFrames;
 	}
 
@@ -1250,54 +1249,3 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 
 	return SUCCESS;
 }
-
-/*
- * Converts Hexadecimal into decimal
- *
- * @param hex a hex input
- * @return decimal value of hex input
- */
-static int hexToDec(char hex[17]) {
-    long long decimal, place;
-    int i = 0, val, len;
-
-    decimal = 0;
-    place = 1;
-
-    // Input hexadecimal number from user
-    printf("Enter any hexadecimal number: ");
-    gets(hex);
-
-    // Find the length of total number of hex digit
-    len = strlen(hex);
-    len--;
-
-
-    //Iterate over each hex digit
-    for(i=0; hex[i]!='\0'; i++)
-    {
-
-        // Find the decimal representation of hex[i]
-        if (hex[i]>='0' && hex[i]<='9') {
-            val = hex[i] - 48;
-        }
-        else if (hex[i]>='a' && hex[i]<='f') {
-            val = hex[i] - 97 + 10;
-        }
-        else if (hex[i]>='A' && hex[i]<='F') {
-            val = hex[i] - 65 + 10;
-        }
-
-        decimal += val * pow(16, len);
-        len--;
-    }
-
-    printf("Hexadecimal number = %s\n", hex);
-    printf("Decimal number = %lld", decimal);
-
-    return 0;
-}
-
-
-
-
