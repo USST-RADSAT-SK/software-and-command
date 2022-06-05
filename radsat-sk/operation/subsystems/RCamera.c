@@ -557,7 +557,7 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
  * @param image where the entire photo will reside with an image ID
  * @return 0 on success, otherwise faliure
  * */
-int SaturationFilter(uint8_t size) {
+int SaturationFilter(uint8_t size,full_image_t *image) {
 
 	unsigned short numOfFrames = 0;
 	int sum = 0;
@@ -575,7 +575,9 @@ int SaturationFilter(uint8_t size) {
 
 	tlm_image_frame_t *imageFrame = {0};
 	uint8_t* frameArray[] = {0};
-	*frameArray = imageFrame->image_bytes;
+	*frameArray = image->imageFrames;
+
+//	*frameArray = imageFrame->image_bytes;
 
 	//average of one frame's bytes
 	for (int i = 0; i < FRAME_BYTES ; i ++ ) {

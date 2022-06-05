@@ -58,7 +58,7 @@ typedef struct _tlm_image_frame_t {
 /* Struct that holds full image with ID */
 typedef struct _full_image_t {
 	uint8_t image_ID;
-	tlm_image_frame_t *imageFrames[8192];
+	tlm_image_frame_t imageFrames[8192];
 }full_image_t;
 
 /****************************************************************************************************
