@@ -65,7 +65,7 @@ int uartInit(UARTbus bus) {
 	// start the UART bus
 	int error = UART_start(bus, config);
 
-	if (error != 0)
+	if (error != SUCCESS)
 		return error;
 
 	// enable RX on the UART bus

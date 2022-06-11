@@ -75,7 +75,7 @@ int antennaDeploymentAttempt(void) {
 		error = IsisAntS_getStatusData(ANTENNA_INDEX, isisants_sideA, &RISISantsStatus);
 
 		// Error check for requesting antenna status
-		if(error != 0) {
+		if(error != SUCCESS) {
 
 			// TODO: record errors (if present) to System Manager
 			return error;
@@ -96,7 +96,7 @@ int antennaDeploymentAttempt(void) {
 			error = IsisAntS_setArmStatus(ANTENNA_INDEX, isisants_sideA, isisants_arm);
 
 			// Error check for Arming A Side
-			if(error != 0) {
+			if(error != SUCCESS) {
 
 				// TODO: record errors (if present) to System Manager
 				return error;
@@ -106,7 +106,7 @@ int antennaDeploymentAttempt(void) {
 			error = IsisAntS_getStatusData(ANTENNA_INDEX, isisants_sideA, &RISISantsStatus);
 
 			// Error check for antenna status
-			if(error != 0) {
+			if(error != SUCCESS) {
 
 				// TODO: record errors (if present) to System Manager
 				return error;
@@ -122,7 +122,7 @@ int antennaDeploymentAttempt(void) {
 				int error = IsisAntS_autoDeployment(ANTENNA_INDEX, isisants_sideA, MAX_DEPLOYMENT_TIMEOUT);
 
 				// Check if autoDeployment failed
-				if(error != 0) {
+				if(error != SUCCESS) {
 
 					// TODO: record errors (if present) to System Manager
 					return error;
@@ -132,7 +132,7 @@ int antennaDeploymentAttempt(void) {
 				error = IsisAntS_setArmStatus(ANTENNA_INDEX, isisants_sideA, isisants_disarm);
 
 				// Check if disarm failed
-				if(error != 0) {
+				if(error != SUCCESS) {
 
 					// TODO: record errors (if present) to System Manager
 					return error;
@@ -154,7 +154,7 @@ int antennaDeploymentAttempt(void) {
 		error = IsisAntS_getStatusData(ANTENNA_INDEX, isisants_sideB, &RISISantsStatus);
 
 		// Error check for requesting antenna status
-		if(error != 0) {
+		if(error != SUCCESS) {
 
 			// TODO: record errors (if present) to System Manager
 			return error;
@@ -175,7 +175,7 @@ int antennaDeploymentAttempt(void) {
 			error = IsisAntS_setArmStatus(ANTENNA_INDEX, isisants_sideB, isisants_arm);
 
 			// Error check for requesting antenna status
-			if(error != 0) {
+			if(error != SUCCESS) {
 
 				// TODO: record errors (if present) to System Manager
 				return error;
@@ -185,7 +185,7 @@ int antennaDeploymentAttempt(void) {
 			error = IsisAntS_getStatusData(ANTENNA_INDEX, isisants_sideB, &RISISantsStatus);
 
 			// Error check for antenna status
-			if(error != 0) {
+			if(error != SUCCESS) {
 
 				// TODO: record errors (if present) to System Manager
 				return error;
@@ -201,7 +201,7 @@ int antennaDeploymentAttempt(void) {
 				int error = IsisAntS_autoDeployment(ANTENNA_INDEX, isisants_sideB, MAX_DEPLOYMENT_TIMEOUT);
 
 				// Check if autoDeployment failed
-				if(error != 0) {
+				if(error != SUCCESS) {
 
 					// TODO: record errors (if present) to System Manager
 					return error;
@@ -211,7 +211,7 @@ int antennaDeploymentAttempt(void) {
 				error = IsisAntS_setArmStatus(ANTENNA_INDEX, isisants_sideB, isisants_disarm);
 
 				// Check if disarm failed
-				if(error != 0) {
+				if(error != SUCCESS) {
 
 					// TODO: record errors (if present) to System Manager
 					return error;
@@ -248,7 +248,7 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	error = IsisAntS_getAlltelemetry(ANTENNA_INDEX, isisants_sideA, &RISISantsTelemetry);
 
 	// Error check for Isis Antenna function
-	if(error != 0) {
+	if(error != SUCCESS) {
 
 		// TODO: record errors (if present) to System Manager
 		return error;
@@ -267,7 +267,7 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	error = IsisAntS_getAlltelemetry(ANTENNA_INDEX, isisants_sideB, &RISISantsTelemetry);
 
 	// Error check for Isis Antenna function
-	if(error != 0) {
+	if(error != SUCCESS) {
 
 		// TODO: record errors (if present) to System Manager
 		return error;
@@ -295,14 +295,14 @@ int antennaReset(void) {
 	// Reset both side A/B antennas. See section 6.2 of Antenna System User Manual
 	int error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideA);
 
-	if (error != 0) {
+	if (error != SUCCESS) {
 		// TODO: record errors (if present) to System Manager
 		return error;
 	}
 
 	int error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideB);
 
-	if (error != 0) {
+	if (error != SUCCESS) {
 		// TODO: record errors (if present) to System Manager
 		return error;
 	}

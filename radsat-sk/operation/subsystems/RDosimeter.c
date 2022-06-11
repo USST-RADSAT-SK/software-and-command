@@ -141,7 +141,7 @@ int dosimeterCollectData(void)
 								dataResponse, DOSIMETER_I2C_DELAY);
 
 			// check for success of I2C command
-			if (error != 0)
+			if (error != SUCCESS)
 				return error;
 
 			float finalVoltage = convertCountsToVoltage(dataResponse[0], dataResponse[1]);
@@ -205,7 +205,7 @@ int16_t dosimeterTemperature(dosimeterBoard_t board) {
 						dataResponse, DOSIMETER_I2C_DELAY);
 
 	// return 1 if an error occurs
-	if (error != 0)
+	if (error != SUCCESS)
 		return E_GENERIC;
 
 	// obtain the voltage reading

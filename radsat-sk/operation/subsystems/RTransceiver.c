@@ -196,7 +196,7 @@ int transceiverSoftReset(void){
 	int error = IsisTrxvu_softReset(TRANSCEIVER_INDEX);
 
 	//TODO: record errors (if present) to System Manager
-	if (error != 0)
+	if (error != SUCCESS)
 			return error;
 
 	return SUCCESS;
@@ -286,13 +286,13 @@ int transceiverResetWatchDogs(void) {
 	// transmit WDOG Reset to receiver module
 	error = i2cTransmit(TRANSCEIVER_RX_I2C_SLAVE_ADDR, writeData, sizeof(writeData));
 
-	if (error != 0)
+	if (error != SUCCESS)
 		return error;
 
 	// transmit WDOG Reset to transmitter module
 	error = i2cTransmit(TRANSCEIVER_TX_I2C_SLAVE_ADDR, writeData, sizeof(writeData));
 
-	if (error != 0)
+	if (error != SUCCESS)
 		return error;
 
 	return error;
