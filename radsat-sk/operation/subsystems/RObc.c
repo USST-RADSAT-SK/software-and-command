@@ -19,7 +19,7 @@
  *
  * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
-int obcTelemetry(obcTelemetry_t* telemetry){
+int obcTelemetry(obc_telemetry_t* telemetry){
 	float temperature = 0;
 	int error = RTC_getTemperature(&temperature);
 

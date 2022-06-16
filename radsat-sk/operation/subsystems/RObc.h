@@ -14,9 +14,9 @@
                                             DEFINITIONS
 ***************************************************************************************************/
 
-typedef struct obc_telemetry_t {
+typedef struct _obc_telemetry_t {
 	float temperature;
-} obcTelemetry_t;
+} obc_telemetry_t;
 
 
 
@@ -24,7 +24,7 @@ typedef struct obc_telemetry_t {
                                              PUBLIC API
 ***************************************************************************************************/
 
-int obcTelemetry(obcTelemetry_t* telemetry);
+int obcTelemetry(obc_telemetry_t* telemetry);
 void obcPetWatchdogs(void);
 
 
