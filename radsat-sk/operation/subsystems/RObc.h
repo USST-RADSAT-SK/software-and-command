@@ -19,14 +19,12 @@ typedef struct _obc_telemetry_t {
 } obc_telemetry_t;
 
 
-
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
 int obcTelemetry(obc_telemetry_t* telemetry);
 void obcPetWatchdogs(void);
-
 
 
 #endif /* ROBC_H_ */
