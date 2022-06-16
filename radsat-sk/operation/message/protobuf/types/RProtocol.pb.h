@@ -10,21 +10,21 @@
 #endif
 
 /* Struct definitions */
-typedef struct _Ack {
+typedef struct _ack {
     char dummy_field;
-} Ack;
+} ack;
 
-typedef struct _Nack {
+typedef struct _nack {
     char dummy_field;
-} Nack;
+} nack;
 
-typedef struct _ProtocolMessage {
+typedef struct _protocol_message {
     pb_size_t which_message;
     union {
-        Ack ack;
-        Nack nack;
+        ack Ack;
+        nack Nack;
     };
-} ProtocolMessage;
+} protocol_message;
 
 
 #ifdef __cplusplus
@@ -32,49 +32,49 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define ProtocolMessage_init_default             {0, {Ack_init_default}}
-#define Ack_init_default                         {0}
-#define Nack_init_default                        {0}
-#define ProtocolMessage_init_zero                {0, {Ack_init_zero}}
-#define Ack_init_zero                            {0}
-#define Nack_init_zero                           {0}
+#define protocol_message_init_default            {0, {ack_init_default}}
+#define ack_init_default                         {0}
+#define nack_init_default                        {0}
+#define protocol_message_init_zero               {0, {ack_init_zero}}
+#define ack_init_zero                            {0}
+#define nack_init_zero                           {0}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define ProtocolMessage_ack_tag                  1
-#define ProtocolMessage_nack_tag                 2
+#define protocol_message_Ack_tag                 1
+#define protocol_message_Nack_tag                2
 
 /* Struct field encoding specification for nanopb */
-#define ProtocolMessage_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,ack,ack),   1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,nack,nack),   2)
-#define ProtocolMessage_CALLBACK NULL
-#define ProtocolMessage_DEFAULT NULL
-#define ProtocolMessage_message_ack_MSGTYPE Ack
-#define ProtocolMessage_message_nack_MSGTYPE Nack
+#define protocol_message_FIELDLIST(X, a) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,Ack,Ack),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,Nack,Nack),   2)
+#define protocol_message_CALLBACK NULL
+#define protocol_message_DEFAULT NULL
+#define protocol_message_message_Ack_MSGTYPE ack
+#define protocol_message_message_Nack_MSGTYPE nack
 
-#define Ack_FIELDLIST(X, a) \
+#define ack_FIELDLIST(X, a) \
 
-#define Ack_CALLBACK NULL
-#define Ack_DEFAULT NULL
+#define ack_CALLBACK NULL
+#define ack_DEFAULT NULL
 
-#define Nack_FIELDLIST(X, a) \
+#define nack_FIELDLIST(X, a) \
 
-#define Nack_CALLBACK NULL
-#define Nack_DEFAULT NULL
+#define nack_CALLBACK NULL
+#define nack_DEFAULT NULL
 
-extern const pb_msgdesc_t ProtocolMessage_msg;
-extern const pb_msgdesc_t Ack_msg;
-extern const pb_msgdesc_t Nack_msg;
+extern const pb_msgdesc_t protocol_message_msg;
+extern const pb_msgdesc_t ack_msg;
+extern const pb_msgdesc_t nack_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
-#define ProtocolMessage_fields &ProtocolMessage_msg
-#define Ack_fields &Ack_msg
-#define Nack_fields &Nack_msg
+#define protocol_message_fields &protocol_message_msg
+#define ack_fields &ack_msg
+#define nack_fields &nack_msg
 
 /* Maximum encoded size of messages (where known) */
-#define ProtocolMessage_size                     2
-#define Ack_size                                 0
-#define Nack_size                                0
+#define protocol_message_size                    2
+#define ack_size                                 0
+#define nack_size                                0
 
 #ifdef __cplusplus
 } /* extern "C" */

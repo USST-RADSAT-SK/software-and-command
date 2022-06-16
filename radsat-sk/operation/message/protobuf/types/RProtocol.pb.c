@@ -6,13 +6,13 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-PB_BIND(ProtocolMessage, ProtocolMessage, AUTO)
+PB_BIND(protocol_message, protocol_message, AUTO)
 
 
-PB_BIND(Ack, Ack, AUTO)
+PB_BIND(ack, ack, AUTO)
 
 
-PB_BIND(Nack, Nack, AUTO)
+PB_BIND(nack, nack, AUTO)
 
 
 

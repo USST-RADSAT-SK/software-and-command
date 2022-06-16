@@ -10,57 +10,57 @@
 #endif
 
 /* Enum definitions */
-typedef enum _Reset_device_t {
-    Reset_device_t_obc = 0,
-    Reset_device_t_transmitter = 1,
-    Reset_device_t_receiver = 2,
-    Reset_device_t_antennaSideA = 3,
-    Reset_device_t_antennaSideB = 4
-} Reset_device_t;
+typedef enum _reset_device_t {
+    reset_device_t_Obc = 0,
+    reset_device_t_Transmitter = 1,
+    reset_device_t_Receiver = 2,
+    reset_device_t_AntennaSideA = 3,
+    reset_device_t_AntennaSideB = 4
+} reset_device_t;
 
 /* Struct definitions */
-typedef struct _BeginFileTransfer {
+typedef struct _begin_file_transfer {
     char dummy_field;
-} BeginFileTransfer;
+} begin_file_transfer;
 
-typedef struct _ResumeTransmission {
+typedef struct _resume_transmission {
     char dummy_field;
-} ResumeTransmission;
+} resume_transmission;
 
-typedef struct _BeginPass {
+typedef struct _begin_pass {
     uint32_t passLength;
-} BeginPass;
+} begin_pass;
 
-typedef struct _CeaseTransmission {
+typedef struct _cease_transmission {
     uint32_t duration;
-} CeaseTransmission;
+} cease_transmission;
 
-typedef struct _Reset {
-    Reset_device_t device;
+typedef struct _reset {
+    reset_device_t device;
     uint32_t hard;
-} Reset;
+} reset;
 
-typedef struct _UpdateTime {
+typedef struct _update_time {
     uint32_t unixTime;
-} UpdateTime;
+} update_time;
 
-typedef struct _TelecommandMessage {
+typedef struct _telecommand_message {
     pb_size_t which_message;
     union {
-        BeginPass beginPass;
-        BeginFileTransfer beginFileTransfer;
-        CeaseTransmission ceaseTransmission;
-        ResumeTransmission ResumeTransmission;
-        UpdateTime updateTime;
-        Reset reset;
+        begin_pass BeginPass;
+        begin_file_transfer BeginFileTransfer;
+        cease_transmission CeaseTransmission;
+        resume_transmission ResumeTransmission;
+        update_time UpdateTime;
+        reset Reset;
     };
-} TelecommandMessage;
+} telecommand_message;
 
 
 /* Helper constants for enums */
-#define _Reset_device_t_MIN Reset_device_t_obc
-#define _Reset_device_t_MAX Reset_device_t_antennaSideB
-#define _Reset_device_t_ARRAYSIZE ((Reset_device_t)(Reset_device_t_antennaSideB+1))
+#define _reset_device_t_MIN reset_device_t_Obc
+#define _reset_device_t_MAX reset_device_t_AntennaSideB
+#define _reset_device_t_ARRAYSIZE ((reset_device_t)(reset_device_t_AntennaSideB+1))
 
 
 #ifdef __cplusplus
@@ -68,107 +68,107 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define TelecommandMessage_init_default          {0, {BeginPass_init_default}}
-#define BeginPass_init_default                   {0}
-#define BeginFileTransfer_init_default           {0}
-#define CeaseTransmission_init_default           {0}
-#define ResumeTransmission_init_default          {0}
-#define UpdateTime_init_default                  {0}
-#define Reset_init_default                       {_Reset_device_t_MIN, 0}
-#define TelecommandMessage_init_zero             {0, {BeginPass_init_zero}}
-#define BeginPass_init_zero                      {0}
-#define BeginFileTransfer_init_zero              {0}
-#define CeaseTransmission_init_zero              {0}
-#define ResumeTransmission_init_zero             {0}
-#define UpdateTime_init_zero                     {0}
-#define Reset_init_zero                          {_Reset_device_t_MIN, 0}
+#define telecommand_message_init_default         {0, {begin_pass_init_default}}
+#define begin_pass_init_default                  {0}
+#define begin_file_transfer_init_default         {0}
+#define cease_transmission_init_default          {0}
+#define resume_transmission_init_default         {0}
+#define update_time_init_default                 {0}
+#define reset_init_default                       {_reset_device_t_MIN, 0}
+#define telecommand_message_init_zero            {0, {begin_pass_init_zero}}
+#define begin_pass_init_zero                     {0}
+#define begin_file_transfer_init_zero            {0}
+#define cease_transmission_init_zero             {0}
+#define resume_transmission_init_zero            {0}
+#define update_time_init_zero                    {0}
+#define reset_init_zero                          {_reset_device_t_MIN, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define BeginPass_passLength_tag                 1
-#define CeaseTransmission_duration_tag           1
-#define Reset_device_tag                         1
-#define Reset_hard_tag                           2
-#define UpdateTime_unixTime_tag                  1
-#define TelecommandMessage_beginPass_tag         1
-#define TelecommandMessage_beginFileTransfer_tag 2
-#define TelecommandMessage_ceaseTransmission_tag 3
-#define TelecommandMessage_ResumeTransmission_tag 4
-#define TelecommandMessage_updateTime_tag        5
-#define TelecommandMessage_reset_tag             6
+#define begin_pass_passLength_tag                1
+#define cease_transmission_duration_tag          1
+#define reset_device_tag                         1
+#define reset_hard_tag                           2
+#define update_time_unixTime_tag                 1
+#define telecommand_message_BeginPass_tag        1
+#define telecommand_message_BeginFileTransfer_tag 2
+#define telecommand_message_CeaseTransmission_tag 3
+#define telecommand_message_ResumeTransmission_tag 4
+#define telecommand_message_UpdateTime_tag       5
+#define telecommand_message_Reset_tag            6
 
 /* Struct field encoding specification for nanopb */
-#define TelecommandMessage_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,beginPass,beginPass),   1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,beginFileTransfer,beginFileTransfer),   2) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,ceaseTransmission,ceaseTransmission),   3) \
+#define telecommand_message_FIELDLIST(X, a) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,BeginPass,BeginPass),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,BeginFileTransfer,BeginFileTransfer),   2) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,CeaseTransmission,CeaseTransmission),   3) \
 X(a, STATIC,   ONEOF,    MESSAGE,  (message,ResumeTransmission,ResumeTransmission),   4) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,updateTime,updateTime),   5) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,reset,reset),   6)
-#define TelecommandMessage_CALLBACK NULL
-#define TelecommandMessage_DEFAULT NULL
-#define TelecommandMessage_message_beginPass_MSGTYPE BeginPass
-#define TelecommandMessage_message_beginFileTransfer_MSGTYPE BeginFileTransfer
-#define TelecommandMessage_message_ceaseTransmission_MSGTYPE CeaseTransmission
-#define TelecommandMessage_message_ResumeTransmission_MSGTYPE ResumeTransmission
-#define TelecommandMessage_message_updateTime_MSGTYPE UpdateTime
-#define TelecommandMessage_message_reset_MSGTYPE Reset
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,UpdateTime,UpdateTime),   5) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,Reset,Reset),   6)
+#define telecommand_message_CALLBACK NULL
+#define telecommand_message_DEFAULT NULL
+#define telecommand_message_message_BeginPass_MSGTYPE begin_pass
+#define telecommand_message_message_BeginFileTransfer_MSGTYPE begin_file_transfer
+#define telecommand_message_message_CeaseTransmission_MSGTYPE cease_transmission
+#define telecommand_message_message_ResumeTransmission_MSGTYPE resume_transmission
+#define telecommand_message_message_UpdateTime_MSGTYPE update_time
+#define telecommand_message_message_Reset_MSGTYPE reset
 
-#define BeginPass_FIELDLIST(X, a) \
+#define begin_pass_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UINT32,   passLength,        1)
-#define BeginPass_CALLBACK NULL
-#define BeginPass_DEFAULT NULL
+#define begin_pass_CALLBACK NULL
+#define begin_pass_DEFAULT NULL
 
-#define BeginFileTransfer_FIELDLIST(X, a) \
+#define begin_file_transfer_FIELDLIST(X, a) \
 
-#define BeginFileTransfer_CALLBACK NULL
-#define BeginFileTransfer_DEFAULT NULL
+#define begin_file_transfer_CALLBACK NULL
+#define begin_file_transfer_DEFAULT NULL
 
-#define CeaseTransmission_FIELDLIST(X, a) \
+#define cease_transmission_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UINT32,   duration,          1)
-#define CeaseTransmission_CALLBACK NULL
-#define CeaseTransmission_DEFAULT NULL
+#define cease_transmission_CALLBACK NULL
+#define cease_transmission_DEFAULT NULL
 
-#define ResumeTransmission_FIELDLIST(X, a) \
+#define resume_transmission_FIELDLIST(X, a) \
 
-#define ResumeTransmission_CALLBACK NULL
-#define ResumeTransmission_DEFAULT NULL
+#define resume_transmission_CALLBACK NULL
+#define resume_transmission_DEFAULT NULL
 
-#define UpdateTime_FIELDLIST(X, a) \
+#define update_time_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UINT32,   unixTime,          1)
-#define UpdateTime_CALLBACK NULL
-#define UpdateTime_DEFAULT NULL
+#define update_time_CALLBACK NULL
+#define update_time_DEFAULT NULL
 
-#define Reset_FIELDLIST(X, a) \
+#define reset_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UENUM,    device,            1) \
 X(a, STATIC,   SINGULAR, UINT32,   hard,              2)
-#define Reset_CALLBACK NULL
-#define Reset_DEFAULT NULL
+#define reset_CALLBACK NULL
+#define reset_DEFAULT NULL
 
-extern const pb_msgdesc_t TelecommandMessage_msg;
-extern const pb_msgdesc_t BeginPass_msg;
-extern const pb_msgdesc_t BeginFileTransfer_msg;
-extern const pb_msgdesc_t CeaseTransmission_msg;
-extern const pb_msgdesc_t ResumeTransmission_msg;
-extern const pb_msgdesc_t UpdateTime_msg;
-extern const pb_msgdesc_t Reset_msg;
+extern const pb_msgdesc_t telecommand_message_msg;
+extern const pb_msgdesc_t begin_pass_msg;
+extern const pb_msgdesc_t begin_file_transfer_msg;
+extern const pb_msgdesc_t cease_transmission_msg;
+extern const pb_msgdesc_t resume_transmission_msg;
+extern const pb_msgdesc_t update_time_msg;
+extern const pb_msgdesc_t reset_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
-#define TelecommandMessage_fields &TelecommandMessage_msg
-#define BeginPass_fields &BeginPass_msg
-#define BeginFileTransfer_fields &BeginFileTransfer_msg
-#define CeaseTransmission_fields &CeaseTransmission_msg
-#define ResumeTransmission_fields &ResumeTransmission_msg
-#define UpdateTime_fields &UpdateTime_msg
-#define Reset_fields &Reset_msg
+#define telecommand_message_fields &telecommand_message_msg
+#define begin_pass_fields &begin_pass_msg
+#define begin_file_transfer_fields &begin_file_transfer_msg
+#define cease_transmission_fields &cease_transmission_msg
+#define resume_transmission_fields &resume_transmission_msg
+#define update_time_fields &update_time_msg
+#define reset_fields &reset_msg
 
 /* Maximum encoded size of messages (where known) */
-#define TelecommandMessage_size                  10
-#define BeginPass_size                           6
-#define BeginFileTransfer_size                   0
-#define CeaseTransmission_size                   6
-#define ResumeTransmission_size                  0
-#define UpdateTime_size                          6
-#define Reset_size                               8
+#define telecommand_message_size                 10
+#define begin_pass_size                          6
+#define begin_file_transfer_size                 0
+#define cease_transmission_size                  6
+#define resume_transmission_size                 0
+#define update_time_size                         6
+#define reset_size                               8
 
 #ifdef __cplusplus
 } /* extern "C" */
