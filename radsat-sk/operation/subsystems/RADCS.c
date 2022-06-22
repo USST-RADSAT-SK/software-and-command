@@ -54,11 +54,13 @@
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
+
 static uint8_t * MessageBuilder(uint8_t response_size);
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
+
 /*
  * Used to send image capture telecommand (TC ID 20) to image sensor
  *
@@ -88,7 +90,7 @@ int tcImageCaputreAndDetection(uint8_t camera) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -102,7 +104,7 @@ int tcImageCaputreAndDetection(uint8_t camera) {
 	// Read automatically reply to telecommand
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -112,12 +114,11 @@ int tcImageCaputreAndDetection(uint8_t camera) {
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
 
-	if (tcErrorFlag != 0){
+	if (tcErrorFlag != 0) {
 		return E_GENERIC;
 	}
 
 	return SUCCESS;
-
 }
 
 /*
@@ -145,7 +146,7 @@ int tlmSensorOneResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
@@ -159,7 +160,7 @@ int tlmSensorOneResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
 	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_22_LEN);
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
@@ -201,7 +202,7 @@ int tlmSensorTwoResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
@@ -215,7 +216,7 @@ int tlmSensorTwoResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
 	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_25_LEN);
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
@@ -240,19 +241,18 @@ int tlmSensorTwoResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_
  * @return struct containing the components of the 3D Vector
  */
 interpret_detection_result_t detectionResult(uint16_t alpha, uint16_t beta) {
-	uint16_t theda;
+	uint16_t theta;
 	uint16_t phi;
 	interpret_detection_result_t data;
 
-	theda = sqrt((alpha/100) * (alpha/100) + (beta/100) * (beta/100));
+	theta = sqrt((alpha/100) * (alpha/100) + (beta/100) * (beta/100));
 	phi = atan2(beta,alpha);
 
-	data.X_AXIS = sin(theda)*cos(phi);
-	data.Y_AXIS = sin(theda)*sin(phi);
-	data.Z_AXIS = cos(theda);
+	data.X_AXIS = sin(theta)*cos(phi);
+	data.Y_AXIS = sin(theta)*sin(phi);
+	data.Z_AXIS = cos(theta);
 
 	return data;
-
 }
 
 /***************************************************************************************************
@@ -267,7 +267,7 @@ interpret_detection_result_t detectionResult(uint16_t alpha, uint16_t beta) {
  * @param response_size defines how many data bytes are required in the buffer
  * @return dynamically allocated buffer
  * */
-static uint8_t * MessageBuilder(uint8_t response_size){
+static uint8_t * MessageBuilder(uint8_t response_size) {
 
 	// Define the total size the buffer should be
     uint8_t total_buffer_length = response_size + BASE_MESSAGE_LEN;
@@ -276,16 +276,16 @@ static uint8_t * MessageBuilder(uint8_t response_size){
     uint8_t* Buffer = (uint8_t*) malloc(total_buffer_length * sizeof(uint8_t));
 
     // Initialize all elements in the buffer with zero
-    for (uint8_t i = 0; i < total_buffer_length; i++){
+    for (uint8_t i = 0; i < total_buffer_length; i++) {
     	Buffer[i] = 0;
     }
 
     // Fill Buffer with default values
-    for(uint8_t i = 0; i<total_buffer_length;i++){
-        if (i == 0){
+    for(uint8_t i = 0; i<total_buffer_length;i++) {
+        if (i == 0) {
         	Buffer[i] = START_IDENTIFIER1;
         }
-        else if (i == 1){
+        else if (i == 1) {
             Buffer[i] = START_IDENTIFIER2;
         }
         else if (i == total_buffer_length-2) {
@@ -294,7 +294,7 @@ static uint8_t * MessageBuilder(uint8_t response_size){
         else if (i == total_buffer_length-1) {
         	Buffer[i] = END_IDENTIFIER2;
         }
-        else{
+        else {
         	Buffer[i] = FILLER;
         }
     }

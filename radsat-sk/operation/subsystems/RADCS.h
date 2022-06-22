@@ -7,6 +7,7 @@
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
+
 /* Struct for telemetry Detection result and Trigger, ID 20-25 */
 typedef struct _tlm_detection_result_and_trigger_adcs_t {
 	uint16_t alpha;
@@ -17,8 +18,8 @@ typedef struct _tlm_detection_result_and_trigger_adcs_t {
 
 /* Struct to define 3D vector */
 typedef struct _interpret_detection_result_t {
-	uint16_t Y_AXIS;
 	uint16_t X_AXIS;
+	uint16_t Y_AXIS;
 	uint16_t Z_AXIS;
 } interpret_detection_result_t;
 

@@ -116,12 +116,6 @@
 
 #define TC_NO_ERROR						((uint8_t) 0)
 
-//number of bytes in one frame of an image
-#define FRAME_BYTES						128
-
-//array size to convert hex to decimal
-#define ARRAY_SIZE 						20
-
 /* Struct for telmetry status, ID 0*/
 typedef struct _tlm_status_t {
 	uint8_t  nodeType;
@@ -170,7 +164,7 @@ typedef struct _tlm_config_t{
 
 /* Struct for telemetry full image, ID 66-69 */
 typedef struct _tlm_full_image_t {
-	uint8_t imageBytes[1048576];
+	uint8_t imageBytes[MAXIMUM_BYTES];
 } tlm_full_image_t;
 
 /* struct for telemetry read sensor masks ID 72-73 */
@@ -299,7 +293,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 	currentTime = 0;
 	elapsedTime = 0;
 	imageFrameNum = 1;
-	memset(image->imageFrames,0,sizeof(image->imageFrames));
+	memset(image->imageFrames, 0, sizeof(image->imageFrames));
 
 	// Loop for the amount of frames that are being downloaded
 	for (uint16_t i = 0; i < numOfFrames; i++) {
@@ -309,7 +303,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 		startTime = RTT_GetTime();
 
 		// Need to wait until on board camera buffer empties for frame, timer used as a back up to ensure we dont deadlock, set for 2 seconds
-		while((imageFrameNum != 0) || (elapsedTime <= 2)) {
+		while((imageFrameNum != 0) && (elapsedTime <= 2)) {
 
 			// Request Telemetry 65 To get the status of image frame buffer
 			error = tlmImageFrameInfo(imageFrameInfo);
@@ -345,8 +339,6 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 
 	return SUCCESS;
 }
-
-
 
 /*
  * Used to created a 3D vector from a detection of both sensors
@@ -440,7 +432,6 @@ int detectionAndInterpret(detection_results_t *data) {
 	data->imageSensorZ = image_sensor_coords.Z_AXIS;
 
 	return SUCCESS;
-
 }
 
 /*
@@ -493,7 +484,6 @@ int cameraTelemetry(CameraTelemetry *cameraTelemetry) {
 	cameraTelemetry->cameraTwoTelemetry.redGain = tlmConfigStruct->cameraTwoRedGain;
 
 	return SUCCESS;
-
 }
 
 /*
@@ -574,37 +564,22 @@ int SaturationFilter(uint8_t size,full_image_t *image) {
 	}
 
 	tlm_image_frame_t *imageFrame = {0};
-	uint8_t* frameArray[] = {0};
-	*frameArray = image->imageFrames;
-
-//	*frameArray = imageFrame->image_bytes;
 
 	//average of one frame's bytes
 	for (int i = 0; i < FRAME_BYTES ; i ++ ) {
-		sum += (int) frameArray[i];
+		imageFrame = image->imageFrames[i];
+		sum += (int) imageFrame;
 		int avgOfFrames = sum/FRAME_BYTES;
 
 		//average of all the average of all frame bytes
 		for (int j; j <= numOfFrames; j++) {
 			uint16_t sumOfAverages = avg[avgOfFrames];
 			allFrameAverage = sumOfAverages/numOfFrames;
+		}
 	}
-
 	// checking if the overall average is in reasonable range
-	if (allFrameAverage < 40) {
+	if (allFrameAverage < 40 || allFrameAverage > 240) {
 		return 1;
-	}
-	else if (allFrameAverage > 240) {
-		return 1;
-	}
-	else {
-		return 0;
-	}
-}
-
-	int error = tlmImageFrame(imageFrame);
-	if (error != SUCCESS) {
-		return error;
 	}
 
 	return SUCCESS;
@@ -613,7 +588,6 @@ int SaturationFilter(uint8_t size,full_image_t *image) {
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
 ***************************************************************************************************/
-
 /*
  * Used to dynamically allocated buffer sizes as each telemetry and telecommand
  * require different sizes
@@ -636,7 +610,7 @@ static uint8_t * MessageBuilder(uint8_t response_size) {
     }
 
     // Fill Buffer with default values
-    for(uint8_t i = 0; i<total_buffer_length;i++) {
+    for(uint8_t i = 0; i < total_buffer_length;i++) {
         if (i == 0) {
         	tlmBuffer[i] = START_IDENTIFIER1;
         }
@@ -655,7 +629,6 @@ static uint8_t * MessageBuilder(uint8_t response_size) {
     }
 
     return tlmBuffer;
-
 }
 
 /*
@@ -712,7 +685,6 @@ static int tlmStatus(tlm_status_t *telemetry_reply) {
 	free(telemetryBuffer);
 
 	return SUCCESS;
-
 }
 
 /*
@@ -810,7 +782,7 @@ static int tlmConfig(tlm_config_t *telemetry_reply) {
 	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_40_LEN);
 
 	// Error Check on uartRecieve, if error, free allocated buffer
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return error;
 	}
@@ -860,7 +832,7 @@ int tlmImageFrame(tlm_image_frame_t *telemetry_reply) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
@@ -874,7 +846,7 @@ int tlmImageFrame(tlm_image_frame_t *telemetry_reply) {
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
 	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_64_LEN);
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
@@ -914,7 +886,7 @@ static int tcCameraOneDetectionThreshold(uint8_t detectionThreshold) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -985,7 +957,7 @@ static int tcCameraTwoDetectionThreshold(uint8_t detectionThreshold) {
 	// Read automatically reply to telecommand
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 

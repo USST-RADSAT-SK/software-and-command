@@ -1,16 +1,26 @@
 /**
  * @file RCamera.h
  * @date December 23, 2021
- * @author Shiva Moghtaderi (shm153)
+ * @author Shiva Moghtaderi (shm153) & Atharva Kulkarni (iya789)
  */
 
 #ifndef RCAMERA_H_
 #define RCAMERA_H_
 
 #include <stdint.h>
+
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
+/*number of bytes in one frame of an image*/
+#define FRAME_BYTES						128
+
+/*maximum number of frames in one image*/
+#define MAXIMUM_FRAMES			        8192
+
+/*maximum number of bytes in one image */
+#define MAXIMUM_BYTES					1048576
+
 /* Struct used to define ADCS Function*/
 typedef struct _detection_results_t {
 	uint16_t sunSensorX;
@@ -51,19 +61,20 @@ typedef struct _CameraTelemetry {
 
 /* Struct for telemetry image frame */
 typedef struct _tlm_image_frame_t {
-	uint8_t image_bytes[128];
+	uint8_t image_bytes[FRAME_BYTES];
 } tlm_image_frame_t;
 
 //TODO: RCamera.h: Change the struct to a dynamic allocation or something less wasteful for full image
 /* Struct that holds full image with ID */
 typedef struct _full_image_t {
 	uint8_t image_ID;
-	tlm_image_frame_t imageFrames[8192];
+	tlm_image_frame_t *imageFrames[MAXIMUM_FRAMES];
 }full_image_t;
 
 /****************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
+
 int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *image);
 int detectionAndInterpret(detection_results_t *data);
 int cameraTelemetry(CameraTelemetry *cameraTelemetry);

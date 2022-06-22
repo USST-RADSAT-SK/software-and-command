@@ -46,7 +46,6 @@
 #define TELEMETRY_OFFSET_5              ((uint8_t) 7)
 #define TELEMETRY_ID_OFFSET		        ((uint8_t) 2)
 
-
 #define SIZE_OF_BITMAP					((uint8_t) 4096)
 
 #define BASE_MESSAGE_LEN				((uint8_t) 4)
@@ -63,16 +62,14 @@
 #define TOP_HALVE                       ((uint8_t) 0)
 #define BOTTOM_HALVE                    ((uint8_t) 1)
 
-
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
-static uint8_t * MessageBuilder(uint8_t response_size);
+static uint8_t* MessageBuilder(uint8_t response_size);
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
-
 /*
  * Used to send image capture telecommand (TC ID 21) to image sensor
  *
@@ -106,7 +103,7 @@ int tcImageCaputre(uint8_t SRAM, uint8_t location) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -120,7 +117,7 @@ int tcImageCaputre(uint8_t SRAM, uint8_t location) {
 	// Read automatically reply to telecommand
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -130,12 +127,11 @@ int tcImageCaputre(uint8_t SRAM, uint8_t location) {
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
 
-	if (tcErrorFlag != 0){
+	if (tcErrorFlag != 0) {
 		return E_GENERIC;
 	}
 
 	return SUCCESS;
-
 }
 
 /*
@@ -163,7 +159,7 @@ int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
@@ -177,7 +173,7 @@ int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply) {
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
 	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_21_LEN);
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
@@ -229,7 +225,7 @@ int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -243,7 +239,7 @@ int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size) {
 	// Read automatically reply to telecommand
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -253,12 +249,11 @@ int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size) {
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
 
-	if (tcErrorFlag != 0){
+	if (tcErrorFlag != 0) {
 		return E_GENERIC;
 	}
 
 	return SUCCESS;
-
 }
 
 /*
@@ -286,7 +281,7 @@ int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
@@ -300,7 +295,7 @@ int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply) {
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
 	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_65_LEN);
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
@@ -341,7 +336,7 @@ int tcAdvanceImageDownload(uint16_t nextFrameNumber) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -355,7 +350,7 @@ int tcAdvanceImageDownload(uint16_t nextFrameNumber) {
 	// Read automatically reply to telecommand
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		return E_GENERIC;
 	}
 
@@ -365,12 +360,11 @@ int tcAdvanceImageDownload(uint16_t nextFrameNumber) {
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
 
-	if (tcErrorFlag != 0){
+	if (tcErrorFlag != 0) {
 		return E_GENERIC;
 	}
 
 	return SUCCESS;
-
 }
 
 /*
@@ -398,7 +392,7 @@ int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
    // Send Telemetry Request
 	 error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
@@ -414,17 +408,18 @@ int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
 	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_3_LEN);
 
 
-	if (error != 0){
+	if (error != 0) {
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
 
 	// Fill telemetry reply, data from uart read starts at index two
-	memcpy(&telemetry_reply->tc_error_flag,&telemetryBuffer[TELEMETRY_OFFSET_2],sizeof(telemetry_reply->tc_error_flag));
+	memcpy(&telemetry_reply->tc_error_flag, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->tc_error_flag));
 
 
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
+
 	return SUCCESS;
 }
 
@@ -434,22 +429,23 @@ int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
  * @param image the downloaded array of bytes from the camera
  * @return the mean value of the for the image
  */
+int calculateMeanOfTheImage(uint8_t *image) {
 
-  int calculateMeanOfTheImage(uint8_t *image) {
+	float  sum,mean;
+	uint8_t  n = SIZE_OF_BITMAP;
 
- 	float  sum,mean;
- 	uint8_t  n = SIZE_OF_BITMAP;
+	for (uint8_t j = 0 ; j < n; ++j) {
+		sum = sum + image[j];
+	}
 
- 	for (uint8_t j = 0 ; j < n; ++j){
- 			sum = sum + image[j];
- 	  }
- 	mean = sum / n;
-  	return mean;
+	mean = sum / n;
+
+	return mean;
 }
+
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
 ***************************************************************************************************/
-
 /*
  * Used to dynamically allocated buffer sizes as each telecommand
  * require different sizes
@@ -458,7 +454,7 @@ int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
  * @param response_size defines how many data bytes are required in the buffer
  * @return dynamically allocated buffer
  * */
-static uint8_t * MessageBuilder(uint8_t response_size){
+static uint8_t * MessageBuilder(uint8_t response_size) {
 
 	// Define the total size the buffer should be
     uint8_t total_buffer_length = response_size + BASE_MESSAGE_LEN;
@@ -467,16 +463,16 @@ static uint8_t * MessageBuilder(uint8_t response_size){
     uint8_t* Buffer = (uint8_t*) malloc(total_buffer_length * sizeof(uint8_t));
 
     // Initialize all elements in the buffer with zero
-    for (uint8_t i = 0; i < total_buffer_length; i++){
+    for (uint8_t i = 0; i < total_buffer_length; i++) {
     	Buffer[i] = 0;
     }
 
     // Fill Buffer with default values
-    for(uint8_t i = 0; i<total_buffer_length;i++){
-        if (i == 0){
+    for(uint8_t i = 0; i<total_buffer_length;i++) {
+        if (i == 0) {
         	Buffer[i] = START_IDENTIFIER1;
         }
-        else if (i == 1){
+        else if (i == 1) {
             Buffer[i] = START_IDENTIFIER2;
         }
         else if (i == total_buffer_length-2) {
@@ -485,7 +481,7 @@ static uint8_t * MessageBuilder(uint8_t response_size){
         else if (i == total_buffer_length-1) {
         	Buffer[i] = END_IDENTIFIER2;
         }
-        else{
+        else {
         	Buffer[i] = FILLER;
         }
     }
