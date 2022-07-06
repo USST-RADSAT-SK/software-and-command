@@ -9,6 +9,7 @@
 #include <RTransceiver.h>
 #include <RMessage.h>
 #include <string.h>
+#include <RCommon.h>
 
 
 /**
@@ -65,7 +66,7 @@ uint8_t fileTransferNextFrame(uint8_t* frame) {
 
 	// ensure that there is a valid frame ahead
 	if (frames[frameReadCursor + 1].size == 0)
-		return 0;
+		return SUCCESS;
 
 	// invalidate the current (now previous frame)
 	memset(&frames[frameReadCursor], 0, sizeof(frames[frameReadCursor]));
@@ -145,6 +146,6 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 		frameWriteCursor = 0;
 
 	// return success
-	return 0;
+	return SUCCESS;
 }
 

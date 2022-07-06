@@ -9,6 +9,7 @@
 #include <RFileTransfer.pb.h>
 #include <RI2c.h>
 #include <string.h>
+#include <RCommon.h>
 
 
 /***************************************************************************************************
@@ -114,8 +115,9 @@ static float convertVoltageToTemperature(float voltage);
  * 		   In the event of error, no data will have been sent to the Downlink
  * 		   Manager.
  */
-int dosimeterCollectData(void)
-{
+int dosimeterCollectData(void) {
+	int error = SUCCESS;
+
 	// internal buffer for receiving I2C responses
 	uint8_t dataResponse[DOSIMETER_RESPONSE_LENGTH] = { 0 };
 
@@ -135,7 +137,7 @@ int dosimeterCollectData(void)
 			memset(dataResponse, 0, DOSIMETER_RESPONSE_LENGTH);
 
 			// tell dosimeter to begin conversion; receive 12-bit data into our internal buffer
-			int error = i2cTalk(dosimeterBoardSlaveAddr[dosimeterBoard], DOSIMETER_COMMAND_LENGTH,
+			error = i2cTalk(dosimeterBoardSlaveAddr[dosimeterBoard], DOSIMETER_COMMAND_LENGTH,
 								DOSIMETER_RESPONSE_LENGTH, &dosimeterCommandBytes[adcChannel],
 								dataResponse, DOSIMETER_I2C_DELAY);
 
@@ -178,9 +180,9 @@ int dosimeterCollectData(void)
 	data.boardTwo.channelSeven = results[dosimeterBoardTwo][adcChannelSeven];
 
 	// send formatted protobuf messages to downlink manager
-	fileTransferAddMessage(&data, sizeof(data), file_transfer_message_DosimeterData_tag);
+	error = fileTransferAddMessage(&data, sizeof(data), FileTransferMessage_dosimeterData_tag);
 
-	return 0;
+	return  error;
 }
 
 
@@ -203,9 +205,9 @@ int16_t dosimeterTemperature(dosimeterBoard_t board) {
 						DOSIMETER_RESPONSE_LENGTH, &dosimeterCommandBytes[adcChannel],
 						dataResponse, DOSIMETER_I2C_DELAY);
 
-	// return 0 if an error occurs
+	// return 1 if an error occurs
 	if (error != 0)
-		return 0;
+		return E_GENERIC;
 
 	// obtain the voltage reading
 	float voltageReading = convertCountsToVoltage(dataResponse[0], dataResponse[1]);
