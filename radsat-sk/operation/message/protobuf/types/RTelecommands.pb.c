@@ -6,25 +6,25 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-PB_BIND(TelecommandMessage, TelecommandMessage, AUTO)
+PB_BIND(telecommand_message, telecommand_message, AUTO)
 
 
-PB_BIND(BeginPass, BeginPass, AUTO)
+PB_BIND(begin_pass, begin_pass, AUTO)
 
 
-PB_BIND(BeginFileTransfer, BeginFileTransfer, AUTO)
+PB_BIND(begin_file_transfer, begin_file_transfer, AUTO)
 
 
-PB_BIND(CeaseTransmission, CeaseTransmission, AUTO)
+PB_BIND(cease_transmission, cease_transmission, AUTO)
 
 
-PB_BIND(ResumeTransmission, ResumeTransmission, AUTO)
+PB_BIND(resume_transmission, resume_transmission, AUTO)
 
 
-PB_BIND(UpdateTime, UpdateTime, AUTO)
+PB_BIND(update_time, update_time, AUTO)
 
 
-PB_BIND(Reset, Reset, AUTO)
+PB_BIND(reset, reset, AUTO)
 
 
 

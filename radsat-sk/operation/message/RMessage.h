@@ -41,8 +41,8 @@ typedef struct __attribute__((packed)) _radsat_sk_header_t {
                                              PUBLIC API
 ***************************************************************************************************/
 
-uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage);
-uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, RadsatMessage* rawMessage);
+uint8_t messageWrap(radsat_message* rawMessage, uint8_t* wrappedMessage);
+uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* rawMessage);
 
 
 #endif /* RMESSAGE_H_ */
