@@ -275,20 +275,20 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 }
 
 
-int transceiverResetWatchDogs(void) {
+int transceiverPetWatchDogs(void) {
 
 	int error = 0;
 
-	// create buffer to hold reset command code
+	// create buffer to hold pet command code
 	uint8_t writeData[TRX_WDOG_RESET_CMD_SIZE] = { TRX_WDOG_RESET_CMD_CODE };
 
-	// transmit WDOG Reset to receiver module
+	// transmit WDOG pet to receiver module
 	error = i2cTransmit(TRANSCEIVER_RX_I2C_SLAVE_ADDR, writeData, sizeof(writeData));
 
 	if (error != 0)
 		return error;
 
-	// transmit WDOG Reset to transmitter module
+	// transmit WDOG pet to transmitter module
 	error = i2cTransmit(TRANSCEIVER_TX_I2C_SLAVE_ADDR, writeData, sizeof(writeData));
 
 	if (error != 0)

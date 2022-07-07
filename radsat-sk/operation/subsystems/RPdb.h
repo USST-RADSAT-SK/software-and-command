@@ -49,6 +49,6 @@ typedef struct _pdb_status_t {
 
 int pdbSunSensorData(sun_sensor_status_t* sunData);
 int pdbTelemetry(pdb_status_t* dataStorage);
-int pdbPetWatchdog(void);
+int pdbPetWatchDog(void);
 
 #endif /* RPdb_H_ */

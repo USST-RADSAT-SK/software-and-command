@@ -15,4 +15,13 @@
 void SatelliteWatchdogTask(void* parameters);
 
 
+/***************************************************************************************************
+                                             PUBLIC API
+***************************************************************************************************/
+
+uint8_t comunicationMode(void);
+uint8_t safeMode(void);
+
+
+
 #endif /* RSATELLITEWATCHDOGTASK_H_ */

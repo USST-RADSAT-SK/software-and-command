@@ -246,6 +246,27 @@ int batteryIsNotSafe(uint8_t* safeFlag) {
 	return SUCCESS;
 }
 
+/**
+ * Pet the Communications watchdog on the battery using code 
+ * @return either an error if it occurred, or 0
+ */
+int batteryPetWatchdog(void) {
+	// Create temporary variables for sending I2C data
+	uint8_t command[_COMMAND_LENGTH] = {0};
+
+	memset(command, 0, sizeof(command));
+	memcpy(command, &batteryWatchdogResetCommand, _COMMAND_LENGTH);
+
+	// One way communication so just use transmit using reset watchdog command 
+	int error = i2cTransmit(_I2C_SLAVE_ADDR, command, _COMMAND_LENGTH);
+
+	if (error != SUCCESS) {
+		return error;
+	}
+
+	return SUCCESS;
+}
+
 
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS

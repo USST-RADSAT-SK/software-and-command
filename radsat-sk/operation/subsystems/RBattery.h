@@ -42,6 +42,6 @@ typedef struct _battery_status_t {
 
 int batteryTelemetry(battery_status_t* dataStorage);
 int batteryIsNotSafe(uint8_t* safeFlag);
-
+int batteryPetWatchdog(void);
 
 #endif /* RBATTERY_H_ */

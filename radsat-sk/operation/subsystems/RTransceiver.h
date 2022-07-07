@@ -78,7 +78,7 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage);
 int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRemaining);
 int transceiverPowerCycle(void);
 int transceiverTelemetry(transceiver_telemetry_t* telemetry);
-int transceiverResetWatchDogs(void);
+int transceiverPetWatchDogs(void);
 int transceiverSoftReset(void);
 
 

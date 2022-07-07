@@ -277,7 +277,7 @@ int pdbTelemetry(pdb_status_t* dataStorage) {
  * Pet the Communications watchdog on the PDB using code 0x22
  * @return either an error if it occurred, or 0
  */
-int pdbPetWatchdog(void) {
+int pdbPetWatchDog(void) {
 	// One way communication so just use transmit using reset watchdog command 0x22
 	int error = i2cTransmit(PDB_I2C_SLAVE_ADDR, pdbWatchdogResetCommand, PDB_COMMAND_LENGTH);
 
