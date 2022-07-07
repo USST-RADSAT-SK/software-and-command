@@ -177,13 +177,6 @@ static int initDrivers(void) {
 
 	int error = SUCCESS;
 
-	// initialize the Debug UART port for debugging to a PC
-	error = uartInit(UART_DEBUG_BUS);
-	if (error != SUCCESS) {
-		debugPrint("initDriver(): failed to initialize Debug UART.\n");
-		return error;
-	}
-
 	// initialize the Auxillary Camera UART port for communication with Camera
 	error = uartInit(UART_CAMERA_BUS);
 	if (error != SUCCESS) {
