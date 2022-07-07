@@ -32,7 +32,9 @@ void debugPrint(const char* stringFormat, ...) {
 	char buffer[MAX_DEBUG_CHAR_LENGTH] = { 0 };
 
 	// format the string, store it in the internal buffer (add 1 for the string terminating byte)
-	int length = vsnprintf(buffer, MAX_DEBUG_CHAR_LENGTH, stringFormat, arguments) + 1;
+	// original fucntion:
+	// int length = vsnprintf(buffer, MAX_DEBUG_CHAR_LENGTH, stringFormat, arguments) + 1;
+	vsnprintf(buffer, MAX_DEBUG_CHAR_LENGTH, stringFormat, arguments);
 
 	// done with the variadic arguments
 	va_end(arguments);
