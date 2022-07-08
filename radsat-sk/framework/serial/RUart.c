@@ -28,11 +28,6 @@ static UARTconfig cameraConfig = {AT91C_US_USMODE_NORMAL | AT91C_US_CLKS_CLOCK |
 								  AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
 								  CAMERA_BAUD_RATE, TIME_GUARD, rs232_uart, RX_TIMEOUT};
 
-/** UART Config struct for UART2 port; the port connected to the Debug serial port */
-static UARTconfig debugConfig = {AT91C_US_USMODE_NORMAL | AT91C_US_CLKS_CLOCK | AT91C_US_CHRL_8_BITS |
-								 AT91C_US_PAR_NONE | AT91C_US_OVER_16 | AT91C_US_NBSTOP_1_BIT,
-								 DEBUG_BAUD_RATE, TIME_GUARD, rs232_uart, RX_TIMEOUT};
-
 /** Simple int array to track if each port has been initialized */
 static int initialized[UART_BUS_COUNT] = {0};
 
@@ -57,8 +52,6 @@ int uartInit(UARTbus bus) {
 	UARTconfig config = {0};
 	if (bus == UART_CAMERA_BUS)
 		config = cameraConfig;
-	else if (bus == UART_DEBUG_BUS)
-		config = debugConfig;
 	else
 		return E_GENERIC;
 

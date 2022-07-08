@@ -32,13 +32,18 @@ void debugPrint(const char* stringFormat, ...) {
 	char buffer[MAX_DEBUG_CHAR_LENGTH] = { 0 };
 
 	// format the string, store it in the internal buffer (add 1 for the string terminating byte)
-	int length = vsnprintf(buffer, MAX_DEBUG_CHAR_LENGTH, stringFormat, arguments) + 1;
+	// original fucntion:
+	// int length = vsnprintf(buffer, MAX_DEBUG_CHAR_LENGTH, stringFormat, arguments) + 1;
+	vsnprintf(buffer, MAX_DEBUG_CHAR_LENGTH, stringFormat, arguments);
 
 	// done with the variadic arguments
 	va_end(arguments);
 
-	// transmit the UART message across the debug (secondary) serial port
-	uartTransmit(UART_DEBUG_BUS, (const uint8_t *)buffer, length);
+	// transmit the UART message across UART_DEBUG_BUS/serial port 2
+	// uartTransmit(UART_DEBUG_BUS, (const uint8_t *)buffer, length);
+
+	// transmit the UART message across the debug serial port on jtag connector
+	printf(buffer);
 
 #endif /* DEBUG */
 }

@@ -300,7 +300,7 @@ int antennaReset(void) {
 		return error;
 	}
 
-	int error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideB);
+	error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideB);
 
 	if (error != 0) {
 		// TODO: record errors (if present) to System Manager
