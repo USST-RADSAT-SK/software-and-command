@@ -37,16 +37,36 @@ void DosimeterCollectionTask(void* parameters) {
 	while (1) {
 
 		// TODO: check flags (once they exist) to prevent running this task during communication mode
+		if (checkFlags() != 0){
+			vTaskDelay(DOSIMETER_COLLECTION_TASK_DELAY_MS);
+		}
+		else{
+			debugPrint("DosimeterCollectionTask(): About to collect Dosimeter payload data.\n");
 
-		debugPrint("DosimeterCollectionTask(): About to collect Dosimeter payload data.\n");
+			// collect all readings from dosimeter
+			error = dosimeterCollectData();
 
-		// collect all readings from dosimeter
-		error = dosimeterCollectData();
+			// if an error was detected, try again once more (if it fails again, no data will be taken this time)
+			if (error != 0)
+				dosimeterCollectData();
 
-		// if an error was detected, try again once more (if it fails again, no data will be taken this time)
-		if (error != 0)
-			dosimeterCollectData();
+			vTaskDelay(DOSIMETER_COLLECTION_TASK_DELAY_MS);
+		}
 
-		vTaskDelay(DOSIMETER_COLLECTION_TASK_DELAY_MS);
+
 	}
+}
+
+
+/***************************************************************************************************
+                                         PRIVATE FUNCTIONS
+***************************************************************************************************/
+
+
+int checkFlags(){ // do I need void* parameters instead of empty input list?
+	// returns 0 if communication mode flags are not raised,
+	// returns 1 otherwise
+
+	return 0;
+
 }
