@@ -298,7 +298,7 @@ int antennaReset(void) {
 	// Reset side A antenna. See section 6.2 of Antenna System User Manual
 	int error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideA);
 
-	if (error != 0) {
+	if (error != SUCCESS) {
 		// TODO: record errors (if present) to System Manager
 		return error;
 	}
@@ -306,7 +306,7 @@ int antennaReset(void) {
 	// Reset side B antenna. See section 6.2 of Antenna System User Manual
 	error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideB);
 
-	if (error != 0) {
+	if (error != SUCCESS) {
 		// TODO: record errors (if present) to System Manager
 	}
 
@@ -327,7 +327,7 @@ int antennaTemperature(float* temperatureOne, float* temperatureTwo) {
 	// get temperature from side A of antenna
 	int error = IsisAntS_getTemperature(ANTENNA_INDEX, isisants_sideA, &temperature);
 
-	if (error != 0) {
+	if (error != SUCCESS) {
 		// TODO: record errors (if present) to System Manager
 		return error;
 	}
@@ -338,7 +338,7 @@ int antennaTemperature(float* temperatureOne, float* temperatureTwo) {
 	error = IsisAntS_getTemperature(ANTENNA_INDEX, isisants_sideA, &temperature);
 	*temperatureTwo = ((float)temperature * -0.2922) + 190.65;
 
-	if (error != 0) {
+	if (error != SUCCESS) {
 		// TODO: record errors (if present) to System Manager
 	}
 
