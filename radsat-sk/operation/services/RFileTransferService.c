@@ -5,10 +5,19 @@
  */
 
 #include <RFileTransferService.h>
+#include <RCommon.h>
 #include <RTransceiver.h>
 #include <RMessage.h>
-#include <hal/errors.h>
 #include <string.h>
+#include <RCommon.h>
+
+
+/**
+ * Ensure that our message sizes never exceed the transceiver's max frame size.
+ * NOTE: This check allows for 15 bytes of overhead (i.e. from the header) which is more than we currently need. */
+#if ((PROTO_MAX_ENCODED_SIZE + 15) > (TRANCEIVER_TX_MAX_FRAME_SIZE))
+#error "Encoded protobuf message size (plus header) exceeds maximum transceiver frame size!! Reduce size of header or max protobuf messages"
+#endif
 
 
 /***************************************************************************************************
@@ -57,7 +66,7 @@ uint8_t fileTransferNextFrame(uint8_t* frame) {
 
 	// ensure that there is a valid frame ahead
 	if (frames[frameReadCursor + 1].size == 0)
-		return 0;
+		return SUCCESS;
 
 	// invalidate the current (now previous frame)
 	memset(&frames[frameReadCursor], 0, sizeof(frames[frameReadCursor]));
@@ -102,11 +111,12 @@ uint8_t fileTransferCurrentFrame(uint8_t* frame) {
 int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTag) {
 
 	// ensure input pointer is valid
-	if (message == 0)
+	if (message == 0) {
 		return E_INPUT_POINTER_NULL;
+	}
 
 	// ensure size parameter is valid
-	if (size == 0 || size > PROTO_MAX_ENCODED_SIZE)
+	if (size == 0 || size > (uint8_t)PROTO_MAX_ENCODED_SIZE)
 		return E_PARAM_OUTOFBOUNDS;
 
 	// ensure we are not about to overwrite frames that have not been read
@@ -114,13 +124,13 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 		return ERROR_CURSOR;
 
 	// create new RADSAT-SK message to populate
-	RadsatMessage newMessage = { 0 };
-	newMessage.which_service = RadsatMessage_fileTransferMessage_tag;
-	newMessage.fileTransferMessage.which_message = messageTag;
+	radsat_message newMessage = { 0 };
+	newMessage.which_service = radsat_message_FileTransferMessage_tag;
+	newMessage.FileTransferMessage.which_message = messageTag;
 
 	// internal message data will go immediately after the "which message" property of the struct
 	// TODO: confirm that this works
-	void* newMessageAddr = &(newMessage.fileTransferMessage.which_message) + sizeof(newMessage.fileTransferMessage.which_message);
+	void* newMessageAddr = &(newMessage.FileTransferMessage.which_message) + sizeof(newMessage.FileTransferMessage.which_message);
 	memcpy(newMessageAddr, message, size);
 
 	// wrap new message
@@ -136,6 +146,6 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 		frameWriteCursor = 0;
 
 	// return success
-	return 0;
+	return SUCCESS;
 }
 

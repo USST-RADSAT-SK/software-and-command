@@ -55,8 +55,8 @@ typedef enum _response_state_t {
 
 /** Abstraction of the ACK/NACK return types */
 typedef enum _response_t {
-	responseAck		= ProtocolMessage_ack_tag,	///> Acknowledge (the message was received properly)
-	responseNack	= ProtocolMessage_nack_tag,	///> Negative Acknowledge (the message was NOT received properly)
+	responseAck		= protocol_message_Ack_tag,	///> Acknowledge (the message was received properly)
+	responseNack	= protocol_message_Nack_tag,	///> Negative Acknowledge (the message was NOT received properly)
 } response_t;
 
 
@@ -191,19 +191,19 @@ void CommunicationRxTask(void* parameters) {
 					switch (telecommand) {
 
 						// indicates that a telecommands are done; ready for file transfers
-						case (TelecommandMessage_beginFileTransfer_tag):
+						case (telecommand_message_BeginFileTransfer_tag):
 							// prepare for File Transfer Mode
 							state.mode = commModeFileTransfer;
 							break;
 
 						// indicates that all downlink activities shall be ceased
-						case (TelecommandMessage_ceaseTransmission_tag):
+						case (telecommand_message_CeaseTransmission_tag):
 							// immediately cease all downlink communications
 							ceaseTransmission();
 							break;
 
 						// indicates that downlink activities may be resumed
-						case (TelecommandMessage_ResumeTransmission_tag):
+						case (telecommand_message_ResumeTransmission_tag):
 							// immediately resume all downlink communications
 							resumeTransmission();
 							break;
@@ -447,7 +447,7 @@ static void endQuietModeCallback(xTimerHandle xTimer) {
 
 
 /**
- * Reset the structure for coordinating downlinking and uplinking.
+ * reset_t the structure for coordinating downlinking and uplinking.
  */
 static void resetState(void) {
 	memset(&state, 0, sizeof(communication_state_t));

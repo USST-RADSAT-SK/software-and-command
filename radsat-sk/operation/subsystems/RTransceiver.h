@@ -79,6 +79,7 @@ int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRe
 int transceiverPowerCycle(void);
 int transceiverTelemetry(transceiver_telemetry_t* telemetry);
 int transceiverResetWatchDogs(void);
+int transceiverSoftReset(void);
 
 
 #endif /* RTRANSCEIVER_H_ */

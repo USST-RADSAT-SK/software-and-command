@@ -1,7 +1,7 @@
 /**
  * @file RTransceiver.h
  * @date December 23, 2021
- * @author Tyrel Kostyk (tck290) and Matthew Buglass (mab839)
+ * @author Tyrel Kostyk (tck290), Matthew Buglass (mab839) and Atharva Kulkarni (iya789)
  */
 
 #include <RTransceiver.h>
@@ -9,6 +9,7 @@
 #include <satellite-subsystems/IsisTRXVU.h>
 #include <hal/errors.h>
 #include <string.h>
+#include <RCommon.h>
 
 
 /***************************************************************************************************
@@ -48,7 +49,7 @@ int transceiverInit(void) {
 
 	// only allow initialization once (return without error if already initialized)
 	if (initialized)
-		return 0;
+		return SUCCESS;
 
 	// define I2C addresses for individual receiver and transmitter
 	ISIStrxvuI2CAddress addresses = {
@@ -184,6 +185,22 @@ int transceiverPowerCycle(void) {
 	return error;
 }
 
+/**
+ * Soft Reset the ISIS TRXVU VU_RC and VU_TC.
+ *
+ * @return	Error code; 0 for success, otherwise see hal/errors.h.
+ */
+int transceiverSoftReset(void){
+
+	//send full soft reset command
+	int error = IsisTrxvu_softReset(TRANSCEIVER_INDEX);
+
+	//TODO: record errors (if present) to System Manager
+	if (error != 0)
+			return error;
+
+	return SUCCESS;
+}
 
 /**
  * Gets the receiver's current telemetry.
@@ -266,13 +283,13 @@ int transceiverResetWatchDogs(void) {
 	// create buffer to hold reset command code
 	uint8_t writeData[TRX_WDOG_RESET_CMD_SIZE] = { TRX_WDOG_RESET_CMD_CODE };
 
-	// transmit WDOG Reset to receiver module
+	// transmit WDOG reset_t to receiver module
 	error = i2cTransmit(TRANSCEIVER_RX_I2C_SLAVE_ADDR, writeData, sizeof(writeData));
 
 	if (error != 0)
 		return error;
 
-	// transmit WDOG Reset to transmitter module
+	// transmit WDOG reset_t to transmitter module
 	error = i2cTransmit(TRANSCEIVER_TX_I2C_SLAVE_ADDR, writeData, sizeof(writeData));
 
 	if (error != 0)
@@ -284,7 +301,7 @@ int transceiverResetWatchDogs(void) {
 
 /***************************************************************************************************
                                          PRIVATE FUNCTIONS
-***************************************************************************************************/
+****************************************************************************************************/
 
 /**
  * Gets the receiver's current up time.

@@ -1,7 +1,7 @@
 /**
  * @file RAntenna.c
  * @date Jan 15, 2022
- * @author Addi Amaya (caa746) and Atharva Kulkarni (iya789)
+ * @author Addi Amaya (caa746) and Atharva Kulkanri (iya789)
  */
 
 #include <RAntenna.h>
@@ -9,6 +9,8 @@
 #include <string.h>
 #include <hal/errors.h>
 #include <hal/Timing/Time.h>
+#include <RCommon.h>
+
 
 /***************************************************************************************************
                                   PRIVATE DEFINITIONS AND VARIABLES
@@ -28,6 +30,8 @@ static int antennaDeploymentAttempts = 0;
 
 /** Index of the Antenna*/
 #define ANTENNA_INDEX 0
+
+
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
@@ -41,7 +45,7 @@ int antennaInit(void) {
 
 	// Only allow initialization once (return without error if already initialized)
 	if (antennaInitialized)
-		return 0;
+		return SUCCESS;
 
 	// Isis Function call for antenna initialization
 	int error = IsisAntS_initialize(&RAntennaI2Caddress, ANTENNAS_ON_BOARD);
@@ -143,7 +147,7 @@ int antennaDeploymentAttempt(void) {
 		antennaDeploymentAttempts += 1;
 	}
 
-	// Reset attempt counter for Side B
+	// reset_t attempt counter for Side B
 	antennaDeploymentAttempts = 0;
 
 	// B Side deployment Attempt
@@ -223,7 +227,7 @@ int antennaDeploymentAttempt(void) {
 	}
 
 
-	return 0;
+	return SUCCESS;
 }
 
 /**
@@ -281,7 +285,7 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	telemetry->sideB.board_temp = 0.00322581 * RISISantsTelemetry.fields.ants_temperature;
 	telemetry->sideB.uptime = RISISantsTelemetry.fields.ants_uptime;
 
-	return 0;
+	return SUCCESS;
 }
 
 /**
@@ -291,20 +295,53 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
  */
 int antennaReset(void) {
 
-	// Reset both side A/B antennas. See section 6.2 of Antenna System User Manual
+	// Reset side A antenna. See section 6.2 of Antenna System User Manual
 	int error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideA);
 
-	if (error != 0) {
+	if (error != SUCCESS) {
 		// TODO: record errors (if present) to System Manager
 		return error;
 	}
 
+	// Reset side B antenna. See section 6.2 of Antenna System User Manual
 	error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideB);
 
-	if (error != 0) {
+	if (error != SUCCESS) {
+		// TODO: record errors (if present) to System Manager
+	}
+
+	return error;
+}
+
+/**
+ * Gives temperature of both sides of the antenna
+ *
+ * @param A side temperature
+ * @param B side temperature
+ * @return 0 for success, non-zero for failure. See hal/errors.h for details.
+ */
+int antennaTemperature(float* temperatureOne, float* temperatureTwo) {
+
+	unsigned short temperature = 0;
+
+	// get temperature from side A of antenna
+	int error = IsisAntS_getTemperature(ANTENNA_INDEX, isisants_sideA, &temperature);
+
+	if (error != SUCCESS) {
 		// TODO: record errors (if present) to System Manager
 		return error;
 	}
 
-	return 0;
+	*temperatureOne = ((float)temperature * -0.2922) + 190.65;
+
+	// get temperature from side B of antenna
+	error = IsisAntS_getTemperature(ANTENNA_INDEX, isisants_sideA, &temperature);
+	*temperatureTwo = ((float)temperature * -0.2922) + 190.65;
+
+	if (error != SUCCESS) {
+		// TODO: record errors (if present) to System Manager
+	}
+
+	return error;
 }
+

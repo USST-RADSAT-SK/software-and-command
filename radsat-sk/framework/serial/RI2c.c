@@ -8,6 +8,7 @@
 #include <string.h>
 #include <hal/errors.h>
 #include <hal/Drivers/I2C.h>
+#include <RCommon.h>
 
 
 /***************************************************************************************************
@@ -38,7 +39,7 @@ int i2cInit(void) {
 
 	// only allow initialization once (exit gracefully)
 	if (initialized)
-		return 0;
+		return SUCCESS;
 
 	int error = I2C_start(I2C_BUS_SPEED_HZ, I2C_TRANSFER_TIMEOUT);
 
