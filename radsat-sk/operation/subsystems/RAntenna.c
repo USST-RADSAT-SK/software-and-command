@@ -10,6 +10,8 @@
 #include <hal/errors.h>
 #include <hal/Timing/Time.h>
 #include <RI2c.c>
+#include <RCommon.h>
+
 
 /***************************************************************************************************
                                   PRIVATE DEFINITIONS AND VARIABLES
@@ -30,6 +32,7 @@ static int antennaDeploymentAttempts = 0;
 /** Index of the Antenna*/
 #define ANTENNA_INDEX 0
 
+
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
@@ -43,7 +46,7 @@ int antennaInit(void) {
 
 	// Only allow initialization once (return without error if already initialized)
 	if (antennaInitialized)
-		return 0;
+		return SUCCESS;
 
 	// Isis Function call for antenna initialization
 	int error = IsisAntS_initialize(&RAntennaI2Caddress, ANTENNAS_ON_BOARD);
@@ -73,7 +76,7 @@ int antennaDeploymentAttempt(void) {
 	while ( antennaDeploymentAttempts < MAX_DEPLOYMENT_ATTEMPTS ) {
 
 		// Get status of the A side antenna
-		error = IsisAntS_getStatusData(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,&RISISantsStatus);
+		error = IsisAntS_getStatusData(ANTENNA_INDEX, isisants_sideA, &RISISantsStatus);
 
 		// Error check for requesting antenna status
 		if(error != 0) {
@@ -94,7 +97,7 @@ int antennaDeploymentAttempt(void) {
 		if (!RAntennaStatus.DeployedAntennaOne || !RAntennaStatus.DeployedAntennaTwo || !RAntennaStatus.DeployedAntennaThree || !RAntennaStatus.DeployedAntennaFour) {
 
 			// Arm A Side Antenna system
-			error = IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,isisants_arm);
+			error = IsisAntS_setArmStatus(ANTENNA_INDEX, isisants_sideA, isisants_arm);
 
 			// Error check for Arming A Side
 			if(error != 0) {
@@ -104,7 +107,7 @@ int antennaDeploymentAttempt(void) {
 			}
 
 			// Request Antenna Status
-			error = IsisAntS_getStatusData(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,&RISISantsStatus);
+			error = IsisAntS_getStatusData(ANTENNA_INDEX, isisants_sideA, &RISISantsStatus);
 
 			// Error check for antenna status
 			if(error != 0) {
@@ -120,7 +123,7 @@ int antennaDeploymentAttempt(void) {
 			if (RAntennaStatus.AntennaArmed) {
 
 				// Start automatic deployment
-				int error = IsisAntS_autoDeployment(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,MAX_DEPLOYMENT_TIMEOUT);
+				int error = IsisAntS_autoDeployment(ANTENNA_INDEX, isisants_sideA, MAX_DEPLOYMENT_TIMEOUT);
 
 				// Check if autoDeployment failed
 				if(error != 0) {
@@ -130,7 +133,7 @@ int antennaDeploymentAttempt(void) {
 				}
 
 				// Disarm A Side Antenna system
-				error = IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideA,isisants_disarm);
+				error = IsisAntS_setArmStatus(ANTENNA_INDEX, isisants_sideA, isisants_disarm);
 
 				// Check if disarm failed
 				if(error != 0) {
@@ -145,14 +148,14 @@ int antennaDeploymentAttempt(void) {
 		antennaDeploymentAttempts += 1;
 	}
 
-	// Reset attempt counter for Side B
+	// reset_t attempt counter for Side B
 	antennaDeploymentAttempts = 0;
 
 	// B Side deployment Attempt
 	while ( antennaDeploymentAttempts < MAX_DEPLOYMENT_ATTEMPTS ) {
 
 		// Get status of the antenna
-		error = IsisAntS_getStatusData(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,&RISISantsStatus);
+		error = IsisAntS_getStatusData(ANTENNA_INDEX, isisants_sideB, &RISISantsStatus);
 
 		// Error check for requesting antenna status
 		if(error != 0) {
@@ -173,7 +176,7 @@ int antennaDeploymentAttempt(void) {
 		if (!RAntennaStatus.DeployedAntennaOne || !RAntennaStatus.DeployedAntennaTwo || !RAntennaStatus.DeployedAntennaThree || !RAntennaStatus.DeployedAntennaFour) {
 
 			// Arm B Side Antenna system
-			error = IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,isisants_arm);
+			error = IsisAntS_setArmStatus(ANTENNA_INDEX, isisants_sideB, isisants_arm);
 
 			// Error check for requesting antenna status
 			if(error != 0) {
@@ -183,7 +186,7 @@ int antennaDeploymentAttempt(void) {
 			}
 
 			// Request Antenna Status
-			error = IsisAntS_getStatusData(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,&RISISantsStatus);
+			error = IsisAntS_getStatusData(ANTENNA_INDEX, isisants_sideB, &RISISantsStatus);
 
 			// Error check for antenna status
 			if(error != 0) {
@@ -199,7 +202,7 @@ int antennaDeploymentAttempt(void) {
 			if (RAntennaStatus.AntennaArmed) {
 
 				// Start automatic deployment
-				int error = IsisAntS_autoDeployment(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,MAX_DEPLOYMENT_TIMEOUT);
+				int error = IsisAntS_autoDeployment(ANTENNA_INDEX, isisants_sideB, MAX_DEPLOYMENT_TIMEOUT);
 
 				// Check if autoDeployment failed
 				if(error != 0) {
@@ -209,7 +212,7 @@ int antennaDeploymentAttempt(void) {
 				}
 
 				//disarm B Side Antenna system
-				error = IsisAntS_setArmStatus(ANTENNA_I2C_SLAVE_ADDR_PRIMARY,isisants_sideB,isisants_disarm);
+				error = IsisAntS_setArmStatus(ANTENNA_INDEX, isisants_sideB, isisants_disarm);
 
 				// Check if disarm failed
 				if(error != 0) {
@@ -225,7 +228,7 @@ int antennaDeploymentAttempt(void) {
 	}
 
 
-	return 0;
+	return SUCCESS;
 }
 
 /**
@@ -246,7 +249,7 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	ISISantsTelemetry RISISantsTelemetry = { .fields = { 0 } };
 
 	// Execute Telemetry command for Side A
-	error = IsisAntS_getAlltelemetry(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideA, &RISISantsTelemetry);
+	error = IsisAntS_getAlltelemetry(ANTENNA_INDEX, isisants_sideA, &RISISantsTelemetry);
 
 	// Error check for Isis Antenna function
 	if(error != 0) {
@@ -265,7 +268,7 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	telemetry->sideA.uptime = RISISantsTelemetry.fields.ants_uptime;
 
 	// Execute command for Side B
-	error = IsisAntS_getAlltelemetry(ANTENNA_I2C_SLAVE_ADDR_PRIMARY, isisants_sideB, &RISISantsTelemetry);
+	error = IsisAntS_getAlltelemetry(ANTENNA_INDEX, isisants_sideB, &RISISantsTelemetry);
 
 	// Error check for Isis Antenna function
 	if(error != 0) {
@@ -283,7 +286,32 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	telemetry->sideB.board_temp = 0.00322581 * RISISantsTelemetry.fields.ants_temperature;
 	telemetry->sideB.uptime = RISISantsTelemetry.fields.ants_uptime;
 
-	return 0;
+	return SUCCESS;
+}
+
+/**
+ * Resets microcontroller of the antenna
+ * Cancels the current deployement of the Antenna systems
+ * @return 0 for success, non-zero for failure. See hal/errors.h for details.
+ */
+int antennaReset(void) {
+
+	// Reset both side A/B antennas. See section 6.2 of Antenna System User Manual
+	int error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideA);
+
+	if (error != 0) {
+		// TODO: record errors (if present) to System Manager
+		return error;
+	}
+
+	error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideB);
+
+	if (error != 0) {
+		// TODO: record errors (if present) to System Manager
+		return error;
+	}
+
+	return SUCCESS;
 }
 
 /**

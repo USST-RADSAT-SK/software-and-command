@@ -13,14 +13,14 @@
 #endif
 
 /* Struct definitions */
-typedef struct _RadsatMessage {
+typedef struct _radsat_message {
     pb_size_t which_service;
     union {
-        ProtocolMessage protocolMessage;
-        FileTransferMessage fileTransferMessage;
-        TelecommandMessage telecommandMessage;
+        protocol_message ProtocolMessage;
+        file_transfer_message FileTransferMessage;
+        telecommand_message TelecommandMessage;
     };
-} RadsatMessage;
+} radsat_message;
 
 
 #ifdef __cplusplus
@@ -28,32 +28,32 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define RadsatMessage_init_default               {0, {ProtocolMessage_init_default}}
-#define RadsatMessage_init_zero                  {0, {ProtocolMessage_init_zero}}
+#define radsat_message_init_default              {0, {protocol_message_init_default}}
+#define radsat_message_init_zero                 {0, {protocol_message_init_zero}}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define RadsatMessage_protocolMessage_tag        1
-#define RadsatMessage_fileTransferMessage_tag    2
-#define RadsatMessage_telecommandMessage_tag     3
+#define radsat_message_ProtocolMessage_tag       1
+#define radsat_message_FileTransferMessage_tag   2
+#define radsat_message_TelecommandMessage_tag    3
 
 /* Struct field encoding specification for nanopb */
-#define RadsatMessage_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (service,protocolMessage,protocolMessage),   1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (service,fileTransferMessage,fileTransferMessage),   2) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (service,telecommandMessage,telecommandMessage),   3)
-#define RadsatMessage_CALLBACK NULL
-#define RadsatMessage_DEFAULT NULL
-#define RadsatMessage_service_protocolMessage_MSGTYPE ProtocolMessage
-#define RadsatMessage_service_fileTransferMessage_MSGTYPE FileTransferMessage
-#define RadsatMessage_service_telecommandMessage_MSGTYPE TelecommandMessage
+#define radsat_message_FIELDLIST(X, a) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (service,ProtocolMessage,ProtocolMessage),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (service,FileTransferMessage,FileTransferMessage),   2) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (service,TelecommandMessage,TelecommandMessage),   3)
+#define radsat_message_CALLBACK NULL
+#define radsat_message_DEFAULT NULL
+#define radsat_message_service_ProtocolMessage_MSGTYPE protocol_message
+#define radsat_message_service_FileTransferMessage_MSGTYPE file_transfer_message
+#define radsat_message_service_TelecommandMessage_MSGTYPE telecommand_message
 
-extern const pb_msgdesc_t RadsatMessage_msg;
+extern const pb_msgdesc_t radsat_message_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
-#define RadsatMessage_fields &RadsatMessage_msg
+#define radsat_message_fields &radsat_message_msg
 
 /* Maximum encoded size of messages (where known) */
-#define RadsatMessage_size                       217
+#define radsat_message_size                      217
 
 #ifdef __cplusplus
 } /* extern "C" */

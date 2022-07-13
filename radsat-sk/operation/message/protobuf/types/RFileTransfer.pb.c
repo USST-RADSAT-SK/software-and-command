@@ -6,40 +6,52 @@
 #error Regenerate this file with the current version of nanopb generator.
 #endif
 
-PB_BIND(FileTransferMessage, FileTransferMessage, AUTO)
+PB_BIND(file_transfer_message, file_transfer_message, AUTO)
 
 
-PB_BIND(ObcTelemetry, ObcTelemetry, AUTO)
+PB_BIND(obc_telemetry, obc_telemetry, AUTO)
 
 
-PB_BIND(TransceiverTelemetry, TransceiverTelemetry, AUTO)
+PB_BIND(receiver_telemetry, receiver_telemetry, AUTO)
 
 
-PB_BIND(TransceiverTelemetry_receiverTelemetry, TransceiverTelemetry_receiverTelemetry, AUTO)
+PB_BIND(transmitter_telemetry, transmitter_telemetry, AUTO)
 
 
-PB_BIND(TransceiverTelemetry_transmitterTelemetry, TransceiverTelemetry_transmitterTelemetry, AUTO)
+PB_BIND(transceiver_telemetry, transceiver_telemetry, AUTO)
 
 
-PB_BIND(CameraTelemetry, CameraTelemetry, AUTO)
+PB_BIND(camera_telemetry, camera_telemetry, AUTO)
 
 
-PB_BIND(EpsTelemetry, EpsTelemetry, AUTO)
+PB_BIND(eps_telemetry, eps_telemetry, AUTO)
 
 
-PB_BIND(BatteryTelemetry, BatteryTelemetry, AUTO)
+PB_BIND(battery_telemetry, battery_telemetry, AUTO)
 
 
-PB_BIND(AntennaTelemetry, AntennaTelemetry, AUTO)
+PB_BIND(antenna_telemetry, antenna_telemetry, AUTO)
 
 
-PB_BIND(DosimeterData, DosimeterData, AUTO)
+PB_BIND(dosimeter_board_data, dosimeter_board_data, AUTO)
 
 
-PB_BIND(DosimeterData_DosimeterBoardData, DosimeterData_DosimeterBoardData, AUTO)
+PB_BIND(dosimeter_data, dosimeter_data, AUTO)
 
 
-PB_BIND(ImagePacket, ImagePacket, AUTO)
+PB_BIND(image_packet, image_packet, AUTO)
+
+
+PB_BIND(module_error_report, module_error_report, AUTO)
+
+
+PB_BIND(component_error_report, component_error_report, AUTO)
+
+
+PB_BIND(error_record, error_record, AUTO)
+
+
+PB_BIND(error_report_summary, error_report_summary, AUTO)
 
 
 

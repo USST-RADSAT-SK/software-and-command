@@ -5,6 +5,7 @@
  */
 
 #include <RMessage.h>
+#include <RCommon.h>
 #include <RXorCipher.h>
 #include <hal/Timing/Time.h>
 
@@ -23,7 +24,7 @@
  * @param wrappedMessage The final wrapped message. Filled by function.
  * @return The total size of the message, including the header. 0 on failure.
  */
-uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage) {
+uint8_t messageWrap(radsat_message* rawMessage, uint8_t* wrappedMessage) {
 
 	// ensure the input pointers are not NULL
 	if (rawMessage == 0 || wrappedMessage == 0)
@@ -38,11 +39,11 @@ uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage) {
 	radsat_sk_header_t *header = (radsat_sk_header_t *)wrappedMessage;
 	header->preamble = RADSAT_SK_MESSAGE_PREAMBLE;
 	header->size = (uint8_t) encodedSize;
-	int error = Time_getUnixEpoch((unsigned int*)&(header->timestamp));
-
-	// TODO: report error to system manager (or equivalent)
-	if (error != 0)
+	int error = Time_getUnixEpoch((unsigned int *)&(header->timestamp));
+	if (error != SUCCESS) {
+		errorReportComponent(componentHalTime, error);
 		return 0;
+	}
 
 	// calculate the CRC of entire message (except for preamble and crc itself)
 	header->crc = crcFast(&wrappedMessage[RADSAT_SK_HEADER_CRC_OFFSET],
@@ -64,7 +65,7 @@ uint8_t messageWrap(RadsatMessage* rawMessage, uint8_t* wrappedMessage) {
  * @param rawMessage The final extracted message. Filled by function.
  * @return The size of the message, not including the header. 0 on failure.
  */
-uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, RadsatMessage* rawMessage) {
+uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* rawMessage) {
 
 	// ensure the input pointers are not NULL
 	if (wrappedMessage == 0 || rawMessage == 0)

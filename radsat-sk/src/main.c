@@ -100,19 +100,8 @@ void MissionInitTask(void* parameters);
  */
 int main(void) {
 
-	int error = SUCCESS;
-
 	// initialize internal OBC board settings
-	error += initBoard();
-
-	// initialize the Hardware Abstraction Library (HAL) drivers
-	error += initDrivers();
-
-	// initialize external components and the Satellite Subsystem Interface (SSI)
-	error += initSubsystems();
-
-	// initialize the internal OBC watchdog, and start a task that automatically pets it
-	error += initObcWatchdog();
+	int error = initBoard();
 
 	if (error != SUCCESS) {
 		debugPrint("main(): failed during system initialization.\n");
@@ -176,13 +165,6 @@ static int initBoard(void) {
 static int initDrivers(void) {
 
 	int error = SUCCESS;
-
-	// initialize the Debug UART port for debugging to a PC
-	error = uartInit(UART_DEBUG_BUS);
-	if (error != SUCCESS) {
-		debugPrint("initDriver(): failed to initialize Debug UART.\n");
-		return error;
-	}
 
 	// initialize the Auxillary Camera UART port for communication with Camera
 	error = uartInit(UART_CAMERA_BUS);
@@ -403,6 +385,27 @@ void MissionInitTask(void* parameters) {
 	(void)parameters;
 
 	int error = SUCCESS;
+
+	// initialize the Hardware Abstraction Library (HAL) drivers
+	error = initDrivers();
+	if (error != SUCCESS) {
+		// TODO: report to system manager
+		debugPrint("MissionInitTask(): failed to initialize Drivers.\n");
+	}
+
+	// initialize external components and the Satellite Subsystem Interface (SSI)
+	error = initSubsystems();
+	if (error != SUCCESS) {
+		// TODO: report to system manager
+		debugPrint("MissionInitTask(): failed to initialize Subsystems.\n");
+	}
+
+	// initialize the internal OBC watchdog, and start a task that automatically pets it
+	error = initObcWatchdog();
+	if (error != SUCCESS) {
+		// TODO: report to system manager
+		debugPrint("MissionInitTask(): failed to initialize Obc Watchdog.\n");
+	}
 
 	// initialize the RTC and RTT to the default time
 	error = initTime();
