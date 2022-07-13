@@ -180,7 +180,7 @@ int dosimeterCollectData(void) {
 	data.boardTwo.channelSeven = results[dosimeterBoardTwo][adcChannelSeven];
 
 	// send formatted protobuf messages to downlink manager
-	error = fileTransferAddMessage(&data, sizeof(data), FileTransferMessage_dosimeterData_tag);
+	error = fileTransferAddMessage(&data, sizeof(data), file_transfer_message_DosimeterData_tag);
 
 	return  error;
 }
