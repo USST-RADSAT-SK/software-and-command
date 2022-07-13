@@ -25,6 +25,7 @@
 #include <RUart.h>
 
 #include <RTransceiver.h>
+#include <RAntenna.h>
 #include <RCommon.h>
 
 #include <RCommunicationTasks.h>
@@ -221,6 +222,22 @@ static int initTime(void) {
 
 
 /**
+ * Attempt to deploy the antenna.
+ */
+static int attemptAntennaDeployment(void) {
+
+	int error = SUCCESS;
+
+	error = antennaDeploymentAttempt();
+	if (error != SUCCESS)
+		debugPrint("attemptAntennaDeployment(): failed to deploy antenna.\n");
+
+	return error;
+}
+
+
+
+/**
  * Initialize external subsystem modules and the Satellite Subsystem Interface library.
  */
 static int initSubsystems(void) {
@@ -231,6 +248,13 @@ static int initSubsystems(void) {
 	error = transceiverInit();
 	if (error != SUCCESS) {
 		debugPrint("initSubsystems(): failed to initialize Transceiver subsystem.\n");
+		return error;
+	}
+
+	// initialize the antenna module
+	error = antennaInit();
+	if (error != SUCCESS){
+		debugPrint("initSubsystems(): failed to initialized Antenna subsystem.\n");
 		return error;
 	}
 
@@ -412,6 +436,13 @@ void MissionInitTask(void* parameters) {
 	if (error != SUCCESS) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
+	}
+
+	// attempt to deploy the antenna
+	error = attemptAntennaDeployment();
+	if (error != SUCCESS) {
+		// TODO: report system manager
+		debugPrint("attemptAntennaDeployment(): failed to deploy the antenna.\n")
 	}
 
 	// initialize the FreeRTOS Tasks used for typical mission operation
