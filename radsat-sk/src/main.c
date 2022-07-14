@@ -34,6 +34,8 @@
 #include <RTelemetryCollectionTask.h>
 #include <RSatelliteWatchdogTask.h>
 
+#include <RtestSuite.h>
+
 
 /***************************************************************************************************
                                    DEFINITIONS AND PRIVATE GLOBALS
@@ -108,16 +110,6 @@ int main(void) {
 		// TODO: report to system manager
 	}
 
-#ifdef TEST
-
-	// TODO: run tests
-
-#else	/* TEST */
-
-	// TODO: Antenna Diagnostic & Deployment (if necessary)
-
-	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
-
 	// initialize the Mission Initialization Task
 	error = xTaskCreate(MissionInitTask,
 						(const signed char*)"Mission Initialization Task",
@@ -130,8 +122,6 @@ int main(void) {
 		debugPrint("main(): failed to create MissionInitTask.\n");
 		// TODO: report to system manager
 	}
-
-#endif	/* TEST */
 
 	// start the FreeRTOS Scheduler - NEVER GETS PAST THIS LINE
 	vTaskStartScheduler();
@@ -413,6 +403,18 @@ void MissionInitTask(void* parameters) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
 	}
+
+#ifdef TEST
+
+	// TODO: run tests
+
+#else	/* TEST */
+
+#endif	/* TEST */
+
+	// TODO: Antenna Diagnostic & Deployment (if necessary)
+
+	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
 
 	// initialize the FreeRTOS Tasks used for typical mission operation
 	initMissionTasks();

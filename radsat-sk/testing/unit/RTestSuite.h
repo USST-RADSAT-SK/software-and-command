@@ -16,5 +16,7 @@
 
 void testSuiteRunAll(void);
 
+void selectAndExecuteTest(void);
+
 
 #endif /* RTESTSUITE_H_ */
