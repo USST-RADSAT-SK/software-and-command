@@ -127,24 +127,27 @@ int antennaDeploymentAttempt(void) {
 					// TODO: record errors (if present) to System Manager
 					return error;
 				}
-
-				// Disarm A Side Antenna system
-				error = IsisAntS_setArmStatus(ANTENNA_INDEX, isisants_sideA, isisants_disarm);
-
-				// Check if disarm failed
-				if(error != 0) {
-
-					// TODO: record errors (if present) to System Manager
-					return error;
-				}
 			}
 		}
 
 		// Increment deployment attempts for side A
 		antennaDeploymentAttempts += 1;
+
+		// Wait between deployment attempts to ensure disarming doesn't happen too quickly
+		vTaskDelay(INTER_DEPLOYMENT_DELAY_MS);
 	}
 
-	// reset_t attempt counter for Side B
+	// Disarm A Side Antenna system
+	error = IsisAntS_setArmStatus(ANTENNA_INDEX, isisants_sideA, isisants_disarm);
+
+	// Check if disarm failed
+	if(error != 0) {
+
+		// TODO: record errors (if present) to System Manager
+		return error;
+	}
+
+	// reset attempt counter for Side B
 	antennaDeploymentAttempts = 0;
 
 	// B Side deployment Attempt
@@ -206,21 +209,23 @@ int antennaDeploymentAttempt(void) {
 					// TODO: record errors (if present) to System Manager
 					return error;
 				}
-
-				//disarm B Side Antenna system
-				error = IsisAntS_setArmStatus(ANTENNA_INDEX, isisants_sideB, isisants_disarm);
-
-				// Check if disarm failed
-				if(error != 0) {
-
-					// TODO: record errors (if present) to System Manager
-					return error;
-				}
 			}
-
 		}
 		// Increment deployment attempts for side B
 		antennaDeploymentAttempts += 1;
+
+		// Wait between deployment attempts to ensure disarming doesn't happen too quickly
+		vTaskDelay(INTER_DEPLOYMENT_DELAY_MS);
+	}
+
+	//disarm B Side Antenna system
+	error = IsisAntS_setArmStatus(ANTENNA_INDEX, isisants_sideB, isisants_disarm);
+
+	// Check if disarm failed
+	if(error != 0) {
+
+	// TODO: record errors (if present) to System Manager
+		return error;
 	}
 
 

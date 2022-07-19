@@ -28,6 +28,9 @@
 /** Max Time allowed for a deployment for an Antenna in seconds */
 #define MAX_DEPLOYMENT_TIMEOUT 60
 
+/** Time delay between deployment attempts in milliseconds */
+#define INTER_DEPLOYMENT_DELAY_MS 10*1000
+
 /** Antenna Deployment status Struct */
 typedef struct _antenna_deployment_status_t {
 	int DeployedAntennaOne;
