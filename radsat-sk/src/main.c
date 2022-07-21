@@ -442,7 +442,7 @@ void MissionInitTask(void* parameters) {
 	error = attemptAntennaDeployment();
 	if (error != SUCCESS) {
 		// TODO: report system manager
-		debugPrint("attemptAntennaDeployment(): failed to deploy the antenna.\n")
+		debugPrint("attemptAntennaDeployment(): failed to deploy the antenna.\n");
 	}
 
 	// initialize the FreeRTOS Tasks used for typical mission operation
