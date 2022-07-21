@@ -115,11 +115,10 @@ int main(void) {
 
 #else	/* TEST */
 
-	// TODO: Antenna Diagnostic & Deployment (if necessary)
-
 	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
 
 	// initialize the Mission Initialization Task
+	// Antenna Deployment happens in here.
 	error = xTaskCreate(MissionInitTask,
 						(const signed char*)"Mission Initialization Task",
 						DEFAULT_TASK_STACK_SIZE,
