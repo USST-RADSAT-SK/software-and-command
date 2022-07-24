@@ -18,6 +18,7 @@
 
 /** Index of our Transceiver; the IsisTRXVU.h SSI module allows for multiple TRX instances */
 #define TRANSCEIVER_INDEX	0
+#define NUMBER_OF_TRANSCEIVERS 1
 
 #define TRX_WDOG_RESET_CMD_CODE	0xCC
 #define TRX_WDOG_RESET_CMD_SIZE	1
@@ -66,7 +67,7 @@ int transceiverInit(void) {
 	// define bitrate for uplink (RX) and downlink (TX) transmissions
 	ISIStrxvuBitrate bitrate = trxvu_bitrate_9600;
 
-	int error = IsisTrxvu_initialize(&addresses, &frameLengths, &bitrate, TRANSCEIVER_INDEX);
+	int error = IsisTrxvu_initialize(&addresses, &frameLengths, &bitrate, NUMBER_OF_TRANSCEIVERS);
 
 	// update flag if successfully initialized
 	if (!error)
