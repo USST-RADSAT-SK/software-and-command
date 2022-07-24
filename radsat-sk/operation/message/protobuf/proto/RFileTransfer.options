@@ -4,4 +4,7 @@
 *.*								anonymous_oneof:1
 
 // max size of outgoing data packet is 235 bytes (allowing room for overhead)
-ImagePacket.data         max_size:200
+image_packet.data		max_size:200
+error_record.count		int_size:8
+error_report_summary.moduleErrorCount		int_size:8 max_count:29 fixed_count:true
+error_report_summary.componentErrorCount	int_size:8 max_count:19 fixed_count:true

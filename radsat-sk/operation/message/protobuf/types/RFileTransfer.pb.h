@@ -10,111 +10,134 @@
 #endif
 
 /* Enum definitions */
-typedef enum _ImagePacket_image_type_t {
-    ImagePacket_image_type_t_fullResolution = 0,
-    ImagePacket_image_type_t_halfResolution = 1,
-    ImagePacket_image_type_t_quarterResolution = 2,
-    ImagePacket_image_type_t_thumbnail = 3
-} ImagePacket_image_type_t;
+typedef enum _image_type_t {
+    image_type_t_FullResolution = 0,
+    image_type_t_HalfResolution = 1,
+    image_type_t_QuarterResolution = 2,
+    image_type_t_Thumbnail = 3
+} image_type_t;
 
 /* Struct definitions */
-typedef struct _AntennaTelemetry {
+typedef struct _antenna_telemetry {
     char dummy_field;
-} AntennaTelemetry;
+} antenna_telemetry;
 
-typedef struct _BatteryTelemetry {
+typedef struct _battery_telemetry {
     char dummy_field;
-} BatteryTelemetry;
+} battery_telemetry;
 
-typedef struct _EpsTelemetry {
+typedef struct _eps_telemetry {
     char dummy_field;
-} EpsTelemetry;
+} eps_telemetry;
 
-typedef struct _CameraTelemetry {
-    uint32_t upTime;
-} CameraTelemetry;
+typedef struct _camera_telemetry {
+    uint32_t uptime;
+} camera_telemetry;
 
-typedef struct _DosimeterData_DosimeterBoardData {
-    float voltageChannelZero;
-    float voltageChannelOne;
-    float voltageChannelTwo;
-    float voltageChannelThree;
-    float voltageChannelFour;
-    float voltageChannelFive;
-    float voltageChannelSix;
-    float voltageChannelSeven;
-} DosimeterData_DosimeterBoardData;
+typedef struct _component_error_report {
+    uint32_t component;
+    int32_t error;
+} component_error_report;
 
-typedef PB_BYTES_ARRAY_T(200) ImagePacket_data_t;
-typedef struct _ImagePacket {
+typedef struct _dosimeter_board_data {
+    float channelZero;
+    float channelOne;
+    float channelTwo;
+    float channelThree;
+    float channelFour;
+    float channelFive;
+    float channelSix;
+    float channelSeven;
+} dosimeter_board_data;
+
+typedef struct _error_record {
+    uint32_t timeRecorded;
+    uint8_t count;
+} error_record;
+
+typedef struct _error_report_summary {
+    uint8_t moduleErrorCount[29];
+    uint8_t componentErrorCount[19];
+} error_report_summary;
+
+typedef PB_BYTES_ARRAY_T(200) image_packet_data_t;
+typedef struct _image_packet {
     uint32_t id;
-    ImagePacket_image_type_t type;
-    ImagePacket_data_t data;
-} ImagePacket;
+    image_type_t type;
+    image_packet_data_t data;
+} image_packet;
 
-typedef struct _ObcTelemetry {
+typedef struct _module_error_report {
+    uint32_t module;
+    int32_t error;
+} module_error_report;
+
+typedef struct _obc_telemetry {
     uint32_t mode;
     uint32_t uptime;
     uint32_t rtcTime;
     uint32_t rtcTemperature;
-} ObcTelemetry;
+} obc_telemetry;
 
-typedef struct _TransceiverTelemetry_receiverTelemetry {
-    float rx_doppler;
-    float rx_rssi;
-    float bus_volt;
-    float vutotal_curr;
-    float vutx_curr;
-    float vurx_curr;
-    float vupa_curr;
-    float pa_temp;
-    float board_temp;
+typedef struct _receiver_telemetry {
+    float rxDoppler;
+    float rxRssi;
+    float busVoltage;
+    float totalCurrent;
+    float txCurrent;
+    float rxCurrent;
+    float powerAmplifierCurrent;
+    float powerAmplifierTemperature;
+    float boardTemperature;
     uint32_t uptime;
     uint32_t frames;
-} TransceiverTelemetry_receiverTelemetry;
+} receiver_telemetry;
 
-typedef struct _TransceiverTelemetry_transmitterTelemetry {
-    float tx_reflpwr;
-    float tx_fwrdpwr;
-    float bus_volt;
-    float vutotal_curr;
-    float vutx_curr;
-    float vurx_curr;
-    float vupa_curr;
-    float pa_temp;
-    float board_temp;
+typedef struct _transmitter_telemetry {
+    float reflectedPower;
+    float forwardPower;
+    float busVoltage;
+    float totalCurrent;
+    float txCurrent;
+    float rxCurrent;
+    float powerAmplifierCurrent;
+    float powerAmplifierTemperature;
+    float boardTemperature;
     uint32_t uptime;
-} TransceiverTelemetry_transmitterTelemetry;
+} transmitter_telemetry;
 
-typedef struct _DosimeterData {
-    DosimeterData_DosimeterBoardData boardOne;
-    DosimeterData_DosimeterBoardData boardTwo;
-} DosimeterData;
+typedef struct _dosimeter_data {
+    dosimeter_board_data boardOne;
+    dosimeter_board_data boardTwo;
+} dosimeter_data;
 
-typedef struct _TransceiverTelemetry {
-    TransceiverTelemetry_receiverTelemetry receiver;
-    TransceiverTelemetry_transmitterTelemetry transmitter;
-} TransceiverTelemetry;
+typedef struct _transceiver_telemetry {
+    receiver_telemetry receiver;
+    transmitter_telemetry transmitter;
+} transceiver_telemetry;
 
-typedef struct _FileTransferMessage {
+typedef struct _file_transfer_message {
     pb_size_t which_message;
     union {
-        ObcTelemetry obcTelemetry;
-        TransceiverTelemetry transceiverTelemetry;
-        CameraTelemetry cameraTelemetry;
-        EpsTelemetry epsTelemetry;
-        BatteryTelemetry batteryTelemetry;
-        AntennaTelemetry antennaTelemetry;
-        DosimeterData dosimeterData;
-        ImagePacket imagePacket;
+        obc_telemetry ObcTelemetry;
+        transceiver_telemetry TransceiverTelemetry;
+        camera_telemetry CameraTelemetry;
+        eps_telemetry EpsTelemetry;
+        battery_telemetry BatteryTelemetry;
+        antenna_telemetry AntennaTelemetry;
+        dosimeter_data DosimeterData;
+        image_packet ImagePacket;
+        module_error_report ModuleErrorReport;
+        component_error_report ComponentErrorReport;
+        error_report_summary ErrorReportSummary;
     };
-} FileTransferMessage;
+} file_transfer_message;
 
 
 /* Helper constants for enums */
-#define _ImagePacket_image_type_t_MIN ImagePacket_image_type_t_fullResolution
-#define _ImagePacket_image_type_t_MAX ImagePacket_image_type_t_thumbnail
-#define _ImagePacket_image_type_t_ARRAYSIZE ((ImagePacket_image_type_t)(ImagePacket_image_type_t_thumbnail+1))
+#define _image_type_t_MIN image_type_t_FullResolution
+#define _image_type_t_MAX image_type_t_Thumbnail
+#define _image_type_t_ARRAYSIZE ((image_type_t)(image_type_t_Thumbnail+1))
 
 
 #ifdef __cplusplus
@@ -122,235 +145,296 @@ extern "C" {
 #endif
 
 /* Initializer values for message structs */
-#define FileTransferMessage_init_default         {0, {ObcTelemetry_init_default}}
-#define ObcTelemetry_init_default                {0, 0, 0, 0}
-#define TransceiverTelemetry_init_default        {TransceiverTelemetry_receiverTelemetry_init_default, TransceiverTelemetry_transmitterTelemetry_init_default}
-#define TransceiverTelemetry_receiverTelemetry_init_default {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-#define TransceiverTelemetry_transmitterTelemetry_init_default {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-#define CameraTelemetry_init_default             {0}
-#define EpsTelemetry_init_default                {0}
-#define BatteryTelemetry_init_default            {0}
-#define AntennaTelemetry_init_default            {0}
-#define DosimeterData_init_default               {DosimeterData_DosimeterBoardData_init_default, DosimeterData_DosimeterBoardData_init_default}
-#define DosimeterData_DosimeterBoardData_init_default {0, 0, 0, 0, 0, 0, 0, 0}
-#define ImagePacket_init_default                 {0, _ImagePacket_image_type_t_MIN, {0, {0}}}
-#define FileTransferMessage_init_zero            {0, {ObcTelemetry_init_zero}}
-#define ObcTelemetry_init_zero                   {0, 0, 0, 0}
-#define TransceiverTelemetry_init_zero           {TransceiverTelemetry_receiverTelemetry_init_zero, TransceiverTelemetry_transmitterTelemetry_init_zero}
-#define TransceiverTelemetry_receiverTelemetry_init_zero {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-#define TransceiverTelemetry_transmitterTelemetry_init_zero {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
-#define CameraTelemetry_init_zero                {0}
-#define EpsTelemetry_init_zero                   {0}
-#define BatteryTelemetry_init_zero               {0}
-#define AntennaTelemetry_init_zero               {0}
-#define DosimeterData_init_zero                  {DosimeterData_DosimeterBoardData_init_zero, DosimeterData_DosimeterBoardData_init_zero}
-#define DosimeterData_DosimeterBoardData_init_zero {0, 0, 0, 0, 0, 0, 0, 0}
-#define ImagePacket_init_zero                    {0, _ImagePacket_image_type_t_MIN, {0, {0}}}
+#define file_transfer_message_init_default       {0, {obc_telemetry_init_default}}
+#define obc_telemetry_init_default               {0, 0, 0, 0}
+#define receiver_telemetry_init_default          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define transmitter_telemetry_init_default       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define transceiver_telemetry_init_default       {receiver_telemetry_init_default, transmitter_telemetry_init_default}
+#define camera_telemetry_init_default            {0}
+#define eps_telemetry_init_default               {0}
+#define battery_telemetry_init_default           {0}
+#define antenna_telemetry_init_default           {0}
+#define dosimeter_board_data_init_default        {0, 0, 0, 0, 0, 0, 0, 0}
+#define dosimeter_data_init_default              {dosimeter_board_data_init_default, dosimeter_board_data_init_default}
+#define image_packet_init_default                {0, _image_type_t_MIN, {0, {0}}}
+#define module_error_report_init_default         {0, 0}
+#define component_error_report_init_default      {0, 0}
+#define error_record_init_default                {0, 0}
+#define error_report_summary_init_default        {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
+#define file_transfer_message_init_zero          {0, {obc_telemetry_init_zero}}
+#define obc_telemetry_init_zero                  {0, 0, 0, 0}
+#define receiver_telemetry_init_zero             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define transmitter_telemetry_init_zero          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define transceiver_telemetry_init_zero          {receiver_telemetry_init_zero, transmitter_telemetry_init_zero}
+#define camera_telemetry_init_zero               {0}
+#define eps_telemetry_init_zero                  {0}
+#define battery_telemetry_init_zero              {0}
+#define antenna_telemetry_init_zero              {0}
+#define dosimeter_board_data_init_zero           {0, 0, 0, 0, 0, 0, 0, 0}
+#define dosimeter_data_init_zero                 {dosimeter_board_data_init_zero, dosimeter_board_data_init_zero}
+#define image_packet_init_zero                   {0, _image_type_t_MIN, {0, {0}}}
+#define module_error_report_init_zero            {0, 0}
+#define component_error_report_init_zero         {0, 0}
+#define error_record_init_zero                   {0, 0}
+#define error_report_summary_init_zero           {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define CameraTelemetry_upTime_tag               1
-#define DosimeterData_DosimeterBoardData_voltageChannelZero_tag 1
-#define DosimeterData_DosimeterBoardData_voltageChannelOne_tag 2
-#define DosimeterData_DosimeterBoardData_voltageChannelTwo_tag 3
-#define DosimeterData_DosimeterBoardData_voltageChannelThree_tag 4
-#define DosimeterData_DosimeterBoardData_voltageChannelFour_tag 5
-#define DosimeterData_DosimeterBoardData_voltageChannelFive_tag 6
-#define DosimeterData_DosimeterBoardData_voltageChannelSix_tag 7
-#define DosimeterData_DosimeterBoardData_voltageChannelSeven_tag 8
-#define ImagePacket_id_tag                       1
-#define ImagePacket_type_tag                     2
-#define ImagePacket_data_tag                     3
-#define ObcTelemetry_mode_tag                    1
-#define ObcTelemetry_uptime_tag                  2
-#define ObcTelemetry_rtcTime_tag                 3
-#define ObcTelemetry_rtcTemperature_tag          4
-#define TransceiverTelemetry_receiverTelemetry_rx_doppler_tag 1
-#define TransceiverTelemetry_receiverTelemetry_rx_rssi_tag 2
-#define TransceiverTelemetry_receiverTelemetry_bus_volt_tag 3
-#define TransceiverTelemetry_receiverTelemetry_vutotal_curr_tag 4
-#define TransceiverTelemetry_receiverTelemetry_vutx_curr_tag 5
-#define TransceiverTelemetry_receiverTelemetry_vurx_curr_tag 6
-#define TransceiverTelemetry_receiverTelemetry_vupa_curr_tag 7
-#define TransceiverTelemetry_receiverTelemetry_pa_temp_tag 8
-#define TransceiverTelemetry_receiverTelemetry_board_temp_tag 9
-#define TransceiverTelemetry_receiverTelemetry_uptime_tag 10
-#define TransceiverTelemetry_receiverTelemetry_frames_tag 11
-#define TransceiverTelemetry_transmitterTelemetry_tx_reflpwr_tag 1
-#define TransceiverTelemetry_transmitterTelemetry_tx_fwrdpwr_tag 2
-#define TransceiverTelemetry_transmitterTelemetry_bus_volt_tag 3
-#define TransceiverTelemetry_transmitterTelemetry_vutotal_curr_tag 4
-#define TransceiverTelemetry_transmitterTelemetry_vutx_curr_tag 5
-#define TransceiverTelemetry_transmitterTelemetry_vurx_curr_tag 6
-#define TransceiverTelemetry_transmitterTelemetry_vupa_curr_tag 7
-#define TransceiverTelemetry_transmitterTelemetry_pa_temp_tag 8
-#define TransceiverTelemetry_transmitterTelemetry_board_temp_tag 9
-#define TransceiverTelemetry_transmitterTelemetry_uptime_tag 10
-#define DosimeterData_boardOne_tag               1
-#define DosimeterData_boardTwo_tag               2
-#define TransceiverTelemetry_receiver_tag        1
-#define TransceiverTelemetry_transmitter_tag     2
-#define FileTransferMessage_obcTelemetry_tag     1
-#define FileTransferMessage_transceiverTelemetry_tag 2
-#define FileTransferMessage_cameraTelemetry_tag  3
-#define FileTransferMessage_epsTelemetry_tag     4
-#define FileTransferMessage_batteryTelemetry_tag 5
-#define FileTransferMessage_antennaTelemetry_tag 6
-#define FileTransferMessage_dosimeterData_tag    7
-#define FileTransferMessage_imagePacket_tag      8
+#define camera_telemetry_uptime_tag              1
+#define component_error_report_component_tag     1
+#define component_error_report_error_tag         2
+#define dosimeter_board_data_channelZero_tag     1
+#define dosimeter_board_data_channelOne_tag      2
+#define dosimeter_board_data_channelTwo_tag      3
+#define dosimeter_board_data_channelThree_tag    4
+#define dosimeter_board_data_channelFour_tag     5
+#define dosimeter_board_data_channelFive_tag     6
+#define dosimeter_board_data_channelSix_tag      7
+#define dosimeter_board_data_channelSeven_tag    8
+#define error_record_timeRecorded_tag            1
+#define error_record_count_tag                   2
+#define error_report_summary_moduleErrorCount_tag 1
+#define error_report_summary_componentErrorCount_tag 2
+#define image_packet_id_tag                      1
+#define image_packet_type_tag                    2
+#define image_packet_data_tag                    3
+#define module_error_report_module_tag           1
+#define module_error_report_error_tag            2
+#define obc_telemetry_mode_tag                   1
+#define obc_telemetry_uptime_tag                 2
+#define obc_telemetry_rtcTime_tag                3
+#define obc_telemetry_rtcTemperature_tag         4
+#define receiver_telemetry_rxDoppler_tag         1
+#define receiver_telemetry_rxRssi_tag            2
+#define receiver_telemetry_busVoltage_tag        3
+#define receiver_telemetry_totalCurrent_tag      4
+#define receiver_telemetry_txCurrent_tag         5
+#define receiver_telemetry_rxCurrent_tag         6
+#define receiver_telemetry_powerAmplifierCurrent_tag 7
+#define receiver_telemetry_powerAmplifierTemperature_tag 8
+#define receiver_telemetry_boardTemperature_tag  9
+#define receiver_telemetry_uptime_tag            10
+#define receiver_telemetry_frames_tag            11
+#define transmitter_telemetry_reflectedPower_tag 1
+#define transmitter_telemetry_forwardPower_tag   2
+#define transmitter_telemetry_busVoltage_tag     3
+#define transmitter_telemetry_totalCurrent_tag   4
+#define transmitter_telemetry_txCurrent_tag      5
+#define transmitter_telemetry_rxCurrent_tag      6
+#define transmitter_telemetry_powerAmplifierCurrent_tag 7
+#define transmitter_telemetry_powerAmplifierTemperature_tag 8
+#define transmitter_telemetry_boardTemperature_tag 9
+#define transmitter_telemetry_uptime_tag         10
+#define dosimeter_data_boardOne_tag              1
+#define dosimeter_data_boardTwo_tag              2
+#define transceiver_telemetry_receiver_tag       1
+#define transceiver_telemetry_transmitter_tag    2
+#define file_transfer_message_ObcTelemetry_tag   1
+#define file_transfer_message_TransceiverTelemetry_tag 2
+#define file_transfer_message_CameraTelemetry_tag 3
+#define file_transfer_message_EpsTelemetry_tag   4
+#define file_transfer_message_BatteryTelemetry_tag 5
+#define file_transfer_message_AntennaTelemetry_tag 6
+#define file_transfer_message_DosimeterData_tag  7
+#define file_transfer_message_ImagePacket_tag    8
+#define file_transfer_message_ModuleErrorReport_tag 9
+#define file_transfer_message_ComponentErrorReport_tag 10
+#define file_transfer_message_ErrorReportSummary_tag 11
 
 /* Struct field encoding specification for nanopb */
-#define FileTransferMessage_FIELDLIST(X, a) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,obcTelemetry,obcTelemetry),   1) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,transceiverTelemetry,transceiverTelemetry),   2) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,cameraTelemetry,cameraTelemetry),   3) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,epsTelemetry,epsTelemetry),   4) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,batteryTelemetry,batteryTelemetry),   5) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,antennaTelemetry,antennaTelemetry),   6) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,dosimeterData,dosimeterData),   7) \
-X(a, STATIC,   ONEOF,    MESSAGE,  (message,imagePacket,imagePacket),   8)
-#define FileTransferMessage_CALLBACK NULL
-#define FileTransferMessage_DEFAULT NULL
-#define FileTransferMessage_message_obcTelemetry_MSGTYPE ObcTelemetry
-#define FileTransferMessage_message_transceiverTelemetry_MSGTYPE TransceiverTelemetry
-#define FileTransferMessage_message_cameraTelemetry_MSGTYPE CameraTelemetry
-#define FileTransferMessage_message_epsTelemetry_MSGTYPE EpsTelemetry
-#define FileTransferMessage_message_batteryTelemetry_MSGTYPE BatteryTelemetry
-#define FileTransferMessage_message_antennaTelemetry_MSGTYPE AntennaTelemetry
-#define FileTransferMessage_message_dosimeterData_MSGTYPE DosimeterData
-#define FileTransferMessage_message_imagePacket_MSGTYPE ImagePacket
+#define file_transfer_message_FIELDLIST(X, a) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,ObcTelemetry,ObcTelemetry),   1) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,TransceiverTelemetry,TransceiverTelemetry),   2) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,CameraTelemetry,CameraTelemetry),   3) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,EpsTelemetry,EpsTelemetry),   4) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,BatteryTelemetry,BatteryTelemetry),   5) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,AntennaTelemetry,AntennaTelemetry),   6) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,DosimeterData,DosimeterData),   7) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,ImagePacket,ImagePacket),   8) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,ModuleErrorReport,ModuleErrorReport),   9) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,ComponentErrorReport,ComponentErrorReport),  10) \
+X(a, STATIC,   ONEOF,    MESSAGE,  (message,ErrorReportSummary,ErrorReportSummary),  11)
+#define file_transfer_message_CALLBACK NULL
+#define file_transfer_message_DEFAULT NULL
+#define file_transfer_message_message_ObcTelemetry_MSGTYPE obc_telemetry
+#define file_transfer_message_message_TransceiverTelemetry_MSGTYPE transceiver_telemetry
+#define file_transfer_message_message_CameraTelemetry_MSGTYPE camera_telemetry
+#define file_transfer_message_message_EpsTelemetry_MSGTYPE eps_telemetry
+#define file_transfer_message_message_BatteryTelemetry_MSGTYPE battery_telemetry
+#define file_transfer_message_message_AntennaTelemetry_MSGTYPE antenna_telemetry
+#define file_transfer_message_message_DosimeterData_MSGTYPE dosimeter_data
+#define file_transfer_message_message_ImagePacket_MSGTYPE image_packet
+#define file_transfer_message_message_ModuleErrorReport_MSGTYPE module_error_report
+#define file_transfer_message_message_ComponentErrorReport_MSGTYPE component_error_report
+#define file_transfer_message_message_ErrorReportSummary_MSGTYPE error_report_summary
 
-#define ObcTelemetry_FIELDLIST(X, a) \
+#define obc_telemetry_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UINT32,   mode,              1) \
 X(a, STATIC,   SINGULAR, UINT32,   uptime,            2) \
 X(a, STATIC,   SINGULAR, UINT32,   rtcTime,           3) \
 X(a, STATIC,   SINGULAR, UINT32,   rtcTemperature,    4)
-#define ObcTelemetry_CALLBACK NULL
-#define ObcTelemetry_DEFAULT NULL
+#define obc_telemetry_CALLBACK NULL
+#define obc_telemetry_DEFAULT NULL
 
-#define TransceiverTelemetry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, MESSAGE,  receiver,          1) \
-X(a, STATIC,   SINGULAR, MESSAGE,  transmitter,       2)
-#define TransceiverTelemetry_CALLBACK NULL
-#define TransceiverTelemetry_DEFAULT NULL
-#define TransceiverTelemetry_receiver_MSGTYPE TransceiverTelemetry_receiverTelemetry
-#define TransceiverTelemetry_transmitter_MSGTYPE TransceiverTelemetry_transmitterTelemetry
-
-#define TransceiverTelemetry_receiverTelemetry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    rx_doppler,        1) \
-X(a, STATIC,   SINGULAR, FLOAT,    rx_rssi,           2) \
-X(a, STATIC,   SINGULAR, FLOAT,    bus_volt,          3) \
-X(a, STATIC,   SINGULAR, FLOAT,    vutotal_curr,      4) \
-X(a, STATIC,   SINGULAR, FLOAT,    vutx_curr,         5) \
-X(a, STATIC,   SINGULAR, FLOAT,    vurx_curr,         6) \
-X(a, STATIC,   SINGULAR, FLOAT,    vupa_curr,         7) \
-X(a, STATIC,   SINGULAR, FLOAT,    pa_temp,           8) \
-X(a, STATIC,   SINGULAR, FLOAT,    board_temp,        9) \
+#define receiver_telemetry_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, FLOAT,    rxDoppler,         1) \
+X(a, STATIC,   SINGULAR, FLOAT,    rxRssi,            2) \
+X(a, STATIC,   SINGULAR, FLOAT,    busVoltage,        3) \
+X(a, STATIC,   SINGULAR, FLOAT,    totalCurrent,      4) \
+X(a, STATIC,   SINGULAR, FLOAT,    txCurrent,         5) \
+X(a, STATIC,   SINGULAR, FLOAT,    rxCurrent,         6) \
+X(a, STATIC,   SINGULAR, FLOAT,    powerAmplifierCurrent,   7) \
+X(a, STATIC,   SINGULAR, FLOAT,    powerAmplifierTemperature,   8) \
+X(a, STATIC,   SINGULAR, FLOAT,    boardTemperature,   9) \
 X(a, STATIC,   SINGULAR, UINT32,   uptime,           10) \
 X(a, STATIC,   SINGULAR, UINT32,   frames,           11)
-#define TransceiverTelemetry_receiverTelemetry_CALLBACK NULL
-#define TransceiverTelemetry_receiverTelemetry_DEFAULT NULL
+#define receiver_telemetry_CALLBACK NULL
+#define receiver_telemetry_DEFAULT NULL
 
-#define TransceiverTelemetry_transmitterTelemetry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    tx_reflpwr,        1) \
-X(a, STATIC,   SINGULAR, FLOAT,    tx_fwrdpwr,        2) \
-X(a, STATIC,   SINGULAR, FLOAT,    bus_volt,          3) \
-X(a, STATIC,   SINGULAR, FLOAT,    vutotal_curr,      4) \
-X(a, STATIC,   SINGULAR, FLOAT,    vutx_curr,         5) \
-X(a, STATIC,   SINGULAR, FLOAT,    vurx_curr,         6) \
-X(a, STATIC,   SINGULAR, FLOAT,    vupa_curr,         7) \
-X(a, STATIC,   SINGULAR, FLOAT,    pa_temp,           8) \
-X(a, STATIC,   SINGULAR, FLOAT,    board_temp,        9) \
+#define transmitter_telemetry_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, FLOAT,    reflectedPower,    1) \
+X(a, STATIC,   SINGULAR, FLOAT,    forwardPower,      2) \
+X(a, STATIC,   SINGULAR, FLOAT,    busVoltage,        3) \
+X(a, STATIC,   SINGULAR, FLOAT,    totalCurrent,      4) \
+X(a, STATIC,   SINGULAR, FLOAT,    txCurrent,         5) \
+X(a, STATIC,   SINGULAR, FLOAT,    rxCurrent,         6) \
+X(a, STATIC,   SINGULAR, FLOAT,    powerAmplifierCurrent,   7) \
+X(a, STATIC,   SINGULAR, FLOAT,    powerAmplifierTemperature,   8) \
+X(a, STATIC,   SINGULAR, FLOAT,    boardTemperature,   9) \
 X(a, STATIC,   SINGULAR, UINT32,   uptime,           10)
-#define TransceiverTelemetry_transmitterTelemetry_CALLBACK NULL
-#define TransceiverTelemetry_transmitterTelemetry_DEFAULT NULL
+#define transmitter_telemetry_CALLBACK NULL
+#define transmitter_telemetry_DEFAULT NULL
 
-#define CameraTelemetry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   upTime,            1)
-#define CameraTelemetry_CALLBACK NULL
-#define CameraTelemetry_DEFAULT NULL
+#define transceiver_telemetry_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, MESSAGE,  receiver,          1) \
+X(a, STATIC,   SINGULAR, MESSAGE,  transmitter,       2)
+#define transceiver_telemetry_CALLBACK NULL
+#define transceiver_telemetry_DEFAULT NULL
+#define transceiver_telemetry_receiver_MSGTYPE receiver_telemetry
+#define transceiver_telemetry_transmitter_MSGTYPE transmitter_telemetry
 
-#define EpsTelemetry_FIELDLIST(X, a) \
+#define camera_telemetry_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   uptime,            1)
+#define camera_telemetry_CALLBACK NULL
+#define camera_telemetry_DEFAULT NULL
 
-#define EpsTelemetry_CALLBACK NULL
-#define EpsTelemetry_DEFAULT NULL
+#define eps_telemetry_FIELDLIST(X, a) \
 
-#define BatteryTelemetry_FIELDLIST(X, a) \
+#define eps_telemetry_CALLBACK NULL
+#define eps_telemetry_DEFAULT NULL
 
-#define BatteryTelemetry_CALLBACK NULL
-#define BatteryTelemetry_DEFAULT NULL
+#define battery_telemetry_FIELDLIST(X, a) \
 
-#define AntennaTelemetry_FIELDLIST(X, a) \
+#define battery_telemetry_CALLBACK NULL
+#define battery_telemetry_DEFAULT NULL
 
-#define AntennaTelemetry_CALLBACK NULL
-#define AntennaTelemetry_DEFAULT NULL
+#define antenna_telemetry_FIELDLIST(X, a) \
 
-#define DosimeterData_FIELDLIST(X, a) \
+#define antenna_telemetry_CALLBACK NULL
+#define antenna_telemetry_DEFAULT NULL
+
+#define dosimeter_board_data_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelZero,       1) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelOne,        2) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelTwo,        3) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelThree,      4) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelFour,       5) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelFive,       6) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelSix,        7) \
+X(a, STATIC,   SINGULAR, FLOAT,    channelSeven,      8)
+#define dosimeter_board_data_CALLBACK NULL
+#define dosimeter_board_data_DEFAULT NULL
+
+#define dosimeter_data_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, MESSAGE,  boardOne,          1) \
 X(a, STATIC,   SINGULAR, MESSAGE,  boardTwo,          2)
-#define DosimeterData_CALLBACK NULL
-#define DosimeterData_DEFAULT NULL
-#define DosimeterData_boardOne_MSGTYPE DosimeterData_DosimeterBoardData
-#define DosimeterData_boardTwo_MSGTYPE DosimeterData_DosimeterBoardData
+#define dosimeter_data_CALLBACK NULL
+#define dosimeter_data_DEFAULT NULL
+#define dosimeter_data_boardOne_MSGTYPE dosimeter_board_data
+#define dosimeter_data_boardTwo_MSGTYPE dosimeter_board_data
 
-#define DosimeterData_DosimeterBoardData_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelZero,   1) \
-X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelOne,   2) \
-X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelTwo,   3) \
-X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelThree,   4) \
-X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelFour,   5) \
-X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelFive,   6) \
-X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelSix,   7) \
-X(a, STATIC,   SINGULAR, FLOAT,    voltageChannelSeven,   8)
-#define DosimeterData_DosimeterBoardData_CALLBACK NULL
-#define DosimeterData_DosimeterBoardData_DEFAULT NULL
-
-#define ImagePacket_FIELDLIST(X, a) \
+#define image_packet_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, UINT32,   id,                1) \
 X(a, STATIC,   SINGULAR, UENUM,    type,              2) \
 X(a, STATIC,   SINGULAR, BYTES,    data,              3)
-#define ImagePacket_CALLBACK NULL
-#define ImagePacket_DEFAULT NULL
+#define image_packet_CALLBACK NULL
+#define image_packet_DEFAULT NULL
 
-extern const pb_msgdesc_t FileTransferMessage_msg;
-extern const pb_msgdesc_t ObcTelemetry_msg;
-extern const pb_msgdesc_t TransceiverTelemetry_msg;
-extern const pb_msgdesc_t TransceiverTelemetry_receiverTelemetry_msg;
-extern const pb_msgdesc_t TransceiverTelemetry_transmitterTelemetry_msg;
-extern const pb_msgdesc_t CameraTelemetry_msg;
-extern const pb_msgdesc_t EpsTelemetry_msg;
-extern const pb_msgdesc_t BatteryTelemetry_msg;
-extern const pb_msgdesc_t AntennaTelemetry_msg;
-extern const pb_msgdesc_t DosimeterData_msg;
-extern const pb_msgdesc_t DosimeterData_DosimeterBoardData_msg;
-extern const pb_msgdesc_t ImagePacket_msg;
+#define module_error_report_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   module,            1) \
+X(a, STATIC,   SINGULAR, INT32,    error,             2)
+#define module_error_report_CALLBACK NULL
+#define module_error_report_DEFAULT NULL
+
+#define component_error_report_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   component,         1) \
+X(a, STATIC,   SINGULAR, INT32,    error,             2)
+#define component_error_report_CALLBACK NULL
+#define component_error_report_DEFAULT NULL
+
+#define error_record_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   timeRecorded,      1) \
+X(a, STATIC,   SINGULAR, UINT32,   count,             2)
+#define error_record_CALLBACK NULL
+#define error_record_DEFAULT NULL
+
+#define error_report_summary_FIELDLIST(X, a) \
+X(a, STATIC,   FIXARRAY, UINT32,   moduleErrorCount,   1) \
+X(a, STATIC,   FIXARRAY, UINT32,   componentErrorCount,   2)
+#define error_report_summary_CALLBACK NULL
+#define error_report_summary_DEFAULT NULL
+
+extern const pb_msgdesc_t file_transfer_message_msg;
+extern const pb_msgdesc_t obc_telemetry_msg;
+extern const pb_msgdesc_t receiver_telemetry_msg;
+extern const pb_msgdesc_t transmitter_telemetry_msg;
+extern const pb_msgdesc_t transceiver_telemetry_msg;
+extern const pb_msgdesc_t camera_telemetry_msg;
+extern const pb_msgdesc_t eps_telemetry_msg;
+extern const pb_msgdesc_t battery_telemetry_msg;
+extern const pb_msgdesc_t antenna_telemetry_msg;
+extern const pb_msgdesc_t dosimeter_board_data_msg;
+extern const pb_msgdesc_t dosimeter_data_msg;
+extern const pb_msgdesc_t image_packet_msg;
+extern const pb_msgdesc_t module_error_report_msg;
+extern const pb_msgdesc_t component_error_report_msg;
+extern const pb_msgdesc_t error_record_msg;
+extern const pb_msgdesc_t error_report_summary_msg;
 
 /* Defines for backwards compatibility with code written before nanopb-0.4.0 */
-#define FileTransferMessage_fields &FileTransferMessage_msg
-#define ObcTelemetry_fields &ObcTelemetry_msg
-#define TransceiverTelemetry_fields &TransceiverTelemetry_msg
-#define TransceiverTelemetry_receiverTelemetry_fields &TransceiverTelemetry_receiverTelemetry_msg
-#define TransceiverTelemetry_transmitterTelemetry_fields &TransceiverTelemetry_transmitterTelemetry_msg
-#define CameraTelemetry_fields &CameraTelemetry_msg
-#define EpsTelemetry_fields &EpsTelemetry_msg
-#define BatteryTelemetry_fields &BatteryTelemetry_msg
-#define AntennaTelemetry_fields &AntennaTelemetry_msg
-#define DosimeterData_fields &DosimeterData_msg
-#define DosimeterData_DosimeterBoardData_fields &DosimeterData_DosimeterBoardData_msg
-#define ImagePacket_fields &ImagePacket_msg
+#define file_transfer_message_fields &file_transfer_message_msg
+#define obc_telemetry_fields &obc_telemetry_msg
+#define receiver_telemetry_fields &receiver_telemetry_msg
+#define transmitter_telemetry_fields &transmitter_telemetry_msg
+#define transceiver_telemetry_fields &transceiver_telemetry_msg
+#define camera_telemetry_fields &camera_telemetry_msg
+#define eps_telemetry_fields &eps_telemetry_msg
+#define battery_telemetry_fields &battery_telemetry_msg
+#define antenna_telemetry_fields &antenna_telemetry_msg
+#define dosimeter_board_data_fields &dosimeter_board_data_msg
+#define dosimeter_data_fields &dosimeter_data_msg
+#define image_packet_fields &image_packet_msg
+#define module_error_report_fields &module_error_report_msg
+#define component_error_report_fields &component_error_report_msg
+#define error_record_fields &error_record_msg
+#define error_report_summary_fields &error_report_summary_msg
 
 /* Maximum encoded size of messages (where known) */
-#define FileTransferMessage_size                 214
-#define ObcTelemetry_size                        24
-#define TransceiverTelemetry_size                112
-#define TransceiverTelemetry_receiverTelemetry_size 57
-#define TransceiverTelemetry_transmitterTelemetry_size 51
-#define CameraTelemetry_size                     6
-#define EpsTelemetry_size                        0
-#define BatteryTelemetry_size                    0
-#define AntennaTelemetry_size                    0
-#define DosimeterData_size                       84
-#define DosimeterData_DosimeterBoardData_size    40
-#define ImagePacket_size                         211
+#define file_transfer_message_size               214
+#define obc_telemetry_size                       24
+#define receiver_telemetry_size                  57
+#define transmitter_telemetry_size               51
+#define transceiver_telemetry_size               112
+#define camera_telemetry_size                    6
+#define eps_telemetry_size                       0
+#define battery_telemetry_size                   0
+#define antenna_telemetry_size                   0
+#define dosimeter_board_data_size                40
+#define dosimeter_data_size                      84
+#define image_packet_size                        211
+#define module_error_report_size                 17
+#define component_error_report_size              17
+#define error_record_size                        9
+#define error_report_summary_size                144
 
 #ifdef __cplusplus
 } /* extern "C" */

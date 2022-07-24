@@ -7,6 +7,7 @@
 #include <RFram.h>
 #include <hal/errors.h>
 #include <hal/Storage/FRAM.h>
+#include <RCommon.h>
 
 
 /***************************************************************************************************

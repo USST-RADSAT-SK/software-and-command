@@ -9,6 +9,7 @@
 #include <satellite-subsystems/IsisTRXVU.h>
 #include <hal/errors.h>
 #include <string.h>
+#include <RCommon.h>
 
 
 /***************************************************************************************************
@@ -48,7 +49,7 @@ int transceiverInit(void) {
 
 	// only allow initialization once (return without error if already initialized)
 	if (initialized)
-		return 0;
+		return SUCCESS;
 
 	// define I2C addresses for individual receiver and transmitter
 	ISIStrxvuI2CAddress addresses = {
@@ -198,7 +199,7 @@ int transceiverSoftReset(void){
 	if (error != 0)
 			return error;
 
-	return 0;
+	return SUCCESS;
 }
 
 /**
@@ -282,13 +283,21 @@ int transceiverPetWatchDogs(void) {
 	// create buffer to hold pet command code
 	uint8_t writeData[TRX_WDOG_RESET_CMD_SIZE] = { TRX_WDOG_RESET_CMD_CODE };
 
+<<<<<<< HEAD
 	// transmit WDOG pet to receiver module
+=======
+	// transmit WDOG reset_t to receiver module
+>>>>>>> aa164ee08d0f9195d610920edab623484dec5094
 	error = i2cTransmit(TRANSCEIVER_RX_I2C_SLAVE_ADDR, writeData, sizeof(writeData));
 
 	if (error != 0)
 		return error;
 
+<<<<<<< HEAD
 	// transmit WDOG pet to transmitter module
+=======
+	// transmit WDOG reset_t to transmitter module
+>>>>>>> aa164ee08d0f9195d610920edab623484dec5094
 	error = i2cTransmit(TRANSCEIVER_TX_I2C_SLAVE_ADDR, writeData, sizeof(writeData));
 
 	if (error != 0)
