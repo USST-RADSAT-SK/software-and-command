@@ -23,6 +23,8 @@
 /** Satellite Watchdog Task delay (in ms). */
 #define SATELLITE_WATCHDOG_TASK_DELAY_MS	(15)
 
+#define	WATCHDOG_RESET_TIME_MS		((uint32_t)30*1000)	///> 30 seconds
+
 
 
 /** Abstraction of the states of operation */
@@ -58,34 +60,43 @@ void SatelliteWatchdogTask(void* parameters) {
 	int error = 0;
 	int communicationFlag = 1;
 	int safeFlag = 1;
+	uint32_t old_time = 0;
+	uint32_t current_time = 0;
 
 	while (1) {
 
 		// TODO: implement petting satellite watchdogs
 
-				debugPrint("SatelliteWatchdogTask(): About to pet external satellite watchdogs.\n");
 
 		//pet watchdogs for all components 
+		current_time = xTaskGetTickCount();
 
-		error = batteryPetWatchDog();
+		if ((current_time - old_time) > WATCHDOG_RESET_TIME_MS) {
 
-		if (error != SUCCESS) {
-			// TODO: implement error manager
-			error;
-		}
+			debugPrint("SatelliteWatchdogTask(): About to pet external satellite watchdogs.\n");
 
-		error = transceiverPetWatchDogs();
+			error = batteryPetWatchDog();
 
-		if (error != SUCCESS) {
-			// TODO: implement error manager
-			error;
-		}
+			if (error != SUCCESS) {
+				// TODO: implement error manager
+				error;
+			}
 
-		error = pdbPetWatchdog();
+			error = transceiverPetWatchDogs();
 
-		if (error != SUCCESS) {
-			// TODO: implement error manager
-			error;
+			if (error != SUCCESS) {
+				// TODO: implement error manager
+				error;
+			}
+
+			error = pdbPetWatchdog();
+
+			if (error != SUCCESS) {
+				// TODO: implement error manager
+				error;
+			}
+			
+			old_time = current_time;
 		}
 
 		// TODO: implement petting camera watchdog
