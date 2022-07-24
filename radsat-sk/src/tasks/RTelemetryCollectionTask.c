@@ -14,6 +14,7 @@
 #include <RBattery.h>
 #include <RTransceiver.h>
 #include <RPdb.h>
+#include <RObc.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -30,13 +31,15 @@
 #define TELEMETRY_COLLECTION_TASK_DELAY_MS	(MS_PER_HOUR / TELEMETRY_READINGS_PER_HOUR)
 
 
-static battery_status_t battery_telemetry;
+static battery_telemetry battery_telemetry_R;
 
-static antenna_telemetry_t antenna_telemetry;
+static antenna_telemetry antenna_telemetry_R;
 
-static transceiver_telemetry_t transceiver_telemetry;
+static transceiver_telemetry transceiver_telemetry_R;
 
-static EpsTelemetry pdb_telemetry;
+static eps_telemetry pdb_telemetry_R;
+
+static obc_telemetry obc_telemetry_R;
 
 /***************************************************************************************************
                                            FREERTOS TASKS
@@ -56,59 +59,66 @@ void TelemetryCollectionTask(void* parameters) {
 
 		if(!(comunicationMode())) {
 
-			error = antennaTelemetry(&antenna_telemetry);
+			error = antennaTelemetry(&antenna_telemetry_R);
 			if (error != SUCCESS) {
 				error;
 				// TODO: implement error manager
 			}
 
-			error = batteryTelemetry(&battery_telemetry);
+			error = batteryTelemetry(&battery_telemetry_R);
 			if (error != SUCCESS) {
 				error;
 				// TODO: implement error manager
 			}
 
-			error = transceiverTelemetry(&transceiver_telemetry);
+			error = transceiverTelemetry(&transceiver_telemetry_R);
 			if (error != SUCCESS) {
 				error;
 				// TODO: implement error manager
 			}
-			error = pdbTelemetry(&pdb_telemetry);
-			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
-			}
-
-			error = fileTransferAddMessage(&antenna_telemetry, sizeof(antenna_telemetry),FileTransferMessage_antennaTelemetry_tag );
+			error = pdbTelemetry(&pdb_telemetry_R);
 			if (error != SUCCESS) {
 				error;
 				// TODO: implement error manager
 			}
 
-			error = fileTransferAddMessage(&battery_telemetry, sizeof(battery_telemetry),FileTransferMessage_batteryTelemetry_tag );
-			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
-			}
-
-			error = fileTransferAddMessage(&transceiver_telemetry, sizeof(transceiver_telemetry),FileTransferMessage_transceiverTelemetry_tag );
-			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
-			}
-
-			error = fileTransferAddMessage(&pdb_telemetry, sizeof(pdb_telemetry),FileTransferMessage_epsTelemetry_tag );
+			error = obcTelemetry(&obc_telemetry_R);
 			if (error != SUCCESS) {
 				error;
 				// TODO: implement error manager
 			}
 
 
-			// error = batteryIsNotSafe(&safeFlag);
-			// if (error != SUCCESS) {
-			// 	error;
-			// 	// TODO: implement error manager
-			// }
+			error = fileTransferAddMessage(&antenna_telemetry_R, sizeof(antenna_telemetry_R),file_transfer_message_AntennaTelemetry_tag );
+			if (error != SUCCESS) {
+				error;
+				// TODO: implement error manager
+			}
+
+			error = fileTransferAddMessage(&battery_telemetry_R, sizeof(battery_telemetry_R),file_transfer_message_BatteryTelemetry_tag );
+			if (error != SUCCESS) {
+				error;
+				// TODO: implement error manager
+			}
+
+			error = fileTransferAddMessage(&transceiver_telemetry_R, sizeof(transceiver_telemetry_R),file_transfer_message_TransceiverTelemetry_tag );
+			if (error != SUCCESS) {
+				error;
+				// TODO: implement error manager
+			}
+
+			error = fileTransferAddMessage(&pdb_telemetry_R, sizeof(pdb_telemetry_R),file_transfer_message_EpsTelemetry_tag );
+			if (error != SUCCESS) {
+				error;
+				// TODO: implement error manager
+			}
+
+			error = fileTransferAddMessage(&obc_telemetry_R, sizeof(obc_telemetry_R),file_transfer_message_ObcTelemetry_tag );
+			if (error != SUCCESS) {
+				error;
+				// TODO: implement error manager
+			}
+
 
 			
 		}
