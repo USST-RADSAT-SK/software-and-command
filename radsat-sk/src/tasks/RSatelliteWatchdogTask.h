@@ -6,6 +6,7 @@
 
 #ifndef RSATELLITEWATCHDOGTASK_H_
 #define RSATELLITEWATCHDOGTASK_H_
+#include <stdint.h>
 
 
 /***************************************************************************************************

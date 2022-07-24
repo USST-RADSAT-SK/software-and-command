@@ -92,27 +92,27 @@ void SatelliteWatchdogTask(void* parameters) {
 
 		// Set the comunication flag depending on current state
 		if (communicationPassModeActive()) {
-			communication = 1;
+			communicationFlag = 1;
 		}
 		else {
-			communication = 0;
+			communicationFlag = 0;
 		}
 
 		// Set the safe flag depending on current state
-		checkSafeFlag(&safeFlag);
+		batteryIsNotSafe(&safeFlag);
 
 
 		if (communicationFlag == 0 && safeFlag == 0) {
-			operation_state_t.mode = 0;
+			state.mode = 0;
 		}
 		else if (communicationFlag == 0 && safeFlag == 1){
-			operation_state_t.mode = 1;
+			state.mode = 1;
 		}
 		else if (communicationFlag == 1 && safeFlag == 0){
-			operation_state_t.mode = 2;
+			state.mode = 2;
 		}
 		else if (communicationFlag == 1 && safeFlag == 1){
-			operation_state_t.mode = 3;
+			state.mode = 3;
 		}
 		
 

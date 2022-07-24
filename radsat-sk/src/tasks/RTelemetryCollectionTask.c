@@ -12,7 +12,7 @@
 #include <RCommon.h>
 #include <RAntenna.h>
 #include <RBattery.h>
-#include <RTranseiver.h>
+#include <RTransceiver.h>
 #include <RPdb.h>
 
 #include <freertos/FreeRTOS.h>
@@ -36,6 +36,7 @@ static antenna_telemetry_t antenna_telemetry;
 
 static transceiver_telemetry_t transceiver_telemetry;
 
+static EpsTelemetry pdb_telemetry;
 
 /***************************************************************************************************
                                            FREERTOS TASKS
@@ -72,6 +73,11 @@ void TelemetryCollectionTask(void* parameters) {
 				error;
 				// TODO: implement error manager
 			}
+			error = pdbTelemetry(&pdb_telemetry);
+			if (error != SUCCESS) {
+				error;
+				// TODO: implement error manager
+			}
 
 			error = fileTransferAddMessage(&antenna_telemetry, sizeof(antenna_telemetry),FileTransferMessage_antennaTelemetry_tag );
 			if (error != SUCCESS) {
@@ -91,12 +97,18 @@ void TelemetryCollectionTask(void* parameters) {
 				// TODO: implement error manager
 			}
 
-
-			error = batteryIsNotSafe(&safeFlag);
+			error = fileTransferAddMessage(&pdb_telemetry, sizeof(pdb_telemetry),FileTransferMessage_epsTelemetry_tag );
 			if (error != SUCCESS) {
 				error;
 				// TODO: implement error manager
 			}
+
+
+			// error = batteryIsNotSafe(&safeFlag);
+			// if (error != SUCCESS) {
+			// 	error;
+			// 	// TODO: implement error manager
+			// }
 
 			
 		}

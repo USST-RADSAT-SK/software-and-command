@@ -110,6 +110,11 @@ static uint32_t batteryTemperatureCommandBytes[4] = {
 		0x10E3B8		// Daughterboard 3 Temperature
 };
 
+/**
+ * Command for Resetting Battery Watchdog (0x2200)
+ */
+static uint8_t batteryWatchdogResetCommand[2] = {0x22, 0x00};
+
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
@@ -247,18 +252,12 @@ int batteryIsNotSafe(uint8_t* safeFlag) {
 }
 
 /**
- * Pet the Communications watchdog on the battery using code 
+ * Pet the Communications watchdog on the Battery using code 0x22
  * @return either an error if it occurred, or 0
  */
-int batteryPetWatchdog(void) {
-	// Create temporary variables for sending I2C data
-	uint8_t command[_COMMAND_LENGTH] = {0};
-
-	memset(command, 0, sizeof(command));
-	memcpy(command, &batteryWatchdogResetCommand, _COMMAND_LENGTH);
-
-	// One way communication so just use transmit using reset watchdog command 
-	int error = i2cTransmit(_I2C_SLAVE_ADDR, command, _COMMAND_LENGTH);
+int batteryPetWatchDog(void) {
+	// One way communication so just use transmit using reset watchdog command 0x22
+	int error = i2cTransmit(BATTERY_I2C_SLAVE_ADDR, batteryWatchdogResetCommand, BATTERY_COMMAND_LENGTH);
 
 	if (error != SUCCESS) {
 		return error;
