@@ -192,18 +192,21 @@ void CommunicationRxTask(void* parameters) {
 
 						// indicates that a telecommands are done; ready for file transfers
 						case (telecommand_message_BeginFileTransfer_tag):
+							debugPrint("in RCommunicationTasks.c: Message received was of type BeginFileTransfer.\n");
 							// prepare for File Transfer Mode
 							state.mode = commModeFileTransfer;
 							break;
 
 						// indicates that all downlink activities shall be ceased
 						case (telecommand_message_CeaseTransmission_tag):
+							debugPrint("in RCommunicationTasks.c: Message received was of type CeaseTransmission.\n");
 							// immediately cease all downlink communications
 							ceaseTransmission();
 							break;
 
 						// indicates that downlink activities may be resumed
 						case (telecommand_message_ResumeTransmission_tag):
+							debugPrint("in RCommunicationTasks.c: Message received was of type ResumeTransmission.\n");
 							// immediately resume all downlink communications
 							resumeTransmission();
 							break;

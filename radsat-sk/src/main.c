@@ -250,13 +250,14 @@ static int initSubsystems(void) {
 		return error;
 	}
 
+	/*
 	// initialize the antenna module
 	error = antennaInit();
 	if (error != SUCCESS){
 		debugPrint("initSubsystems(): failed to initialized Antenna subsystem.\n");
 		return error;
 	}
-
+	 */
 	// TODO: initialize the other subsystems that require explicit initialization
 
 	return error;
@@ -437,6 +438,7 @@ void MissionInitTask(void* parameters) {
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
 	}
 
+	/*
 	// attempt to deploy the antenna
 	error = attemptAntennaDeployment();
 	if (error != SUCCESS) {
@@ -449,6 +451,21 @@ void MissionInitTask(void* parameters) {
 	if (error != SUCCESS) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize FreeRTOS Mission Tasks.\n");
+	}
+	*/
+
+	#define MESSAGE_SIZE 100
+	#define MESSAGE_DELAY 10000
+
+	uint8_t message[MESSAGE_SIZE];
+	uint8_t messageSize = MESSAGE_SIZE;
+	for(int i = 0; i < MESSAGE_SIZE; i++){
+		message[i] = i;
+	}
+
+	while(1){
+		transceiverSendFrame(message, messageSize, NULL);
+		vTaskDelay(MESSAGE_DELAY);
 	}
 
 	// let this task delete itself

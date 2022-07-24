@@ -47,36 +47,43 @@ uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
 
 		// indicates that a communication link has been established
 		case (telecommand_message_BeginPass_tag):
+			debugPrint("in RTelecommandService.c: Message received was of type BeginPass.\n");
 			// do nothing; this reception of this telecommand already begins the pass mode
 			break;
 
 		// indicates that a telecommands are done; ready for file transfers
 		case (telecommand_message_BeginFileTransfer_tag):
+			debugPrint("in RTelecommandService.c: Message received was of type BeginFileTransfer.\n");
 			// do nothing; higher level tasks will handle
 			break;
 
 		// indicates that all downlink activities shall be ceased
 		case (telecommand_message_CeaseTransmission_tag):
+			debugPrint("in RTelecommandService.c: Message received was of type CeaseTransmission.\n");
 			// do nothing; higher level tasks will handle
 			break;
 
 		// indicates that downlink activities may be resumed
 		case (telecommand_message_ResumeTransmission_tag):
+			debugPrint("in RTelecommandService.c: Message received was of type ResumeTransmission.\n");
 			// do nothing; higher level tasks will handle
 			break;
 
 		// provides a new accurate time for the OBC to set itself to
 		case (telecommand_message_UpdateTime_tag):
+			debugPrint("in RTelecommandService.c: Message received was of type UpdateTime.\n");
 			// TODO: implement functionality
 			break;
 
 		// instructs OBC to reset certain components on the Satellite
 		case (telecommand_message_Reset_tag):
+			debugPrint("in RTelecommandService.c: Message received was of type Reset.\n");
 			// TODO: implement functionality
 			break;
 
 		// unknown telecommand
 		default:
+			debugPrint("in RTelecommandService.c: Message received was not of known type. Telecommand variable has value %d.\n", telecommand);
 			// do nothing; return failure
 			return 0;
 	}

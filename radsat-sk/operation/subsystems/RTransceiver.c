@@ -42,7 +42,7 @@ static int transceiverTxUpTime(uint16_t* uptime);
 /**
  * Initializes the Transceiver, setting the appropriate operation settings.
  *
- * @note	This does not do any initialization on the actual TRXVU; changes are local to the OBC.
+ * @note	This DOES do initialization on the actual TRXVU; changes are NOT local to the OBC.
  * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
 int transceiverInit(void) {
