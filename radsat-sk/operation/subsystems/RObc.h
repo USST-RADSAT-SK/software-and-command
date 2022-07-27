@@ -29,16 +29,12 @@ typedef struct _obc_telemetry_t {
 	uint32_t supervisorUptime;
 	uint32_t IobcUptime;
 	uint32_t IobcPowerCycleCount;
-
-	temperature;
-
 	int16_t voltage3v3In;
 	int16_t voltageRef;
 	int16_t voltageRtc;
 	int16_t voltage3v3;
 	int16_t voltage1v8;
 	int16_t voltage1v0;
-
 	int16_t current3v3;
 	int16_t current1v8;
 	int16_t current1v0;
