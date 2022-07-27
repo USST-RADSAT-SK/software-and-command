@@ -9,6 +9,9 @@
 #include <hal/Timing/WatchDogTimer.h>
 #include <hal/Timing/Time.h>
 #include <hal/Drivers/LED.h>
+#include <hal/Drivers/I2C.h>
+
+#include <RMessage.h>
 
 #include <hal/boolean.h>
 #include <hal/Utility/util.h>
@@ -35,6 +38,9 @@
 #include <RSatelliteWatchdogTask.h>
 
 
+#include <satellite-subsystems/IsisTRXVU.h>
+
+
 /***************************************************************************************************
                                    DEFINITIONS AND PRIVATE GLOBALS
 ***************************************************************************************************/
@@ -49,10 +55,10 @@
 static xTaskHandle missionInitTaskHandle;
 static xTaskHandle communicationRxTaskHandle;
 static xTaskHandle communicationTxTaskHandle;
-static xTaskHandle dosimeterCollectionTaskHandle;
-static xTaskHandle imageCaptureTaskHandle;
-static xTaskHandle adcsCaptureTaskHandle;
-static xTaskHandle telemetryCollectionTaskHandle;
+//static xTaskHandle dosimeterCollectionTaskHandle;
+//static xTaskHandle imageCaptureTaskHandle;
+//static xTaskHandle adcsCaptureTaskHandle;
+//static xTaskHandle telemetryCollectionTaskHandle;
 static xTaskHandle satelliteWatchdogTaskHandle;
 
 /** Communication Transmit Task Priority. Downlinks messages when necessary; very high priority task. */
@@ -61,14 +67,14 @@ static const int communicationTxTaskPriority = configMAX_PRIORITIES - 1;
 static const int communicationRxTaskPriority = configMAX_PRIORITIES - 2;
 
 /** Dosimeter Collection Task Priority. Periodically collects payload data; medium priority task. */
-static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
+//static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
 /** Image Capture Task Priority. Periodically collects image data; medium priority task. */
-static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
+//static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
 /** ADCS Capture Task Priority. Periodically collects ADCS data; medium priority task. */
-static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
+//static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
 
 /** Telemetry Collection Task Priority. Periodically collects satellite telemetry; low priority task. */
-static const int telemetryCollectionTaskPriority = configMAX_PRIORITIES - 4;
+//static const int telemetryCollectionTaskPriority = configMAX_PRIORITIES - 4;
 /** Satellite Watchdog Task Priority. Routinely pets (resets) satellite subsystem watchdogs; low priority task. */
 static const int satelliteWatchdogTaskPriority = configMAX_PRIORITIES - 4;
 /** Mission Init Task Priority. Does initializations that need to be ran post-scheduler; low priority task. */
@@ -297,7 +303,7 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create CommunicationTxTask.\n");
 		return E_GENERIC;
 	}
-
+/*
 	// initialize the Dosimeter Collection Task
 	error = xTaskCreate(DosimeterCollectionTask,
 						(const signed char*)"Dosimeter Collection Task",
@@ -349,7 +355,7 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create TelemetryCollectionTask.\n");
 		return E_GENERIC;
 	}
-
+*/
 	// initialize the Satellite Watchdog Task
 	error = xTaskCreate(SatelliteWatchdogTask,
 						(const signed char*)"Satellite Watchdog Task",
@@ -392,6 +398,18 @@ void MissionInitTask(void* parameters) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize Drivers.\n");
 	}
+	vTaskDelay(1000);
+	//uint8_t command[] = {0x32, 0x20, 0x5E, 0x98, 0x02};
+
+	//uint8_t command[] = { };
+	//uint8_t command[] = {0x32, 0x00, 0x06, 0x4a, 0xc8};
+	//error = I2C_write(TRANSCEIVER_TX_I2C_SLAVE_ADDR, command, 5);
+	//if (error) printf("%d\n", error);
+	//i2cTransmit(TRANSCEIVER_TX_I2C_SLAVE_ADDR, command, 5);
+	//uint8_t commandRX[] = {0x32, 0xA6, 0x39, 0x02, 0x00};
+	//I2C_write(TRANSCEIVER_RX_I2C_SLAVE_ADDR, commandRX, 5);
+	//i2cTransmit(TRANSCEIVER_RX_I2C_SLAVE_ADDR, commandRX, 5);
+	//if (error) printf("%d\n", error);
 
 	// initialize external components and the Satellite Subsystem Interface (SSI)
 	error = initSubsystems();
@@ -413,6 +431,60 @@ void MissionInitTask(void* parameters) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
 	}
+	// = 40ADF319
+
+	/*
+		camera_telemetry tempcam = {0};
+		tempcam.uptime = 100;
+		file_transfer_message temptx = {0};
+		temptx.which_message = file_transfer_message_CameraTelemetry_tag;
+		temptx.CameraTelemetry = tempcam;
+		radsat_message* tempraw = {0};
+		tempraw.which_service = radsat_message_FileTransferMessage_tag;
+		tempraw.FileTransferMessage = temptx;
+		uint8_t* wrappedMessage = {};
+		uint8_t messageSize;
+		messageSize = messageWrap(radsat_message* tempraw, uint8_t* wrappedMessage);
+		*/
+
+		debugPrint("here\n");
+		radsat_message result = {0};
+		uint8_t outputSize;
+		// little endianness
+		uint8_t wrappedMessage[] = {0x19, 0x21, 0x5f, 0xa0, 0x05, 0x6d, 0xcf, 0xe1, 0x63, 0x1b, 0x03, 0x13, 0x01};
+		uint8_t inputSize = 13; // Size of header + message
+		outputSize = messageUnwrap(wrappedMessage, inputSize, &result);
+		debugPrint("which_service: %d \n", (uint8_t) result.which_service);
+		debugPrint("message size: %d \n", outputSize);
+		if (result.which_service == radsat_message_TelecommandMessage_tag){
+			debugPrint("Successfully read that this message is a telecommand message.\n");
+			// obtain the specific telecommand
+			uint8_t telecommand = (uint8_t) result.TelecommandMessage.which_message;
+			if(telecommand == telecommand_message_BeginFileTransfer_tag){
+				debugPrint("Successfully read that this message is a Begin Pass message. \n");
+				debugPrint("passLength value read as: %d\n", result.TelecommandMessage.BeginFileTransfer.passLength);
+				debugPrint("output size is: %d\n", outputSize);
+			}
+		}
+		debugPrint("Made it here");
+
+
+
+	//vTaskDelay(1000);
+
+
+	//printf("start here\n");
+
+
+	//uint8_t mess[200] = {0};
+	//for (int i= 0; i < 200; i++){
+	//	mess[i] = 0b10101010;
+	//}
+	//while (1){
+	//	error = IsisTrxvu_tcSendAX25DefClSign(0, mess, 200, 0);
+	//	if (error) debugPrint("error = %d\n",error);
+	//	vTaskDelay(100);
+	//}
 
 	// initialize the FreeRTOS Tasks used for typical mission operation
 	initMissionTasks();

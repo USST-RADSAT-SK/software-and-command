@@ -56,5 +56,6 @@ int protoDecode(uint8_t* incomingBuffer, radsat_message* decodedMessage) {
 	// decode the message into the empty message struct
 	uint8_t success = pb_decode(&stream, radsat_message_fields, decodedMessage);
 
+	debugPrint("success variable: %d \n", success);
 	return !success;
 }
