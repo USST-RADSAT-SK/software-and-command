@@ -87,7 +87,6 @@ uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* raw
 	crc_t localCrc = crcFast(&wrappedMessage[RADSAT_SK_HEADER_CRC_OFFSET],
 							 (int)(size - RADSAT_SK_HEADER_CRC_OFFSET));
 
-
 	// confirm locally-calculated CRC with the one sent with the message header
 	if (header->crc != localCrc)
 		return 0;

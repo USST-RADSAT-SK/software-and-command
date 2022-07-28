@@ -29,8 +29,7 @@ uint8_t protoEncode(radsat_message* rawMessage, uint8_t* outgoingBuffer) {
 	pb_ostream_t stream = pb_ostream_from_buffer(outgoingBuffer, PROTO_MAX_ENCODED_SIZE);
 
 	// encode the message into the byte array
-	if (pb_encode(&stream, radsat_message_fields, (uint8_t*)rawMessage)){ //
-		debugPrint("stream bytes written: %d\n", stream.bytes_written);
+	if (pb_encode(&stream, radsat_message_fields, (uint8_t*)rawMessage)){
 		return stream.bytes_written;
 	}
 

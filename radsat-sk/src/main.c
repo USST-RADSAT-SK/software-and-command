@@ -55,7 +55,7 @@
 static xTaskHandle missionInitTaskHandle;
 static xTaskHandle communicationRxTaskHandle;
 static xTaskHandle communicationTxTaskHandle;
-//static xTaskHandle dosimeterCollectionTaskHandle;
+static xTaskHandle dosimeterCollectionTaskHandle;
 //static xTaskHandle imageCaptureTaskHandle;
 //static xTaskHandle adcsCaptureTaskHandle;
 //static xTaskHandle telemetryCollectionTaskHandle;
@@ -67,7 +67,7 @@ static const int communicationTxTaskPriority = configMAX_PRIORITIES - 1;
 static const int communicationRxTaskPriority = configMAX_PRIORITIES - 2;
 
 /** Dosimeter Collection Task Priority. Periodically collects payload data; medium priority task. */
-//static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
+static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
 /** Image Capture Task Priority. Periodically collects image data; medium priority task. */
 //static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
 /** ADCS Capture Task Priority. Periodically collects ADCS data; medium priority task. */
@@ -303,7 +303,7 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create CommunicationTxTask.\n");
 		return E_GENERIC;
 	}
-/*
+
 	// initialize the Dosimeter Collection Task
 	error = xTaskCreate(DosimeterCollectionTask,
 						(const signed char*)"Dosimeter Collection Task",
@@ -316,7 +316,7 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create DosimeterCollectionTask.\n");
 		return E_GENERIC;
 	}
-
+/*
 	// initialize the Image Capture Task
 	error = xTaskCreate(ImageCaptureTask,
 						(const signed char*)"Image Capture Task",
@@ -588,7 +588,8 @@ void MissionInitTask(void* parameters) {
 	/* messageUnwrap testing (implicitly tests protoDecode)*/
 
 
-/*
+	// test one
+	/*
 		radsat_message result = {0};
 		uint8_t outputSize;
 		uint8_t wrappedMessage[] = {0x19, 0x21, 0x6f, 0xc6, 0x07, 0xe9, 0xf8, 0xe0, 0x63, 0x1b, 0x05, 0x0b, 0x03, 0x09, 0x0a};
@@ -606,8 +607,32 @@ void MissionInitTask(void* parameters) {
 				debugPrint("output size is: %d\n", outputSize);
 			}
 		}
+		*/
 
-*/
+		//test two
+	/*
+	radsat_message result = {0};
+	uint8_t outputSize;
+	uint8_t wrappedMessage[] = {0x19, 0x21, 0x0a, 0x84, 0x3d, 0x04, 0xfe, 0xe0, 0x63, 0x13, 0x3b, 0x1b, 0x39, 0x09, 0x04, 0x13, 0x19, 0x0c, 0x9b, 0x98, 0xa8, 0x41, 0x14, 0x9b, 0x98, 0xa8, 0x41, 0x1c, 0x9b, 0x98, 0xa8, 0x41, 0x24, 0x9b, 0x98, 0xa8, 0x41, 0x29, 0x04, 0x31, 0x04, 0x1b, 0x0d, 0x09, 0x04, 0x11, 0x04, 0x19, 0x04, 0x21, 0x04, 0x29, 0x04, 0x31, 0x04, 0x23, 0x0d, 0x09, 0x04, 0x11, 0x04, 0x19, 0x04, 0x21, 0x04, 0x29, 0x04, 0x31, 0x04};
+	uint8_t inputSize = 69; // Size of header + message
+	outputSize = messageUnwrap(wrappedMessage, inputSize, &result);
+	debugPrint("which_service: %d \n", (uint8_t) result.which_service);
+	debugPrint("message size: %d \n", outputSize);
+	if (result.which_service == radsat_message_FileTransferMessage_tag){
+		debugPrint("Successfully read that this message is a FileTransfer message.\n");
+		// obtain the specific telecommand
+		uint8_t telecommand = (uint8_t) result.FileTransferMessage.which_message;
+		if(telecommand == file_transfer_message_CameraTelemetry_tag){
+			debugPrint("Successfully read that this message is a Camera Telemetry message. \n");
+			debugPrint("uptime value read as: %d. Should be 5.\n", result.FileTransferMessage.CameraTelemetry.uptime);
+			debugPrint("current 3v3 from powerTelemetry submessage: %f. Should be 5.3.\n", result.FileTransferMessage.CameraTelemetry.powerTelemetry.current_3V3);
+			debugPrint("detectionThreshold from cameraTwoTelemetry submessage: %d. Should be 5.\n", result.FileTransferMessage.CameraTelemetry.cameraOneTelemetry.detectionThreshold);
+			debugPrint("output size is: %d\n", outputSize);
+		}
+	}
+	*/
+
+
 
 
 

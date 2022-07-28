@@ -20,12 +20,8 @@ typedef enum _reset_device_t {
 
 /* Struct definitions */
 typedef struct _begin_file_transfer {
-    char dummy_field;
+    uint32_t resp;
 } begin_file_transfer;
-
-typedef struct _resume_transmission {
-    char dummy_field;
-} resume_transmission;
 
 typedef struct _begin_pass {
     uint32_t passLength;
@@ -39,6 +35,10 @@ typedef struct _reset {
     reset_device_t device;
     uint32_t hard;
 } reset;
+
+typedef struct _resume_transmission {
+    uint32_t resp;
+} resume_transmission;
 
 typedef struct _update_time {
     uint32_t unixTime;
@@ -84,10 +84,12 @@ extern "C" {
 #define reset_init_zero                          {_reset_device_t_MIN, 0}
 
 /* Field tags (for use in manual encoding/decoding) */
+#define begin_file_transfer_resp_tag             1
 #define begin_pass_passLength_tag                1
 #define cease_transmission_duration_tag          1
 #define reset_device_tag                         1
 #define reset_hard_tag                           2
+#define resume_transmission_resp_tag             1
 #define update_time_unixTime_tag                 1
 #define telecommand_message_BeginPass_tag        1
 #define telecommand_message_BeginFileTransfer_tag 2
@@ -119,7 +121,7 @@ X(a, STATIC,   SINGULAR, UINT32,   passLength,        1)
 #define begin_pass_DEFAULT NULL
 
 #define begin_file_transfer_FIELDLIST(X, a) \
-
+X(a, STATIC,   SINGULAR, UINT32,   resp,              1)
 #define begin_file_transfer_CALLBACK NULL
 #define begin_file_transfer_DEFAULT NULL
 
@@ -129,7 +131,7 @@ X(a, STATIC,   SINGULAR, UINT32,   duration,          1)
 #define cease_transmission_DEFAULT NULL
 
 #define resume_transmission_FIELDLIST(X, a) \
-
+X(a, STATIC,   SINGULAR, UINT32,   resp,              1)
 #define resume_transmission_CALLBACK NULL
 #define resume_transmission_DEFAULT NULL
 
@@ -164,9 +166,9 @@ extern const pb_msgdesc_t reset_msg;
 /* Maximum encoded size of messages (where known) */
 #define telecommand_message_size                 10
 #define begin_pass_size                          6
-#define begin_file_transfer_size                 0
+#define begin_file_transfer_size                 6
 #define cease_transmission_size                  6
-#define resume_transmission_size                 0
+#define resume_transmission_size                 6
 #define update_time_size                         6
 #define reset_size                               8
 
