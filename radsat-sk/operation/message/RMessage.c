@@ -87,12 +87,14 @@ uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* raw
 	crc_t localCrc = crcFast(&wrappedMessage[RADSAT_SK_HEADER_CRC_OFFSET],
 							 (int)(size - RADSAT_SK_HEADER_CRC_OFFSET));
 
+	debugPrint("localCrc: %x\n", localCrc);
+	debugPrint("header Crc: %x\n", header->crc);
 	// confirm locally-calculated CRC with the one sent with the message header
 	if (header->crc != localCrc)
 		return 0;
 
 	// deserialize the encoded message with NanoPB Protobuf decoding
-	error = protoDecode(&wrappedMessage[RADSAT_SK_HEADER_SIZE], rawMessage);
+	error = protoDecode(&wrappedMessage[RADSAT_SK_HEADER_SIZE], header->size, rawMessage);
 	if (error)
 		return 0;
 

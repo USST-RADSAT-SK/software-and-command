@@ -1169,8 +1169,8 @@ bool checkreturn pb_decode(pb_istream_t *stream, const pb_msgdesc_t *fields, voi
     if (!status)
         pb_release(fields, dest_struct);
 #endif
-    return true;
-    //return status;
+
+    return status;
 }
 
 #ifdef PB_ENABLE_MALLOC

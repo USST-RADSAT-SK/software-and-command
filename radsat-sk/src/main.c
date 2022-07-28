@@ -449,70 +449,82 @@ void MissionInitTask(void* parameters) {
 
 	/* protocolGenerate testing */
 
-	#define TRANCEIVER_TX_MAX_FRAME_SIZE 235
-	#define RADSAT_SK_HEADER_SIZE (sizeof(radsat_sk_header_t))
-	//#include <RFileTransfer.pb.h>
 
-	/** Abstraction of the response states */
-	typedef enum _response_state_t {
-		responseStateIdle	= 0,	///> Awaiting response from Ground Station
-		responseStateReady	= 1,	///> Ready to transmit to Ground Station
-	} response_state_t;
-
-
-	/** Abstraction of the ACK/NACK return types */
-	typedef enum _response_t {
-		responseAck		= protocol_message_Ack_tag,	///> Acknowledge (the message was received properly)
-		responseNack	= protocol_message_Nack_tag,	///> Negative Acknowledge (the message was NOT received properly)
-	} response_t;
-
-	/** Abstraction of the communication modes */
-	typedef enum _comm_mode_t {
-		commModeQuiet			= -1,	///> Prevent downlink transmissions and automatic state changes
-		commModeIdle			= 0,	///> Not in a pass
-		commModeTelecommand		= 1,	///> Receiving Telecommands from Ground Station
-		commModeFileTransfer	= 2,	///> Transmitting data to the Ground Station
-	} comm_mode_t;
-
-
-	/** Co-ordinates tasks during the telecommand phase */
-	typedef struct _telecommand_state_t {
-		response_state_t transmitReady;	///> Whether the Satellite is ready to transmit a response (ACK, NACK, etc.)
-		response_t responseToSend;		///> What response to send, when ready
-	} telecommand_state_t;
-
-
-	/** Co-ordinates tasks during the file transfer phase */
-	typedef struct _file_transfer_state_t {
-		response_state_t transmitReady;		///> Whether the Satellite is ready to transmit another Frame (telemetry, etc.)
-		response_t responseReceived;		///> What response was received (ACK, NACK, etc.) regarding the previous message
-		uint8_t transmissionErrors;			///> Error counter for recording consecutive NACKs
-	} file_transfer_state_t;
-
-	/** Wrapper structure for communications co-ordination */
-	typedef struct _communication_state_t {
-		comm_mode_t mode;					///> The current state of the Communications Tasks
-		telecommand_state_t telecommand;	///> The state during the Telecommand mode
-		file_transfer_state_t fileTransfer;	///> The state during the File Transfer mode
-	} communication_state_t;
-
-
-
-	static communication_state_t state = { 0 };
-	state.telecommand.responseToSend = protocol_message_Nack_tag;
-	error = 0;												// error detection
-	uint8_t txSlotsRemaining = TRANCEIVER_TX_MAX_FRAME_COUNT;	// number of open frame slots in the transmitter's buffer
-	uint8_t txMessageSize = 0;									// size (in bytes) of an outgoing frame
-	uint8_t txMessage[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };	// output buffer for messages to be transmitted
-
-	txMessageSize = protocolGenerate(state.telecommand.responseToSend, txMessage);
-
-	debugPrint("txMssageSize = %d \n", txMessageSize);
-	for (int i = 0; i < txMessageSize; i++)
-	{
-		debugPrint("%x ", txMessage[i]);
-	}
-	debugPrint("\n");
+//	#define TRANCEIVER_TX_MAX_FRAME_SIZE 235
+//	#define RADSAT_SK_HEADER_SIZE (sizeof(radsat_sk_header_t))
+//
+//	/** Abstraction of the response states */
+//	typedef enum _response_state_t {
+//		responseStateIdle	= 0,	///> Awaiting response from Ground Station
+//		responseStateReady	= 1,	///> Ready to transmit to Ground Station
+//	} response_state_t;
+//
+//	/** Abstraction of the ACK/NACK return types */
+//	typedef enum _response_t {
+//		responseAck		= protocol_message_Ack_tag,	///> Acknowledge (the message was received properly)
+//		responseNack	= protocol_message_Nack_tag,	///> Negative Acknowledge (the message was NOT received properly)
+//	} response_t;
+//
+//	/** Abstraction of the communication modes */
+//	typedef enum _comm_mode_t {
+//		commModeQuiet			= -1,	///> Prevent downlink transmissions and automatic state changes
+//		commModeIdle			= 0,	///> Not in a pass
+//		commModeTelecommand		= 1,	///> Receiving Telecommands from Ground Station
+//		commModeFileTransfer	= 2,	///> Transmitting data to the Ground Station
+//	} comm_mode_t;
+//
+//	/** Co-ordinates tasks during the telecommand phase */
+//	typedef struct _telecommand_state_t {
+//		response_state_t transmitReady;	///> Whether the Satellite is ready to transmit a response (ACK, NACK, etc.)
+//		response_t responseToSend;		///> What response to send, when ready
+//	} telecommand_state_t;
+//
+//	/** Co-ordinates tasks during the file transfer phase */
+//	typedef struct _file_transfer_state_t {
+//		response_state_t transmitReady;		///> Whether the Satellite is ready to transmit another Frame (telemetry, etc.)
+//		response_t responseReceived;		///> What response was received (ACK, NACK, etc.) regarding the previous message
+//		uint8_t transmissionErrors;			///> Error counter for recording consecutive NACKs
+//	} file_transfer_state_t;
+//
+//	/** Wrapper structure for communications co-ordination */
+//	typedef struct _communication_state_t {
+//		comm_mode_t mode;					///> The current state of the Communications Tasks
+//		telecommand_state_t telecommand;	///> The state during the Telecommand mode
+//		file_transfer_state_t fileTransfer;	///> The state during the File Transfer mode
+//	} communication_state_t;
+//
+//
+///*
+//	static communication_state_t state = { 0 };
+//	state.telecommand.responseToSend = protocol_message_Nack_tag;
+//	error = 0;												// error detection
+//	uint8_t txSlotsRemaining;	// number of open frame slots in the transmitter's buffer
+//	uint8_t txMessageSize = 0;									// size (in bytes) of an outgoing frame
+//	uint8_t txMessage[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };	// output buffer for messages to be transmitted
+//
+//	txMessageSize = protocolGenerate(state.telecommand.responseToSend, txMessage);
+//
+//	debugPrint("txMssageSize = %d \n", txMessageSize);
+//	for (int i = 0; i < txMessageSize; i++)
+//	{
+//		debugPrint("%x ", txMessage[i]);
+//	}
+//	debugPrint("\n");
+//
+//	vTaskDelay(10000); // test timestamp
+//
+//	// ack
+//	state.telecommand.responseToSend = protocol_message_Ack_tag;
+//	txMessageSize = 0;
+//
+//	txMessageSize = protocolGenerate(state.telecommand.responseToSend, txMessage);
+//
+//	debugPrint("txMssageSize = %d \n", txMessageSize);
+//	for (int i = 0; i < txMessageSize; i++)
+//	{
+//		debugPrint("%x ", txMessage[i]);
+//	}
+//	debugPrint("\n");
 
 	/* protoEncode testing */
 
@@ -573,15 +585,14 @@ void MissionInitTask(void* parameters) {
 	*/
 
 
-	/* messageUnwrap testing */
+	/* messageUnwrap testing (implicitly tests protoDecode)*/
 
-	/*
-		debugPrint("here\n");
+
+/*
 		radsat_message result = {0};
 		uint8_t outputSize;
-		// little endianness
-		uint8_t wrappedMessage[] = {0x19, 0x21, 0x5f, 0xa0, 0x05, 0x6d, 0xcf, 0xe1, 0x63, 0x1b, 0x03, 0x13, 0x01};
-		uint8_t inputSize = 13; // Size of header + message
+		uint8_t wrappedMessage[] = {0x19, 0x21, 0x6f, 0xc6, 0x07, 0xe9, 0xf8, 0xe0, 0x63, 0x1b, 0x05, 0x0b, 0x03, 0x09, 0x0a};
+		uint8_t inputSize = 15; // Size of header + message
 		outputSize = messageUnwrap(wrappedMessage, inputSize, &result);
 		debugPrint("which_service: %d \n", (uint8_t) result.which_service);
 		debugPrint("message size: %d \n", outputSize);
@@ -589,14 +600,14 @@ void MissionInitTask(void* parameters) {
 			debugPrint("Successfully read that this message is a telecommand message.\n");
 			// obtain the specific telecommand
 			uint8_t telecommand = (uint8_t) result.TelecommandMessage.which_message;
-			if(telecommand == telecommand_message_BeginFileTransfer_tag){
+			if(telecommand == telecommand_message_BeginPass_tag){
 				debugPrint("Successfully read that this message is a Begin Pass message. \n");
-				debugPrint("passLength value read as: %d\n", result.TelecommandMessage.BeginFileTransfer.passLength);
+				debugPrint("passLength value read as: %d. Should be 11.\n", result.TelecommandMessage.BeginPass.passLength);
 				debugPrint("output size is: %d\n", outputSize);
 			}
 		}
-		debugPrint("Made it here");
-		*/
+
+*/
 
 
 

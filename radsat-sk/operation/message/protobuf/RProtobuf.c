@@ -43,10 +43,11 @@ uint8_t protoEncode(radsat_message* rawMessage, uint8_t* outgoingBuffer) {
  * Decode an encoded protobuf message.
  *
  * @param incomingBuffer The buffer containing the encoded message (no header).
+ * @param bufferSize The size of incomingBuffer in bytes.
  * @param decodedMessage The message that will be populated with the decoded message.
  * @return 0 if the message is decoded successfully, otherwise error occured.
  */
-int protoDecode(uint8_t* incomingBuffer, radsat_message* decodedMessage) {
+int protoDecode(uint8_t* incomingBuffer, uint8_t bufferSize, radsat_message* decodedMessage) {
 
 	// ensure incoming buffers are not NULL
 	if (incomingBuffer == 0 || decodedMessage == 0)
@@ -58,6 +59,5 @@ int protoDecode(uint8_t* incomingBuffer, radsat_message* decodedMessage) {
 	// decode the message into the empty message struct
 	uint8_t success = pb_decode(&stream, radsat_message_fields, decodedMessage);
 
-	debugPrint("success variable: %d \n", success);
-	return !success;
+	return success;
 }
