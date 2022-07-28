@@ -11,11 +11,11 @@
 
 /* Struct definitions */
 typedef struct _ack {
-    char dummy_field;
+    uint32_t resp;
 } ack;
 
 typedef struct _nack {
-    char dummy_field;
+    uint32_t resp;
 } nack;
 
 typedef struct _protocol_message {
@@ -40,6 +40,8 @@ extern "C" {
 #define nack_init_zero                           {0}
 
 /* Field tags (for use in manual encoding/decoding) */
+#define ack_resp_tag                             1
+#define nack_resp_tag                            1
 #define protocol_message_Ack_tag                 1
 #define protocol_message_Nack_tag                2
 
@@ -53,12 +55,12 @@ X(a, STATIC,   ONEOF,    MESSAGE,  (message,Nack,Nack),   2)
 #define protocol_message_message_Nack_MSGTYPE nack
 
 #define ack_FIELDLIST(X, a) \
-
+X(a, STATIC,   SINGULAR, UINT32,   resp,              1)
 #define ack_CALLBACK NULL
 #define ack_DEFAULT NULL
 
 #define nack_FIELDLIST(X, a) \
-
+X(a, STATIC,   SINGULAR, UINT32,   resp,              1)
 #define nack_CALLBACK NULL
 #define nack_DEFAULT NULL
 
@@ -72,9 +74,9 @@ extern const pb_msgdesc_t nack_msg;
 #define nack_fields &nack_msg
 
 /* Maximum encoded size of messages (where known) */
-#define protocol_message_size                    2
-#define ack_size                                 0
-#define nack_size                                0
+#define protocol_message_size                    8
+#define ack_size                                 6
+#define nack_size                                6
 
 #ifdef __cplusplus
 } /* extern "C" */

@@ -2,6 +2,7 @@
  * @file RProtobuf.h
  * @date January 25, 2021
  * @author Tyrel Kostyk (tck290)
+ * Last edited 27 July 2022 by Brian Pitzel
  */
 
 #ifndef RPROTOBUF_H_
@@ -26,7 +27,7 @@
 ***************************************************************************************************/
 
 uint8_t protoEncode(radsat_message* rawMessage, uint8_t* outgoingBuffer);
-int protoDecode(uint8_t* incomingBuffer, radsat_message* decodedMessage);
+int protoDecode(uint8_t* incomingBuffer, uint8_t bufferSize, radsat_message* decodedMessage);
 
 
 #endif /* RPROTOBUF_H_ */

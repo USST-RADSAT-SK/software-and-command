@@ -2,6 +2,7 @@
  * @file RMessage.h
  * @date February 20, 2022
  * @author Tyrel Kostyk (tck290)
+ * Last edited 27 July 2022 by Brian Pitzel
  */
 
 #include <RMessage.h>
@@ -92,7 +93,7 @@ uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* raw
 		return 0;
 
 	// deserialize the encoded message with NanoPB Protobuf decoding
-	error = protoDecode(&wrappedMessage[RADSAT_SK_HEADER_SIZE], rawMessage);
+	error = protoDecode(&wrappedMessage[RADSAT_SK_HEADER_SIZE], header->size, rawMessage);
 	if (error)
 		return 0;
 
