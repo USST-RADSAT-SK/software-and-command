@@ -53,10 +53,10 @@ int protoDecode(uint8_t* incomingBuffer, uint8_t bufferSize, radsat_message* dec
 		return E_INPUT_POINTER_NULL;
 
 	// create stream object
-	pb_istream_t stream = pb_istream_from_buffer((uint8_t*)incomingBuffer, PROTO_MAX_ENCODED_SIZE);
+	pb_istream_t stream = pb_istream_from_buffer((uint8_t*)incomingBuffer, bufferSize);
 
 	// decode the message into the empty message struct
 	uint8_t success = pb_decode(&stream, radsat_message_fields, decodedMessage);
 
-	return success;
+	return !success;
 }
