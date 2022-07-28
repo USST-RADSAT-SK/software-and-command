@@ -2,6 +2,7 @@
  * @file RSatelliteWatchdogTask.c
  * @date February 27, 2022
  * @author Tyrel Kostyk (tck290)
+ * Last edited 27 July 2022 by Brian Pitzel
  */
 
 #include <RSatelliteWatchdogTask.h>
@@ -16,7 +17,7 @@
 ***************************************************************************************************/
 
 /** Satellite Watchdog Task delay (in ms). */
-#define SATELLITE_WATCHDOG_TASK_DELAY_MS	(15)
+#define SATELLITE_WATCHDOG_TASK_DELAY_MS	(100)
 
 
 /***************************************************************************************************
@@ -32,8 +33,7 @@ void SatelliteWatchdogTask(void* parameters) {
 
 		// TODO: implement petting satellite watchdogs
 
-		//debugPrint("SatelliteWatchdogTask(): About to pet external satellite watchdogs.\n");
-
+		pdbPetWatchdog();
 		vTaskDelay(SATELLITE_WATCHDOG_TASK_DELAY_MS);
 	}
 }

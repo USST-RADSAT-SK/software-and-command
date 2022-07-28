@@ -2,6 +2,7 @@
  * @file RMessage.h
  * @date February 20, 2022
  * @author Tyrel Kostyk (tck290)
+ * Last edited 27 July 2022 by Brian Pitzel
  */
 
 #include <RMessage.h>
