@@ -2,6 +2,7 @@
  * @file RSatelliteWatchdogTask.c
  * @date February 27, 2022
  * @author Tyrel Kostyk (tck290)
+ * Last edited 27 July 2022 by Brian Pitzel
  */
 
 #include <RSatelliteWatchdogTask.h>

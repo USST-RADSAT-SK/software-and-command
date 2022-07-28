@@ -27,7 +27,7 @@ int xorDecrypt(uint8_t* buffer, uint8_t size) {
 		return E_INPUT_POINTER_NULL;
 
 	// grab the key; fail if key is invalid
-	uint8_t key = 1;//privateKey();
+	uint8_t key = privateKey();
 	if (key == 0) return -1;
 
 	// decrypt (XOR) every byte

@@ -2,6 +2,7 @@
  * @file RProtobuf.h
  * @date January 25, 2021
  * @author Tyrel Kostyk (tck290)
+ * Last edited 27 July 2022 by Brian Pitzel
  */
 
 #ifndef RPROTOBUF_H_
