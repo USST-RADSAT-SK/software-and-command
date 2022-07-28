@@ -9,6 +9,19 @@
 
 #include <stdint.h>
 
+/***************************************************************************************************
+                                            DEFINITIONS
+***************************************************************************************************/
+
+/** FRAM address of the write cursor. */
+#define FRAM_WRITE_CURSOR_ADDR	(0x00)
+
+/** FRAM address of the read cursor. */
+#define FRAM_READ_CURSOR_ADDR	(0x01)
+
+/** FRAM start address of the data. */
+#define FRAM_DATA_START_ADDR	(0x02)
+
 
 /***************************************************************************************************
                                              PUBLIC API

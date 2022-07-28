@@ -10,6 +10,7 @@
 #include <RMessage.h>
 #include <string.h>
 #include <RCommon.h>
+#include <RFram.h>
 
 
 /**
@@ -75,6 +76,8 @@ uint8_t fileTransferNextFrame(uint8_t* frame) {
 	frameReadCursor++;
 	if (frameReadCursor == MAX_FRAME_COUNT)
 		frameReadCursor = 0;
+	// save read cursor value in FRAM
+	framWrite(&frameReadCursor, FRAM_READ_CURSOR_ADDR, 1);
 
 	// transfer the new (now current) frame into the provided buffer
 	memcpy(frame, frames[frameReadCursor].data, frames[frameReadCursor].size);
@@ -136,6 +139,40 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	// wrap new message
 	frames[frameWriteCursor].size = messageWrap(&newMessage, frames[frameWriteCursor].data);
 
+
+
+
+/*
+	// testing purposes only (dummy data in frames)
+	for (uint8_t i=0; i<235; i++) {
+		frames[frameWriteCursor].data[i] = i;
+	}
+	printf("\n\r frameWriteCursor: %i \n\r", frameWriteCursor);
+	printf("\n\r sizeof(frames[frameWriteCursor].data): %i \n\r", sizeof(frames[frameWriteCursor].data));
+*/
+	// increment the FRAM address for the new frame
+	void* framDataAddr = FRAM_DATA_START_ADDR + (frameWriteCursor * sizeof(frames[frameWriteCursor].data));
+
+	printf("\n\r FRAM write at address %x \n\r", framDataAddr);
+
+	// write data in FRAM
+	framWrite(frames[frameWriteCursor].data, framDataAddr, sizeof(frames[frameWriteCursor].data));
+
+	// testing purposes only (read back what we wrote in FRAM)
+	printf("\n\r FRAM read cursors \n\r");
+	uint8_t framCursors[2] = {0};
+	framRead(&framCursors, FRAM_WRITE_CURSOR_ADDR, 2);
+	printf(" %x: %i \n\r", FRAM_WRITE_CURSOR_ADDR, framCursors[0]);
+	printf(" %x: %i \n\r", FRAM_READ_CURSOR_ADDR, framCursors[1]);
+	printf("\n\r FRAM read frame data at address %x \n\r", framDataAddr);
+	uint8_t framData[235] = {0};
+	framRead(&framData, framDataAddr, 235);
+	for (uint8_t i=0; i<235; i++) {
+		printf(" %x: %i \n\r", framDataAddr+i, framData[i]);
+	}
+
+
+
 	// return error if message wrapping failed
 	if (frames[frameWriteCursor].size == 0)
 		return ERROR_MESSAGE_WRAPPING;
@@ -144,6 +181,8 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	frameWriteCursor++;
 	if (frameWriteCursor == MAX_FRAME_COUNT)
 		frameWriteCursor = 0;
+	// save write cursor value in FRAM
+	framWrite(&frameWriteCursor, FRAM_WRITE_CURSOR_ADDR, 1);
 
 	// return success
 	return SUCCESS;
