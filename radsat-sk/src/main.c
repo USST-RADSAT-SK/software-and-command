@@ -9,9 +9,6 @@
 #include <hal/Timing/WatchDogTimer.h>
 #include <hal/Timing/Time.h>
 #include <hal/Drivers/LED.h>
-#include <hal/Drivers/I2C.h>
-
-#include <RMessage.h>
 
 #include <hal/boolean.h>
 #include <hal/Utility/util.h>
@@ -38,7 +35,6 @@
 #include <RSatelliteWatchdogTask.h>
 
 
-#include <satellite-subsystems/IsisTRXVU.h>
 
 
 /***************************************************************************************************
@@ -56,9 +52,9 @@ static xTaskHandle missionInitTaskHandle;
 static xTaskHandle communicationRxTaskHandle;
 static xTaskHandle communicationTxTaskHandle;
 static xTaskHandle dosimeterCollectionTaskHandle;
-//static xTaskHandle imageCaptureTaskHandle;
-//static xTaskHandle adcsCaptureTaskHandle;
-//static xTaskHandle telemetryCollectionTaskHandle;
+static xTaskHandle imageCaptureTaskHandle;
+static xTaskHandle adcsCaptureTaskHandle;
+static xTaskHandle telemetryCollectionTaskHandle;
 static xTaskHandle satelliteWatchdogTaskHandle;
 
 /** Communication Transmit Task Priority. Downlinks messages when necessary; very high priority task. */
@@ -69,12 +65,12 @@ static const int communicationRxTaskPriority = configMAX_PRIORITIES - 2;
 /** Dosimeter Collection Task Priority. Periodically collects payload data; medium priority task. */
 static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
 /** Image Capture Task Priority. Periodically collects image data; medium priority task. */
-//static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
+static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
 /** ADCS Capture Task Priority. Periodically collects ADCS data; medium priority task. */
-//static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
+static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
 
 /** Telemetry Collection Task Priority. Periodically collects satellite telemetry; low priority task. */
-//static const int telemetryCollectionTaskPriority = configMAX_PRIORITIES - 4;
+static const int telemetryCollectionTaskPriority = configMAX_PRIORITIES - 4;
 /** Satellite Watchdog Task Priority. Routinely pets (resets) satellite subsystem watchdogs; low priority task. */
 static const int satelliteWatchdogTaskPriority = configMAX_PRIORITIES - 4;
 /** Mission Init Task Priority. Does initializations that need to be ran post-scheduler; low priority task. */
@@ -316,7 +312,7 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create DosimeterCollectionTask.\n");
 		return E_GENERIC;
 	}
-/*
+
 	// initialize the Image Capture Task
 	error = xTaskCreate(ImageCaptureTask,
 						(const signed char*)"Image Capture Task",
@@ -355,7 +351,7 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create TelemetryCollectionTask.\n");
 		return E_GENERIC;
 	}
-*/
+
 	// initialize the Satellite Watchdog Task
 	error = xTaskCreate(SatelliteWatchdogTask,
 						(const signed char*)"Satellite Watchdog Task",
@@ -398,18 +394,6 @@ void MissionInitTask(void* parameters) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize Drivers.\n");
 	}
-	vTaskDelay(1000);
-	//uint8_t command[] = {0x32, 0x20, 0x5E, 0x98, 0x02};
-
-	//uint8_t command[] = { };
-	//uint8_t command[] = {0x32, 0x00, 0x06, 0x4a, 0xc8};
-	//error = I2C_write(TRANSCEIVER_TX_I2C_SLAVE_ADDR, command, 5);
-	//if (error) printf("%d\n", error);
-	//i2cTransmit(TRANSCEIVER_TX_I2C_SLAVE_ADDR, command, 5);
-	//uint8_t commandRX[] = {0x32, 0xA6, 0x39, 0x02, 0x00};
-	//I2C_write(TRANSCEIVER_RX_I2C_SLAVE_ADDR, commandRX, 5);
-	//i2cTransmit(TRANSCEIVER_RX_I2C_SLAVE_ADDR, commandRX, 5);
-	//if (error) printf("%d\n", error);
 
 	// initialize external components and the Satellite Subsystem Interface (SSI)
 	error = initSubsystems();
@@ -431,227 +415,6 @@ void MissionInitTask(void* parameters) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
 	}
-	// = 40ADF319
-
-	/*
-	    camera_telemetry tempcam = {0};
-		tempcam.uptime = 100;
-		file_transfer_message temptx = {0};
-		temptx.which_message = file_transfer_message_CameraTelemetry_tag;
-		temptx.CameraTelemetry = tempcam;
-		radsat_message* tempraw = {0};
-		tempraw.which_service = radsat_message_FileTransferMessage_tag;
-		tempraw.FileTransferMessage = temptx;
-		uint8_t* wrappedMessage = {};
-		uint8_t messageSize;
-		messageSize = messageWrap(radsat_message* tempraw, uint8_t* wrappedMessage);
-		*/
-
-	/* protocolGenerate testing */
-
-
-//	#define TRANCEIVER_TX_MAX_FRAME_SIZE 235
-//	#define RADSAT_SK_HEADER_SIZE (sizeof(radsat_sk_header_t))
-//
-//	/** Abstraction of the response states */
-//	typedef enum _response_state_t {
-//		responseStateIdle	= 0,	///> Awaiting response from Ground Station
-//		responseStateReady	= 1,	///> Ready to transmit to Ground Station
-//	} response_state_t;
-//
-//	/** Abstraction of the ACK/NACK return types */
-//	typedef enum _response_t {
-//		responseAck		= protocol_message_Ack_tag,	///> Acknowledge (the message was received properly)
-//		responseNack	= protocol_message_Nack_tag,	///> Negative Acknowledge (the message was NOT received properly)
-//	} response_t;
-//
-//	/** Abstraction of the communication modes */
-//	typedef enum _comm_mode_t {
-//		commModeQuiet			= -1,	///> Prevent downlink transmissions and automatic state changes
-//		commModeIdle			= 0,	///> Not in a pass
-//		commModeTelecommand		= 1,	///> Receiving Telecommands from Ground Station
-//		commModeFileTransfer	= 2,	///> Transmitting data to the Ground Station
-//	} comm_mode_t;
-//
-//	/** Co-ordinates tasks during the telecommand phase */
-//	typedef struct _telecommand_state_t {
-//		response_state_t transmitReady;	///> Whether the Satellite is ready to transmit a response (ACK, NACK, etc.)
-//		response_t responseToSend;		///> What response to send, when ready
-//	} telecommand_state_t;
-//
-//	/** Co-ordinates tasks during the file transfer phase */
-//	typedef struct _file_transfer_state_t {
-//		response_state_t transmitReady;		///> Whether the Satellite is ready to transmit another Frame (telemetry, etc.)
-//		response_t responseReceived;		///> What response was received (ACK, NACK, etc.) regarding the previous message
-//		uint8_t transmissionErrors;			///> Error counter for recording consecutive NACKs
-//	} file_transfer_state_t;
-//
-//	/** Wrapper structure for communications co-ordination */
-//	typedef struct _communication_state_t {
-//		comm_mode_t mode;					///> The current state of the Communications Tasks
-//		telecommand_state_t telecommand;	///> The state during the Telecommand mode
-//		file_transfer_state_t fileTransfer;	///> The state during the File Transfer mode
-//	} communication_state_t;
-//
-//
-///*
-//	static communication_state_t state = { 0 };
-//	state.telecommand.responseToSend = protocol_message_Nack_tag;
-//	error = 0;												// error detection
-//	uint8_t txSlotsRemaining;	// number of open frame slots in the transmitter's buffer
-//	uint8_t txMessageSize = 0;									// size (in bytes) of an outgoing frame
-//	uint8_t txMessage[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };	// output buffer for messages to be transmitted
-//
-//	txMessageSize = protocolGenerate(state.telecommand.responseToSend, txMessage);
-//
-//	debugPrint("txMssageSize = %d \n", txMessageSize);
-//	for (int i = 0; i < txMessageSize; i++)
-//	{
-//		debugPrint("%x ", txMessage[i]);
-//	}
-//	debugPrint("\n");
-//
-//	vTaskDelay(10000); // test timestamp
-//
-//	// ack
-//	state.telecommand.responseToSend = protocol_message_Ack_tag;
-//	txMessageSize = 0;
-//
-//	txMessageSize = protocolGenerate(state.telecommand.responseToSend, txMessage);
-//
-//	debugPrint("txMssageSize = %d \n", txMessageSize);
-//	for (int i = 0; i < txMessageSize; i++)
-//	{
-//		debugPrint("%x ", txMessage[i]);
-//	}
-//	debugPrint("\n");
-
-	/* protoEncode testing */
-
-	/*
-	#define TRANCEIVER_TX_MAX_FRAME_SIZE 235
-	#define RADSAT_SK_HEADER_SIZE (sizeof(radsat_sk_header_t))
-	uint8_t wrappedMessageSize = 0;
-	uint8_t wrappedMessage[TRANCEIVER_TX_MAX_FRAME_SIZE];
-
-	//generate new RADSAT-SK message to serialize
-	radsat_message rawMessage = { 0 };
-
-	//populate the message
-	rawMessage.which_service = radsat_message_FileTransferMessage_tag;
-	rawMessage.FileTransferMessage.which_message = 1;// file_transfer_ObcTelemetry_tag;
-	rawMessage.FileTransferMessage.ObcTelemetry.mode = 2;
-	rawMessage.FileTransferMessage.ObcTelemetry.uptime = 4000;
-	rawMessage.FileTransferMessage.ObcTelemetry.rtcTime = 3000;
-	rawMessage.FileTransferMessage.ObcTelemetry.rtcTemperature = 25;
-
-	wrappedMessageSize = protoEncode(&rawMessage, wrappedMessage);
-
-	debugPrint("messageSize = %d \n", wrappedMessageSize);
-	for (int i = 0; i < wrappedMessageSize; i++)
-	{
-		debugPrint("%x ", wrappedMessage[i]);
-	}
-	debugPrint("\n");
-
-	*/
-
-	/* messageWrap testing */
-	/*
-	#define TRANCEIVER_TX_MAX_FRAME_SIZE 235
-	#define RADSAT_SK_HEADER_SIZE (sizeof(radsat_sk_header_t))
-	uint8_t wrappedMessageSize = 0;
-	uint8_t wrappedMessage[TRANCEIVER_TX_MAX_FRAME_SIZE];
-
-	//generate new RADSAT-SK message to serialize
-	radsat_message rawMessage = { 0 };
-
-	//populate the message
-	rawMessage.which_service = radsat_message_FileTransferMessage_tag;
-	rawMessage.FileTransferMessage.which_message = 1;// file_transfer_ObcTelemetry_tag;
-	rawMessage.FileTransferMessage.ObcTelemetry.mode = 2;
-	rawMessage.FileTransferMessage.ObcTelemetry.uptime = 4000;
-	rawMessage.FileTransferMessage.ObcTelemetry.rtcTime = 3000;
-	rawMessage.FileTransferMessage.ObcTelemetry.rtcTemperature = 25;
-
-	wrappedMessageSize = messageWrap(&rawMessage, wrappedMessage);
-
-	debugPrint("messageSize = %d \n", wrappedMessageSize);
-	for (int i = 0; i < wrappedMessageSize; i++)
-	{
-		debugPrint("%x ", wrappedMessage[i]);
-	}
-	debugPrint("\n");
-	*/
-
-
-	/* messageUnwrap testing (implicitly tests protoDecode)*/
-
-
-	// test one
-	/*
-		radsat_message result = {0};
-		uint8_t outputSize;
-		uint8_t wrappedMessage[] = {0x19, 0x21, 0x6f, 0xc6, 0x07, 0xe9, 0xf8, 0xe0, 0x63, 0x1b, 0x05, 0x0b, 0x03, 0x09, 0x0a};
-		uint8_t inputSize = 15; // Size of header + message
-		outputSize = messageUnwrap(wrappedMessage, inputSize, &result);
-		debugPrint("which_service: %d \n", (uint8_t) result.which_service);
-		debugPrint("message size: %d \n", outputSize);
-		if (result.which_service == radsat_message_TelecommandMessage_tag){
-			debugPrint("Successfully read that this message is a telecommand message.\n");
-			// obtain the specific telecommand
-			uint8_t telecommand = (uint8_t) result.TelecommandMessage.which_message;
-			if(telecommand == telecommand_message_BeginPass_tag){
-				debugPrint("Successfully read that this message is a Begin Pass message. \n");
-				debugPrint("passLength value read as: %d. Should be 11.\n", result.TelecommandMessage.BeginPass.passLength);
-				debugPrint("output size is: %d\n", outputSize);
-			}
-		}
-		*/
-
-		//test two
-/*
-	radsat_message result = {0};
-	uint8_t outputSize;
-	uint8_t wrappedMessage[] = {0x19, 0x21, 0x0a, 0x84, 0x3d, 0x04, 0xfe, 0xe0, 0x63, 0x13, 0x3b, 0x1b, 0x39, 0x09, 0x04, 0x13, 0x19, 0x0c, 0x9b, 0x98, 0xa8, 0x41, 0x14, 0x9b, 0x98, 0xa8, 0x41, 0x1c, 0x9b, 0x98, 0xa8, 0x41, 0x24, 0x9b, 0x98, 0xa8, 0x41, 0x29, 0x04, 0x31, 0x04, 0x1b, 0x0d, 0x09, 0x04, 0x11, 0x04, 0x19, 0x04, 0x21, 0x04, 0x29, 0x04, 0x31, 0x04, 0x23, 0x0d, 0x09, 0x04, 0x11, 0x04, 0x19, 0x04, 0x21, 0x04, 0x29, 0x04, 0x31, 0x04};
-	uint8_t inputSize = 69; // Size of header + message
-	outputSize = messageUnwrap(wrappedMessage, inputSize, &result);
-	debugPrint("which_service: %d \n", (uint8_t) result.which_service);
-	debugPrint("message size: %d \n", outputSize);
-	if (result.which_service == radsat_message_FileTransferMessage_tag){
-		debugPrint("Successfully read that this message is a FileTransfer message.\n");
-		// obtain the specific telecommand
-		uint8_t telecommand = (uint8_t) result.FileTransferMessage.which_message;
-		if(telecommand == file_transfer_message_CameraTelemetry_tag){
-			debugPrint("Successfully read that this message is a Camera Telemetry message. \n");
-			debugPrint("uptime value read as: %d. Should be 5.\n", result.FileTransferMessage.CameraTelemetry.uptime);
-			debugPrint("current 3v3 from powerTelemetry submessage: %f. Should be 5.3.\n", result.FileTransferMessage.CameraTelemetry.powerTelemetry.current_3V3);
-			debugPrint("detectionThreshold from cameraTwoTelemetry submessage: %d. Should be 5.\n", result.FileTransferMessage.CameraTelemetry.cameraOneTelemetry.detectionThreshold);
-			debugPrint("output size is: %d\n", outputSize);
-		}
-	}
-	*/
-
-
-
-
-
-
-	//vTaskDelay(1000);
-
-
-	//printf("start here\n");
-
-
-	//uint8_t mess[200] = {0};
-	//for (int i= 0; i < 200; i++){
-	//	mess[i] = 0b10101010;
-	//}
-	//while (1){
-	//	error = IsisTrxvu_tcSendAX25DefClSign(0, mess, 200, 0);
-	//	if (error) debugPrint("error = %d\n",error);
-	//	vTaskDelay(100);
-	//}
 
 	// initialize the FreeRTOS Tasks used for typical mission operation
 	initMissionTasks();
@@ -662,4 +425,81 @@ void MissionInitTask(void* parameters) {
 
 	// let this task delete itself
 	vTaskDelete(NULL);
+}
+
+void regurgitateReceiverBuffer(void){
+	// retrieves the next frame in the receiver buffer and prints the contents to the console
+	uint16_t numberOfFrames = 0;
+
+	int error = transceiverRxFrameCount(&numberOfFrames);
+	if (error != 0){
+		debugPrint("error in transceiverRxFrameCount(). error = %d\n", error);
+		return;
+	}
+	if (numberOfFrames == 0){
+		debugPrint("no frames in the receiver!\n");
+		return;
+	}
+
+	uint16_t sizeOfMessage = 0;
+	uint8_t messageBuffer[200] = { 0 };
+
+	error = transceiverGetFrame(messageBuffer, &sizeOfMessage);
+	if (error != 0){
+		debugPrint("error in trasnceiverGetFrame(). error = %d\n", error);
+		return;
+	}
+	if (sizeOfMessage == 0){
+		debugPrint("message length of zero!\n");
+		return;
+	}
+
+	debugPrint("Frame retrieved with %d bytes: \n", sizeOfMessage);
+	for(int i = 0; i < sizeOfMessage; i++){
+		debugPrint("0x%02X, ", messageBuffer[i]);
+	}
+	debugPrint("\n\n");
+
+	vTaskDelay(1000);
+}
+
+void backAtYa(void){
+	// retrieves the next frame in the receiver buffer and immediately transmits the contents back
+	uint16_t numberOfFrames = 0;
+
+	int error = transceiverRxFrameCount(&numberOfFrames);
+	if (error != 0){
+		debugPrint("error in transceiverRxFrameCount(). error = %d\n", error);
+		return;
+	}
+	if (numberOfFrames == 0){
+		debugPrint("no frames in the receiver!\n");
+		return;
+	}
+
+	uint16_t sizeOfMessage = 0;
+	uint8_t messageBuffer[200] = { 0 };
+
+	error = transceiverGetFrame(messageBuffer, &sizeOfMessage);
+	if (error != 0){
+		debugPrint("error in trasnceiverGetFrame(). error = %d\n", error);
+		return;
+	}
+	if (sizeOfMessage == 0){
+		debugPrint("message length of zero!\n");
+		return;
+	}
+
+	vTaskDelay(500);
+
+	uint8_t slotsRemaining;
+
+	error = transceiverSendFrame(messageBuffer, sizeOfMessage, &slotsRemaining);
+	if (error != 0){
+		debugPrint("error in transceiverSendFrame(). error = %d\n", error);
+		return;
+	}
+	debugPrint("Message sent! Slots remaining: %d\n", slotsRemaining);
+
+	vTaskDelay(1000);
 }
