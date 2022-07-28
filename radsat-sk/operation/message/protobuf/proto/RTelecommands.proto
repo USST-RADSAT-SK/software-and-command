@@ -29,6 +29,7 @@ message begin_pass {
 
 // Inform OBC that there are no more telecommands; Ground Station is ready to receive Files (telemetry, images, etc.)
 message begin_file_transfer {
+    uint32 resp     = 1; ///< dummy variable
 }
 
 // Inform the OBC that it is to cease all downlink transmissions immediately (no ACK will follow this message)
@@ -38,6 +39,7 @@ message cease_transmission {
 
 // Inform the OBC that it can end its previous halting of all downlink transmissions
 message resume_transmission {
+    uint32 resp     = 1; ///< dummy variable
 }
 
 // Update the OBC's local time on its Real-Time Clock
