@@ -16,7 +16,7 @@
 ***************************************************************************************************/
 
 /** Satellite Watchdog Task delay (in ms). */
-#define SATELLITE_WATCHDOG_TASK_DELAY_MS	(15)
+#define SATELLITE_WATCHDOG_TASK_DELAY_MS	(100)
 
 
 /***************************************************************************************************
@@ -31,9 +31,7 @@ void SatelliteWatchdogTask(void* parameters) {
 	while (1) {
 
 		// TODO: implement petting satellite watchdogs
-
-		//debugPrint("SatelliteWatchdogTask(): About to pet external satellite watchdogs.\n");
-
+		pdbPetWatchdog();
 		vTaskDelay(SATELLITE_WATCHDOG_TASK_DELAY_MS);
 	}
 }
