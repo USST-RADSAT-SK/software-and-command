@@ -434,7 +434,7 @@ void MissionInitTask(void* parameters) {
 	// = 40ADF319
 
 	/*
-		camera_telemetry tempcam = {0};
+	    camera_telemetry tempcam = {0};
 		tempcam.uptime = 100;
 		file_transfer_message temptx = {0};
 		temptx.which_message = file_transfer_message_CameraTelemetry_tag;
@@ -447,6 +447,135 @@ void MissionInitTask(void* parameters) {
 		messageSize = messageWrap(radsat_message* tempraw, uint8_t* wrappedMessage);
 		*/
 
+	/* protocolGenerate testing */
+
+	#define TRANCEIVER_TX_MAX_FRAME_SIZE 235
+	#define RADSAT_SK_HEADER_SIZE (sizeof(radsat_sk_header_t))
+	//#include <RFileTransfer.pb.h>
+
+	/** Abstraction of the response states */
+	typedef enum _response_state_t {
+		responseStateIdle	= 0,	///> Awaiting response from Ground Station
+		responseStateReady	= 1,	///> Ready to transmit to Ground Station
+	} response_state_t;
+
+
+	/** Abstraction of the ACK/NACK return types */
+	typedef enum _response_t {
+		responseAck		= protocol_message_Ack_tag,	///> Acknowledge (the message was received properly)
+		responseNack	= protocol_message_Nack_tag,	///> Negative Acknowledge (the message was NOT received properly)
+	} response_t;
+
+	/** Abstraction of the communication modes */
+	typedef enum _comm_mode_t {
+		commModeQuiet			= -1,	///> Prevent downlink transmissions and automatic state changes
+		commModeIdle			= 0,	///> Not in a pass
+		commModeTelecommand		= 1,	///> Receiving Telecommands from Ground Station
+		commModeFileTransfer	= 2,	///> Transmitting data to the Ground Station
+	} comm_mode_t;
+
+
+	/** Co-ordinates tasks during the telecommand phase */
+	typedef struct _telecommand_state_t {
+		response_state_t transmitReady;	///> Whether the Satellite is ready to transmit a response (ACK, NACK, etc.)
+		response_t responseToSend;		///> What response to send, when ready
+	} telecommand_state_t;
+
+
+	/** Co-ordinates tasks during the file transfer phase */
+	typedef struct _file_transfer_state_t {
+		response_state_t transmitReady;		///> Whether the Satellite is ready to transmit another Frame (telemetry, etc.)
+		response_t responseReceived;		///> What response was received (ACK, NACK, etc.) regarding the previous message
+		uint8_t transmissionErrors;			///> Error counter for recording consecutive NACKs
+	} file_transfer_state_t;
+
+	/** Wrapper structure for communications co-ordination */
+	typedef struct _communication_state_t {
+		comm_mode_t mode;					///> The current state of the Communications Tasks
+		telecommand_state_t telecommand;	///> The state during the Telecommand mode
+		file_transfer_state_t fileTransfer;	///> The state during the File Transfer mode
+	} communication_state_t;
+
+
+
+	static communication_state_t state = { 0 };
+	state.telecommand.responseToSend = protocol_message_Nack_tag;
+	error = 0;												// error detection
+	uint8_t txSlotsRemaining = TRANCEIVER_TX_MAX_FRAME_COUNT;	// number of open frame slots in the transmitter's buffer
+	uint8_t txMessageSize = 0;									// size (in bytes) of an outgoing frame
+	uint8_t txMessage[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };	// output buffer for messages to be transmitted
+
+	txMessageSize = protocolGenerate(state.telecommand.responseToSend, txMessage);
+
+	debugPrint("txMssageSize = %d \n", txMessageSize);
+	for (int i = 0; i < txMessageSize; i++)
+	{
+		debugPrint("%x ", txMessage[i]);
+	}
+	debugPrint("\n");
+
+	/* protoEncode testing */
+
+	/*
+	#define TRANCEIVER_TX_MAX_FRAME_SIZE 235
+	#define RADSAT_SK_HEADER_SIZE (sizeof(radsat_sk_header_t))
+	uint8_t wrappedMessageSize = 0;
+	uint8_t wrappedMessage[TRANCEIVER_TX_MAX_FRAME_SIZE];
+
+	//generate new RADSAT-SK message to serialize
+	radsat_message rawMessage = { 0 };
+
+	//populate the message
+	rawMessage.which_service = radsat_message_FileTransferMessage_tag;
+	rawMessage.FileTransferMessage.which_message = 1;// file_transfer_ObcTelemetry_tag;
+	rawMessage.FileTransferMessage.ObcTelemetry.mode = 2;
+	rawMessage.FileTransferMessage.ObcTelemetry.uptime = 4000;
+	rawMessage.FileTransferMessage.ObcTelemetry.rtcTime = 3000;
+	rawMessage.FileTransferMessage.ObcTelemetry.rtcTemperature = 25;
+
+	wrappedMessageSize = protoEncode(&rawMessage, wrappedMessage);
+
+	debugPrint("messageSize = %d \n", wrappedMessageSize);
+	for (int i = 0; i < wrappedMessageSize; i++)
+	{
+		debugPrint("%x ", wrappedMessage[i]);
+	}
+	debugPrint("\n");
+
+	*/
+
+	/* messageWrap testing */
+	/*
+	#define TRANCEIVER_TX_MAX_FRAME_SIZE 235
+	#define RADSAT_SK_HEADER_SIZE (sizeof(radsat_sk_header_t))
+	uint8_t wrappedMessageSize = 0;
+	uint8_t wrappedMessage[TRANCEIVER_TX_MAX_FRAME_SIZE];
+
+	//generate new RADSAT-SK message to serialize
+	radsat_message rawMessage = { 0 };
+
+	//populate the message
+	rawMessage.which_service = radsat_message_FileTransferMessage_tag;
+	rawMessage.FileTransferMessage.which_message = 1;// file_transfer_ObcTelemetry_tag;
+	rawMessage.FileTransferMessage.ObcTelemetry.mode = 2;
+	rawMessage.FileTransferMessage.ObcTelemetry.uptime = 4000;
+	rawMessage.FileTransferMessage.ObcTelemetry.rtcTime = 3000;
+	rawMessage.FileTransferMessage.ObcTelemetry.rtcTemperature = 25;
+
+	wrappedMessageSize = messageWrap(&rawMessage, wrappedMessage);
+
+	debugPrint("messageSize = %d \n", wrappedMessageSize);
+	for (int i = 0; i < wrappedMessageSize; i++)
+	{
+		debugPrint("%x ", wrappedMessage[i]);
+	}
+	debugPrint("\n");
+	*/
+
+
+	/* messageUnwrap testing */
+
+	/*
 		debugPrint("here\n");
 		radsat_message result = {0};
 		uint8_t outputSize;
@@ -467,6 +596,7 @@ void MissionInitTask(void* parameters) {
 			}
 		}
 		debugPrint("Made it here");
+		*/
 
 
 

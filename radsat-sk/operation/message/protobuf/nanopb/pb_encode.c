@@ -527,6 +527,7 @@ bool checkreturn pb_encode(pb_ostream_t *stream, const pb_msgdesc_t *fields, con
         }
     } while (pb_field_iter_next(&iter));
     
+    debugPrint("got here\n");
     return true;
 }
 

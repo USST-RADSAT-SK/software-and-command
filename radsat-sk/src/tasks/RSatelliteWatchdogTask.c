@@ -32,7 +32,7 @@ void SatelliteWatchdogTask(void* parameters) {
 
 		// TODO: implement petting satellite watchdogs
 
-		debugPrint("SatelliteWatchdogTask(): About to pet external satellite watchdogs.\n");
+		//debugPrint("SatelliteWatchdogTask(): About to pet external satellite watchdogs.\n");
 
 		vTaskDelay(SATELLITE_WATCHDOG_TASK_DELAY_MS);
 	}

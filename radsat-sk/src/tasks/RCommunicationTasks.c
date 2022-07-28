@@ -16,6 +16,8 @@
 
 #include <string.h>
 
+#include <RFileTransfer.pb.h> // Brian added 27 July 2022
+
 
 /***************************************************************************************************
                                    DEFINITIONS & PRIVATE GLOBALS
