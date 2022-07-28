@@ -7,6 +7,7 @@
 #include <RKey.h>
 #include <RFram.h>
 #include <RDebug.h>
+#include <RErrorManager.h>
 
 
 /***************************************************************************************************
@@ -55,13 +56,22 @@ uint8_t privateKey(void) {
 		int error = 0;
 
 		// read from FRAM
-		error = framRead(&key1, PRIVATE_KEY_ADDR_ONE,   sizeof(key1));
-		if (error) return 0;
-		error = framRead(&key2, PRIVATE_KEY_ADDR_TWO,   sizeof(key2));
-		if (error) return 0;
-		error = framRead(&key3, PRIVATE_KEY_ADDR_THREE, sizeof(key3));
-		if (error) return 0;
+		error = framRead(&key1, PRIVATE_KEY_ADDR_ONE,   sizeof(key1))
+		
+		if (error != SUCCESS)
+			errorReportModule(moduleFram , error);
+			return error;
 
+		error = framRead(&key2, PRIVATE_KEY_ADDR_TWO,   sizeof(key2));
+
+		if (error != SUCCESS)
+			errorReportModule(moduleFram , error);
+			return error;
+		error = framRead(&key3, PRIVATE_KEY_ADDR_THREE, sizeof(key3));
+
+		if (error != SUCCESS)
+			errorReportModule(moduleFram , error);
+			return error;
 		// all of the keys are the same
 		if ((key1 == key2) && (key1 == key3) && (key2 == key3)) {
 			key = key1;
@@ -108,7 +118,6 @@ uint8_t privateKey(void) {
 
 			debugPrint("RKey: all three keys are different (Key1 = %d, Key2 = %d, Key3 = %d). Sending Key1...\n", key1, key2, key3);
 
-			// TODO: report an error to the system manager
 
 			key = key1;
 		}

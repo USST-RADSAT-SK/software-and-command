@@ -8,6 +8,7 @@
 #include <hal/errors.h>
 #include <hal/Storage/FRAM.h>
 #include <RCommon.h>
+#include <RErrorManager.h>
 
 
 /***************************************************************************************************
@@ -34,7 +35,8 @@ int framInit(void) {
 
 	int error = FRAM_start();
 
-	// TODO: record errors (if present) to System Manager
+	if (error != SUCCESS)
+		errorReportComponent(componentHalFram , error);
 
 	return error;
 }
@@ -57,7 +59,8 @@ int framRead(uint8_t* data, uint32_t address, uint32_t size) {
 
 	int error = FRAM_read(data, address, size);
 
-	// TODO: record errors (if present) to System Manager
+	if (error != SUCCESS)
+		errorReportComponent(componentHalFram , error);
 
 	return error;
 }
@@ -80,7 +83,8 @@ int framWrite(uint8_t* data, uint32_t address, uint32_t size) {
 
 	int error = FRAM_writeAndVerify(data, address, size);
 
-	// TODO: record errors (if present) to System Manager
+	if (error != SUCCESS)
+		errorReportComponent(componentHalFram , error);
 
 	return error;
 }

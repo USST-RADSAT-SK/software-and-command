@@ -10,6 +10,7 @@
 #include <hal/errors.h>
 #include <hal/Timing/Time.h>
 #include <RCommon.h>
+#include <RErrorManager.h>
 
 
 /***************************************************************************************************
@@ -54,7 +55,9 @@ int antennaInit(void) {
 	if (error == 0)
 		antennaInitialized = 1;
 
-	// TODO: record errors (if present) to System Manager
+	if (error != SUCCESS)
+			errorReportComponent(moduleFram , error)
+
 	return error;
 }
 
@@ -80,7 +83,7 @@ int antennaDeploymentAttempt(void) {
 		// Error check for requesting antenna status
 		if(error != 0) {
 
-			// TODO: record errors (if present) to System Manager
+			errorReportComponent(componentSsiAntenna,error);
 			return error;
 		}
 
@@ -101,7 +104,9 @@ int antennaDeploymentAttempt(void) {
 			// Error check for Arming A Side
 			if(error != 0) {
 
-				// TODO: record errors (if present) to System Manager
+				
+				errorReportComponent(componentSsiAntenna,error);
+
 				return error;
 			}
 
@@ -111,7 +116,8 @@ int antennaDeploymentAttempt(void) {
 			// Error check for antenna status
 			if(error != 0) {
 
-				// TODO: record errors (if present) to System Manager
+				errorReportComponent(componentSsiAntenna,error);
+
 				return error;
 			}
 
@@ -127,7 +133,8 @@ int antennaDeploymentAttempt(void) {
 				// Check if autoDeployment failed
 				if(error != 0) {
 
-					// TODO: record errors (if present) to System Manager
+					errorReportComponent(componentSsiAntenna,error);
+
 					return error;
 				}
 
@@ -137,7 +144,8 @@ int antennaDeploymentAttempt(void) {
 				// Check if disarm failed
 				if(error != 0) {
 
-					// TODO: record errors (if present) to System Manager
+					errorReportComponent(componentSsiAntenna,error);
+
 					return error;
 				}
 			}
@@ -159,7 +167,8 @@ int antennaDeploymentAttempt(void) {
 		// Error check for requesting antenna status
 		if(error != 0) {
 
-			// TODO: record errors (if present) to System Manager
+			errorReportComponent(componentSsiAntenna,error);
+
 			return error;
 		}
 
@@ -180,7 +189,8 @@ int antennaDeploymentAttempt(void) {
 			// Error check for requesting antenna status
 			if(error != 0) {
 
-				// TODO: record errors (if present) to System Manager
+				errorReportComponent(componentSsiAntenna,error);
+
 				return error;
 			}
 
@@ -190,7 +200,8 @@ int antennaDeploymentAttempt(void) {
 			// Error check for antenna status
 			if(error != 0) {
 
-				// TODO: record errors (if present) to System Manager
+				errorReportComponent(componentSsiAntenna,error);
+
 				return error;
 			}
 
@@ -206,7 +217,9 @@ int antennaDeploymentAttempt(void) {
 				// Check if autoDeployment failed
 				if(error != 0) {
 
-					// TODO: record errors (if present) to System Manager
+					
+					errorReportComponent(componentSsiAntenna,error);
+
 					return error;
 				}
 
@@ -216,7 +229,8 @@ int antennaDeploymentAttempt(void) {
 				// Check if disarm failed
 				if(error != 0) {
 
-					// TODO: record errors (if present) to System Manager
+					errorReportComponent(componentSsiAntenna,error);
+
 					return error;
 				}
 			}
@@ -253,7 +267,8 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	// Error check for Isis Antenna function
 	if(error != 0) {
 
-		// TODO: record errors (if present) to System Manager
+		errorReportComponent(componentSsiAntenna,error);
+
 		return error;
 	}
 
@@ -272,7 +287,8 @@ int antennaTelemetry(antenna_telemetry_t* telemetry) {
 	// Error check for Isis Antenna function
 	if(error != 0) {
 
-		// TODO: record errors (if present) to System Manager
+		errorReportComponent(componentSsiAntenna,error);
+
 		return error;
 	}
 
@@ -299,15 +315,17 @@ int antennaReset(void) {
 	int error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideA);
 
 	if (error != SUCCESS) {
-		// TODO: record errors (if present) to System Manager
+		
+		errorReportComponent(componentSsiAntenna,error);
+
 		return error;
 	}
 
 	// Reset side B antenna. See section 6.2 of Antenna System User Manual
 	error = IsisAntS_reset(ANTENNA_INDEX, isisants_sideB);
 
-	if (error != SUCCESS) {
-		// TODO: record errors (if present) to System Manager
+	if (error != SUCCESS) {		
+		errorReportComponent(componentSsiAntenna,error);
 	}
 
 	return error;
@@ -328,7 +346,8 @@ int antennaTemperature(float* temperatureOne, float* temperatureTwo) {
 	int error = IsisAntS_getTemperature(ANTENNA_INDEX, isisants_sideA, &temperature);
 
 	if (error != SUCCESS) {
-		// TODO: record errors (if present) to System Manager
+		errorReportComponent(componentSsiAntenna,error);
+
 		return error;
 	}
 
@@ -339,7 +358,7 @@ int antennaTemperature(float* temperatureOne, float* temperatureTwo) {
 	*temperatureTwo = ((float)temperature * -0.2922) + 190.65;
 
 	if (error != SUCCESS) {
-		// TODO: record errors (if present) to System Manager
+		errorReportComponent(componentSsiAntenna,error);
 	}
 
 	return error;

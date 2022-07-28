@@ -1,0 +1,6 @@
+{
+    "files.associations": {
+        "rfiletransferservice.h": "c",
+        "rerrormanager.h": "c"
+    }
+}

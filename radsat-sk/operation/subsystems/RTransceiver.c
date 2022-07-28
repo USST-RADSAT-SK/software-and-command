@@ -10,6 +10,7 @@
 #include <hal/errors.h>
 #include <string.h>
 #include <RCommon.h>
+#include <RErrorManager.h>
 
 
 /***************************************************************************************************
@@ -72,7 +73,10 @@ int transceiverInit(void) {
 	if (!error)
 		initialized = 1;
 
-	// TODO: record errors (if present) to System Manager
+	if (error != SUCCESS) {
+		errorReportComponent(componentTransceiver,error);
+		return error;
+	}
 
 	return error;
 }
@@ -96,7 +100,10 @@ int transceiverRxFrameCount(uint16_t* numberOfFrames) {
 
 	int error = IsisTrxvu_rcGetFrameCount(TRANSCEIVER_INDEX, numberOfFrames);
 
-	// TODO: record errors (if present) to System Manager
+	if (error != SUCCESS) {
+		errorReportComponent(componentTransceiver,error);
+		return error;
+	}
 
 	return error;
 }
@@ -129,7 +136,10 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
 	// provide the size of the message to the caller
 	*sizeOfMessage = frame.rx_length;
 
-	// TODO: record errors (if present) to System Manager
+	if (error != SUCCESS) {
+		errorReportComponent(componentTransceiver,error);
+		return error;
+	}
 
 	return error;
 }
@@ -155,7 +165,10 @@ int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRe
 
 	int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, slotsRemaining);
 
-	// TODO: record errors (if present) to System Manager
+	if (error != SUCCESS) {
+		errorReportComponent(componentTransceiver,error);
+		return error;
+	}
 
 	return error;
 }
@@ -180,7 +193,10 @@ int transceiverPowerCycle(void) {
 	// send full hard reset command
 	int error = IsisTrxvu_hardReset(TRANSCEIVER_INDEX);
 
-	// TODO: record errors (if present) to System Manager
+	if (error != SUCCESS) {
+		errorReportComponent(componentTransceiver,error);
+		return error;
+	}
 
 	return error;
 }
@@ -195,9 +211,12 @@ int transceiverSoftReset(void){
 	//send full soft reset command
 	int error = IsisTrxvu_softReset(TRANSCEIVER_INDEX);
 
-	//TODO: record errors (if present) to System Manager
+
 	if (error != 0)
-			return error;
+
+		errorReportComponent(componentTransceiver,error);
+		
+		return error;
 
 	return SUCCESS;
 }
@@ -220,14 +239,16 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 
 	int error = IsisTrxvu_rcGetTelemetryAll(TRANSCEIVER_INDEX, &rawRxTelemetry);
 
-	// TODO: record errors (if present) to System Manager
+
 	if (error)
+		errorReportComponent(componentTransceiver,error);
 		return error;
 
 	error = IsisTrxvu_tcGetTelemetryAll(TRANSCEIVER_INDEX, &rawTxTelemetry);
 
-	// TODO: record errors (if present) to System Manager
+	
 	if (error)
+		errorReportComponent(componentTransceiver,error);
 		return error;
 
 	uint16_t uptime = 0;
@@ -321,7 +342,10 @@ static int transceiverRxUpTime(uint16_t* uptime) {
 
 	int error = IsisTrxvu_rcGetUptime(TRANSCEIVER_INDEX, (unsigned int *) uptime);
 
-	// TODO: record errors (if present) to System Manager
+	if (error != SUCCESS) {
+		errorReportComponent(componentTransceiver,error);
+		return error;
+	}
 
 	return error;
 }
@@ -337,7 +361,10 @@ static int transceiverTxUpTime(uint16_t* uptime) {
 
 	int error = IsisTrxvu_tcGetUptime(TRANSCEIVER_INDEX, (unsigned int *) uptime);
 
-	// TODO: record errors (if present) to System Manager
+	if (error != SUCCESS) {
+		errorReportComponent(componentTransceiver,error);
+		return error;
+	}
 
 	return error;
 }

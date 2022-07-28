@@ -9,6 +9,7 @@
 #include <hal/errors.h>
 #include <hal/Timing/WatchDogTimer.h>
 #include <hal/Timing/RTC.h>
+#include <RErrorManager.h>
 
 /***************************************************************************************************
                                              PUBLIC API
@@ -24,7 +25,7 @@ int obcTelemetry(obc_telemetry_t* telemetry){
 	int error = RTC_getTemperature(&temperature);
 
 	if (error != SUCCESS) {
-		// TODO: record errors (if present) to System Manager
+		errorReportComponent(componentObc,error);
 		return error;
 	}
 

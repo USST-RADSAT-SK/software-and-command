@@ -15,6 +15,7 @@
 #include <RTransceiver.h>
 #include <RPdb.h>
 #include <RObc.h>
+#include <RErrorManager.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -61,62 +62,52 @@ void TelemetryCollectionTask(void* parameters) {
 
 			error = antennaTelemetry(&antenna_telemetry_R);
 			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
+				errorReportModule(moduleAntenna,error);
 			}
 
 			error = batteryTelemetry(&battery_telemetry_R);
 			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
+				errorReportModule(moduleBattery,error);
 			}
 
 			error = transceiverTelemetry(&transceiver_telemetry_R);
 			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
+				errorReportModule(moduleTransceiver,error);
 			}
 			error = pdbTelemetry(&pdb_telemetry_R);
 			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
+				errorReportModule(modulePdb,error);
 			}
 
 			error = obcTelemetry(&obc_telemetry_R);
 			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
+				errorReportModule(moduleObc,error);
 			}
 
 
 			error = fileTransferAddMessage(&antenna_telemetry_R, sizeof(antenna_telemetry_R),file_transfer_message_AntennaTelemetry_tag );
 			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
+				errorReportModule(moduleFileTransferService,error);
 			}
 
 			error = fileTransferAddMessage(&battery_telemetry_R, sizeof(battery_telemetry_R),file_transfer_message_BatteryTelemetry_tag );
 			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
+				errorReportModule(moduleFileTransferService,error);
 			}
 
 			error = fileTransferAddMessage(&transceiver_telemetry_R, sizeof(transceiver_telemetry_R),file_transfer_message_TransceiverTelemetry_tag );
 			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
+				errorReportModule(moduleFileTransferService,error);
 			}
 
 			error = fileTransferAddMessage(&pdb_telemetry_R, sizeof(pdb_telemetry_R),file_transfer_message_EpsTelemetry_tag );
 			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
+				errorReportModule(moduleFileTransferService,error);
 			}
 
 			error = fileTransferAddMessage(&obc_telemetry_R, sizeof(obc_telemetry_R),file_transfer_message_ObcTelemetry_tag );
 			if (error != SUCCESS) {
-				error;
-				// TODO: implement error manager
+				errorReportModule(moduleFileTransferService,error);
 			}
 
 

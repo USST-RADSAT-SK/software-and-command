@@ -10,6 +10,7 @@
 #include <RBattery.h>
 #include <RTranseiver.h>
 #include <RPdb.h>
+#include <RErrorManager.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -65,7 +66,6 @@ void SatelliteWatchdogTask(void* parameters) {
 
 	while (1) {
 
-		// TODO: implement petting satellite watchdogs
 
 
 		//pet watchdogs for all components 
@@ -77,23 +77,20 @@ void SatelliteWatchdogTask(void* parameters) {
 
 			error = batteryPetWatchDog();
 
-			if (error != SUCCESS) {
-				// TODO: implement error manager
-				error;
+			if (error != SUCCESS) {				
+				errorReportModule(moduleBattery,error);
 			}
 
 			error = transceiverPetWatchDogs();
 
 			if (error != SUCCESS) {
-				// TODO: implement error manager
-				error;
+				errorReportModule(moduleTransceiver,error);
 			}
 
 			error = pdbPetWatchdog();
 
 			if (error != SUCCESS) {
-				// TODO: implement error manager
-				error;
+				errorReportModule(modulePdb,error);
 			}
 			
 			old_time = current_time;

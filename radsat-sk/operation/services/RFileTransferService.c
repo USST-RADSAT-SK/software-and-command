@@ -10,6 +10,7 @@
 #include <RMessage.h>
 #include <string.h>
 #include <RCommon.h>
+#include <RErrorManager.h>
 
 
 /**

@@ -8,6 +8,7 @@
 #include <RI2c.h>
 #include <string.h>
 #include <RCommon.h>
+#include <RErrorManager.h>
 
 
 /***************************************************************************************************

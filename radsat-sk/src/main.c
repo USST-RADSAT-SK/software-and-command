@@ -33,6 +33,7 @@
 #include <RAdcsCaptureTask.h>
 #include <RTelemetryCollectionTask.h>
 #include <RSatelliteWatchdogTask.h>
+#include <RErrorManager.h>
 
 
 /***************************************************************************************************
@@ -105,8 +106,11 @@ int main(void) {
 
 	if (error != SUCCESS) {
 		debugPrint("main(): failed during system initialization.\n");
-		// TODO: report to system manager
+		
+		errorReportModule(moduleMain,error);
+		
 	}
+}
 
 #ifdef TEST
 
@@ -389,35 +393,34 @@ void MissionInitTask(void* parameters) {
 	// initialize the Hardware Abstraction Library (HAL) drivers
 	error = initDrivers();
 	if (error != SUCCESS) {
-		// TODO: report to system manager
+		errorReportModule(moduleMain,error);
 		debugPrint("MissionInitTask(): failed to initialize Drivers.\n");
 	}
 
 	// initialize external components and the Satellite Subsystem Interface (SSI)
 	error = initSubsystems();
 	if (error != SUCCESS) {
-		// TODO: report to system manager
+		errorReportModule(moduleMain,error);
 		debugPrint("MissionInitTask(): failed to initialize Subsystems.\n");
 	}
 
 	// initialize the internal OBC watchdog, and start a task that automatically pets it
 	error = initObcWatchdog();
 	if (error != SUCCESS) {
-		// TODO: report to system manager
+		errorReportComponent(componentHalWdogTask,error);
 		debugPrint("MissionInitTask(): failed to initialize Obc Watchdog.\n");
 	}
-
 	// initialize the RTC and RTT to the default time
 	error = initTime();
 	if (error != SUCCESS) {
-		// TODO: report to system manager
+		errorReportComponent(componentHalTime,error);
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
 	}
 
 	// initialize the FreeRTOS Tasks used for typical mission operation
 	initMissionTasks();
 	if (error != SUCCESS) {
-		// TODO: report to system manager
+		errorReportComponent(componentHalFreeRtos,error);
 		debugPrint("MissionInitTask(): failed to initialize FreeRTOS Mission Tasks.\n");
 	}
 

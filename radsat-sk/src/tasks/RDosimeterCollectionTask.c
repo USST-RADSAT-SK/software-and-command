@@ -36,17 +36,18 @@ void DosimeterCollectionTask(void* parameters) {
 
 	while (1) {
 
-		// TODO: check flags (once they exist) to prevent running this task during communication mode
+		
+		if(!(comunicationMode())) {
+			debugPrint("DosimeterCollectionTask(): About to collect Dosimeter payload data.\n");
 
-		debugPrint("DosimeterCollectionTask(): About to collect Dosimeter payload data.\n");
+			// collect all readings from dosimeter
+			error = dosimeterCollectData();
 
-		// collect all readings from dosimeter
-		error = dosimeterCollectData();
+			// if an error was detected, try again once more (if it fails again, no data will be taken this time)
+			if (error != 0)
+				dosimeterCollectData();
+		}
 
-		// if an error was detected, try again once more (if it fails again, no data will be taken this time)
-		if (error != 0)
-			dosimeterCollectData();
-
-		vTaskDelay(DOSIMETER_COLLECTION_TASK_DELAY_MS);
+			vTaskDelay(DOSIMETER_COLLECTION_TASK_DELAY_MS);
 	}
 }
