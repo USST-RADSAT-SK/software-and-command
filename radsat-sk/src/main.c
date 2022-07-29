@@ -266,6 +266,23 @@ static int initObcWatchdog(void) {
 
 
 /**
+ * Initialize necessary services.
+ */
+static int initServices(void) {
+	int error = SUCCESS;
+
+	// initialize the FileTransferService
+	error = fileTransferInit();
+	if (error != SUCCESS) {
+		debugPrint("initServices(): failed to initialize FileTransferService.\n");
+		return error;
+	}
+
+	return error;
+}
+
+
+/**
  * Initialize all of the FreeRTOS tasks used during typical mission operation.
  */
 static int initMissionTasks(void) {
@@ -412,6 +429,13 @@ void MissionInitTask(void* parameters) {
 	if (error != SUCCESS) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
+	}
+
+	// initialize the necessary services
+	error = initServices();
+	if (error != SUCCESS) {
+		// TODO: report to system manager
+		debugPrint("MissionInitTask(): failed to initialize the services.\n");
 	}
 
 	// initialize the FreeRTOS Tasks used for typical mission operation

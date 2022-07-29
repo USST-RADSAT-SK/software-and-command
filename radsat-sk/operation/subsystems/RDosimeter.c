@@ -182,6 +182,15 @@ int dosimeterCollectData(void) {
 	// send formatted protobuf messages to downlink manager
 	error = fileTransferAddMessage(&data, sizeof(data), file_transfer_message_DosimeterData_tag);
 
+	// testing purposes only
+	uint8_t txMessageSize = 0;
+	uint8_t txMessage[235] = {0};
+	txMessageSize = fileTransferCurrentFrame(txMessage);
+	//txMessageSize = fileTransferNextFrame(txMessage);
+	for (uint8_t i=0; i<235; i++) {
+		printf("%i, ", txMessage[i]);
+	}
+
 	return  error;
 }
 

@@ -13,14 +13,14 @@
                                             DEFINITIONS
 ***************************************************************************************************/
 
-/** FRAM address of the write cursor. */
+/** FRAM address of the write cursor (2 bytes allocated). */
 #define FRAM_WRITE_CURSOR_ADDR	(0x00)
 
-/** FRAM address of the read cursor. */
-#define FRAM_READ_CURSOR_ADDR	(0x01)
+/** FRAM address of the read cursor (2 bytes allocated). */
+#define FRAM_READ_CURSOR_ADDR	(0x02)
 
 /** FRAM start address of the data. */
-#define FRAM_DATA_START_ADDR	(0x02)
+#define FRAM_DATA_START_ADDR	(0x04)
 
 
 /***************************************************************************************************

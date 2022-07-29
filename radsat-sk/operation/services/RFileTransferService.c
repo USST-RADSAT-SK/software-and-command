@@ -56,6 +56,25 @@ static uint8_t frameReadCursor = 0;
 ***************************************************************************************************/
 
 /**
+ * Initialize the write/read cursors with the last values in FRAM.
+ * Requires that FRAM has already been initialized.
+ * @return 0 for success, non-zero for failure.
+ */
+int fileTransferInit(void) {
+	uint16_t framCursors[2] = {0};
+
+	// Read the last stored cursor values
+	int error = framRead(&framCursors, FRAM_WRITE_CURSOR_ADDR, 4);
+
+	if (error == SUCCESS) {
+		frameWriteCursor = 2; //framCursors[0];
+		frameReadCursor = 1; //framCursors[1];
+	}
+
+	return error;
+}
+
+/**
  * Increment the internal FIFO and provide the frame at that location.
  *
  * Invalidates (deletes) the previous frame before moving on.
@@ -71,16 +90,20 @@ uint8_t fileTransferNextFrame(uint8_t* frame) {
 
 	// invalidate the current (now previous frame)
 	memset(&frames[frameReadCursor], 0, sizeof(frames[frameReadCursor]));
+	//void* framDataAddr = FRAM_DATA_START_ADDR + (frameReadCursor * TRANCEIVER_TX_MAX_FRAME_SIZE);
+	//framWrite(0, framDataAddr, TRANCEIVER_TX_MAX_FRAME_SIZE);
 
 	// increment the read cursor
 	frameReadCursor++;
 	if (frameReadCursor == MAX_FRAME_COUNT)
 		frameReadCursor = 0;
 	// save read cursor value in FRAM
-	framWrite(&frameReadCursor, FRAM_READ_CURSOR_ADDR, 1);
+	framWrite(&frameReadCursor, FRAM_READ_CURSOR_ADDR, 2);
 
 	// transfer the new (now current) frame into the provided buffer
 	memcpy(frame, frames[frameReadCursor].data, frames[frameReadCursor].size);
+	//void* framDataAddr = FRAM_DATA_START_ADDR + (frameReadCursor * TRANCEIVER_TX_MAX_FRAME_SIZE);
+	//framRead(frame, framDataAddr, TRANCEIVER_TX_MAX_FRAME_SIZE);
 
 	return frames[frameReadCursor].size;
 }
@@ -95,8 +118,14 @@ uint8_t fileTransferNextFrame(uint8_t* frame) {
 uint8_t fileTransferCurrentFrame(uint8_t* frame) {
 
 	// only provide a frame if the cursor is pointing at a valid frame
-	if (frames[frameReadCursor].size > 0)
+	/*if (frames[frameReadCursor].size > 0) {
 		memcpy(frame, frames[frameReadCursor].data, frames[frameReadCursor].size);
+	}*/
+
+	// read current frame from FRAM
+	void* framDataAddr = FRAM_DATA_START_ADDR + (frameReadCursor * TRANCEIVER_TX_MAX_FRAME_SIZE);
+	printf("\n\r Reading data in FRAM at cursor/address: %i/%x \n\r", frameReadCursor, framDataAddr);
+	framRead(frame, framDataAddr, TRANCEIVER_TX_MAX_FRAME_SIZE);
 
 	// return the size of the frame
 	return frames[frameReadCursor].size;
@@ -140,37 +169,43 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	frames[frameWriteCursor].size = messageWrap(&newMessage, frames[frameWriteCursor].data);
 
 
-
-
-/*
-	// testing purposes only (dummy data in frames)
+	// testing purposes only
+	/*
+	printf("\n\r Read frames[frameWriteCursor].data: \n\r");
 	for (uint8_t i=0; i<235; i++) {
-		frames[frameWriteCursor].data[i] = i;
+		printf("%i=%i   ", i, frames[frameWriteCursor].data[i]);
 	}
+	*/
+	/*
 	printf("\n\r frameWriteCursor: %i \n\r", frameWriteCursor);
 	printf("\n\r sizeof(frames[frameWriteCursor].data): %i \n\r", sizeof(frames[frameWriteCursor].data));
-*/
+	*/
+	printf("\n\r --- Cursor values --- \n\r");
+	uint16_t framCursors[2] = {0};
+	framRead(&framCursors, FRAM_WRITE_CURSOR_ADDR, 4);
+	printf(" frameWriteCursor: %i \n\r", frameWriteCursor);
+	printf(" frameReadCursor: %i \n\r", frameReadCursor);
+	printf(" %x (FRAM WRITE):  %i \n\r", FRAM_WRITE_CURSOR_ADDR, framCursors[0]);
+	printf(" %x (FRAM READ):   %i \n\r", FRAM_READ_CURSOR_ADDR, framCursors[1]);
+
 	// increment the FRAM address for the new frame
-	void* framDataAddr = FRAM_DATA_START_ADDR + (frameWriteCursor * sizeof(frames[frameWriteCursor].data));
-
-	printf("\n\r FRAM write at address %x \n\r", framDataAddr);
-
+	void* framDataAddr = FRAM_DATA_START_ADDR + (frameWriteCursor * TRANCEIVER_TX_MAX_FRAME_SIZE);
 	// write data in FRAM
-	framWrite(frames[frameWriteCursor].data, framDataAddr, sizeof(frames[frameWriteCursor].data));
+	printf("\n\r Writing data in FRAM at cursor/address: %i/%x \n\r", frameWriteCursor, framDataAddr);
+	framWrite(frames[frameWriteCursor].data, framDataAddr, TRANCEIVER_TX_MAX_FRAME_SIZE);
+	for (uint8_t i=0; i<235; i++) {
+		printf("%i, ", frames[frameWriteCursor].data[i]);
+	}
 
 	// testing purposes only (read back what we wrote in FRAM)
-	printf("\n\r FRAM read cursors \n\r");
-	uint8_t framCursors[2] = {0};
-	framRead(&framCursors, FRAM_WRITE_CURSOR_ADDR, 2);
-	printf(" %x: %i \n\r", FRAM_WRITE_CURSOR_ADDR, framCursors[0]);
-	printf(" %x: %i \n\r", FRAM_READ_CURSOR_ADDR, framCursors[1]);
+	/*
 	printf("\n\r FRAM read frame data at address %x \n\r", framDataAddr);
 	uint8_t framData[235] = {0};
 	framRead(&framData, framDataAddr, 235);
 	for (uint8_t i=0; i<235; i++) {
-		printf(" %x: %i \n\r", framDataAddr+i, framData[i]);
+		printf("%x=%i   ", framDataAddr+i, framData[i]);
 	}
-
+	*/
 
 
 	// return error if message wrapping failed
@@ -182,7 +217,7 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	if (frameWriteCursor == MAX_FRAME_COUNT)
 		frameWriteCursor = 0;
 	// save write cursor value in FRAM
-	framWrite(&frameWriteCursor, FRAM_WRITE_CURSOR_ADDR, 1);
+	framWrite(&frameWriteCursor, FRAM_WRITE_CURSOR_ADDR, 2);
 
 	// return success
 	return SUCCESS;
