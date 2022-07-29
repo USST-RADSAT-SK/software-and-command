@@ -66,13 +66,16 @@ int fileTransferInit(void) {
 	int error = framRead(&framCursors, FRAM_WRITE_CURSOR_ADDR, 4);
 
 	if (error == SUCCESS) {
-		frameWriteCursor = 0; //framCursors[0];
-		frameReadCursor = 199; //framCursors[1];
+		frameWriteCursor = framCursors[0];
+		frameReadCursor = framCursors[1];
 
 		if (frameReadCursor >= MAX_FRAME_COUNT)
 			frameReadCursor = 0;
 		if (frameWriteCursor >= MAX_FRAME_COUNT)
 			frameWriteCursor = frameReadCursor + 1;
+
+		// display the cursor values in FRAM at the start of the program
+		printf("[FileTransferService Init] WriteCursor: %i | ReadCursor: %i \n\r", frameWriteCursor, frameReadCursor);
 	}
 
 	return error;
@@ -94,13 +97,7 @@ uint8_t fileTransferNextFrame(uint8_t* frame) {
 		nextFrameReadCursor = 0;
 
 	void* framDataAddr = FRAM_DATA_START_ADDR + (nextFrameReadCursor * FRAM_DATA_FRAME_SIZE);
-	printf("\n\r Reading %i bytes of data in FRAM at cursor/address: %i/%x \n\r", FRAM_DATA_FRAME_SIZE, nextFrameReadCursor, framDataAddr);
 	framRead(&fram_frame, framDataAddr, FRAM_DATA_FRAME_SIZE);
-	printf("%i, ", fram_frame.size);
-	for (uint8_t i=0; i<FRAM_DATA_FRAME_SIZE-1; i++) {
-		printf("%i, ", fram_frame.data[i]);
-	}
-	printf(" --- Read finished --- \n\r");
 
 	if (fram_frame.size == 0)
 		return SUCCESS;
@@ -134,13 +131,7 @@ uint8_t fileTransferCurrentFrame(uint8_t* frame) {
 
 	// read current frame from FRAM
 	void* framDataAddr = FRAM_DATA_START_ADDR + (frameReadCursor * FRAM_DATA_FRAME_SIZE);
-	printf("\n\r Reading %i bytes of data in FRAM at cursor/address: %i/%x \n\r", FRAM_DATA_FRAME_SIZE, frameReadCursor, framDataAddr);
 	framRead(&fram_frame, framDataAddr, FRAM_DATA_FRAME_SIZE);
-	printf("%i, ", fram_frame.size);
-	for (uint8_t i=0; i<FRAM_DATA_FRAME_SIZE-1; i++) {
-		printf("%i, ", fram_frame.data[i]);
-	}
-	printf("\n\r --- Read finished --- \n\r");
 
 	// only provide a frame if the cursor is pointing at a valid frame
 	if (fram_frame.size > 0)
@@ -187,34 +178,9 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	// wrap new message
 	fram_frame.size = messageWrap(&newMessage, fram_frame.data);
 
-	printf("\n\r new message size: %i \n\r", fram_frame.size);
-	printf("\n\r --- Cursor values --- \n\r");
-	uint16_t framCursors[2] = {0};
-	framRead(&framCursors, FRAM_WRITE_CURSOR_ADDR, 4);
-	printf(" frameWriteCursor: %i \n\r", frameWriteCursor);
-	printf(" frameReadCursor: %i \n\r", frameReadCursor);
-	printf(" %x (FRAM WRITE):  %i \n\r", FRAM_WRITE_CURSOR_ADDR, framCursors[0]);
-	printf(" %x (FRAM READ):   %i \n\r", FRAM_READ_CURSOR_ADDR, framCursors[1]);
-
-	// increment the FRAM address for the new frame
-	void* framDataAddr = FRAM_DATA_START_ADDR + (frameWriteCursor * FRAM_DATA_FRAME_SIZE);
 	// write data in FRAM
-	printf("\n\r Writing %i bytes of data in FRAM at cursor/address: %i/%x \n\r", FRAM_DATA_FRAME_SIZE, frameWriteCursor, framDataAddr);
+	void* framDataAddr = FRAM_DATA_START_ADDR + (frameWriteCursor * FRAM_DATA_FRAME_SIZE);
 	framWrite(&fram_frame, framDataAddr, FRAM_DATA_FRAME_SIZE);
-	printf(" --- Write finished --- \n\r");
-	printf(" First 5 bytes written: ");
-	for (uint8_t i=0; i<5; i++) {
-		printf("%i, ", fram_frame.data[i]);
-	}
-
-	printf("\n\r Reading %i bytes of data in FRAM at cursor/address: %i/%x \n\r", FRAM_DATA_FRAME_SIZE, frameWriteCursor, framDataAddr);
-	fram_frame_t framData = {0};
-	framRead(&framData, framDataAddr, FRAM_DATA_FRAME_SIZE);
-	printf("%i, ", framData.size);
-	for (uint8_t i=0; i<FRAM_DATA_FRAME_SIZE-1; i++) {
-		printf("%i, ", framData.data[i]);
-	}
-	printf("\n\r --- Read finished --- \n\r");
 
 	// return error if message wrapping failed
 	if (fram_frame.size == 0)
