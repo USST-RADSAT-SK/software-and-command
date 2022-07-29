@@ -22,6 +22,9 @@
 /** FRAM start address of the data. */
 #define FRAM_DATA_START_ADDR	(0x04)
 
+/** Size of each data block in FRAM (in bytes). */
+#define FRAM_DATA_FRAME_SIZE	(TRANCEIVER_TX_MAX_FRAME_SIZE + 1)
+
 
 /***************************************************************************************************
                                              PUBLIC API

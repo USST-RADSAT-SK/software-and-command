@@ -185,10 +185,14 @@ int dosimeterCollectData(void) {
 	// testing purposes only
 	uint8_t txMessageSize = 0;
 	uint8_t txMessage[235] = {0};
-	txMessageSize = fileTransferCurrentFrame(txMessage);
-	//txMessageSize = fileTransferNextFrame(txMessage);
-	for (uint8_t i=0; i<235; i++) {
-		printf("%i, ", txMessage[i]);
+	//txMessageSize = fileTransferCurrentFrame(&txMessage);
+	txMessageSize = fileTransferNextFrame(txMessage);
+	if (txMessageSize > 0) {
+		printf("\n\r --- Dosimeter.c | txMessageSize: %i --- \n\r", txMessageSize);
+		for (uint8_t i=0; i<235; i++) {
+			printf("%i, ", txMessage[i]);
+		}
+		printf("\n\r --- Dosimeter.c | Print txMessaged finished --- \n\r");
 	}
 
 	return  error;
