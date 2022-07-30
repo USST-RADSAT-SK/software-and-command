@@ -7,7 +7,7 @@
 #ifndef ROBC_H_
 #define ROBC_H_
 
-#include <stdlib.h>
+#include <stdint.h>
 
 
 
@@ -25,19 +25,14 @@
 
 typedef struct _obc_telemetry_t {
 	float temperature;
-	int16_t adcValue[SUPERVISOR_NUMBER_OF_ADC_CHANNELS];
 	uint32_t supervisorUptime;
 	uint32_t IobcUptime;
 	uint32_t IobcPowerCycleCount;
 	int16_t voltage3v3In;
-	int16_t voltageRef;
-	int16_t voltageRtc;
-	int16_t voltage3v3;
+	float voltage3v3;
 	int16_t voltage1v8;
 	int16_t voltage1v0;
 	int16_t current3v3;
-	int16_t current1v8;
-	int16_t current1v0;
 } obc_telemetry_t;
 
 
@@ -47,6 +42,10 @@ typedef struct _obc_telemetry_t {
 
 int obcTelemetry(obc_telemetry_t* telemetry);
 void obcPetWatchdogs(void);
+
+#ifdef TEST
+void debugPrintObcTelemetry(obc_telemetry_t* telemetry);
+#endif
 
 
 #endif /* ROBC_H_ */
