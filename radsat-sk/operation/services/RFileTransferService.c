@@ -75,7 +75,8 @@ int fileTransferInit(void) {
 			frameWriteCursor = frameReadCursor + 1;
 
 		// display the cursor values in FRAM at the start of the program
-		printf("[FileTransferService Init] WriteCursor: %i | ReadCursor: %i \n\r", frameWriteCursor, frameReadCursor);
+		debugPrint("[FileTransferService Init] WriteCursor: %i | ReadCursor: %i \n\r", frameWriteCursor, frameReadCursor);
+
 	}
 
 	return error;
