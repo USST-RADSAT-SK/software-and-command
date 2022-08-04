@@ -40,47 +40,10 @@ typedef struct _fram_frame_t {
 	uint8_t data[TRANCEIVER_TX_MAX_FRAME_SIZE];	///> The buffer holding the prepared frame
 } fram_frame_t;
 
-/** Local frame for FRAM operations. */
-static fram_frame_t fram_frame = { 0 };
-
-/** Cursor for writing to the frame FIFO (starts ahead of the read cursor). */
-static uint8_t frameWriteCursor = 1;
-
-/** Cursor for reading from the frame FIFO. */
-static uint8_t frameReadCursor = 0;
-
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
-
-/**
- * Initialize the write/read cursors with the last values in FRAM.
- * Requires that FRAM has already been initialized.
- * @return 0 for success, non-zero for failure.
- */
-int fileTransferInit(void) {
-	uint16_t framCursors[2] = {0};
-
-	// Read the last stored cursor values
-	int error = framRead(&framCursors, FRAM_WRITE_CURSOR_ADDR, 4);
-
-	if (error == SUCCESS) {
-		frameWriteCursor = framCursors[0];
-		frameReadCursor = framCursors[1];
-
-		if (frameReadCursor >= MAX_FRAME_COUNT)
-			frameReadCursor = 0;
-		if (frameWriteCursor >= MAX_FRAME_COUNT)
-			frameWriteCursor = frameReadCursor + 1;
-
-		// display the cursor values in FRAM at the start of the program
-		debugPrint("[FileTransferService Init] WriteCursor: %i | ReadCursor: %i \n\r", frameWriteCursor, frameReadCursor);
-
-	}
-
-	return error;
-}
 
 /**
  * Increment the internal FIFO and provide the frame at that location.
@@ -91,12 +54,16 @@ int fileTransferInit(void) {
  * @return The size of the frame placed into the buffer; 0 on error.
  */
 uint8_t fileTransferNextFrame(uint8_t* frame) {
+	// get the read cursor from FRAM
+	uint16_t frameReadCursor = 0;
+	framRead(&frameReadCursor, FRAM_READ_CURSOR_ADDR, 2);
 
 	// ensure that there is a valid frame ahead
-	uint8_t nextFrameReadCursor = frameReadCursor + 1;
+	uint16_t nextFrameReadCursor = frameReadCursor + 1;
 	if (nextFrameReadCursor == MAX_FRAME_COUNT)
 		nextFrameReadCursor = 0;
 
+	fram_frame_t fram_frame = {0};
 	void* framDataAddr = FRAM_DATA_START_ADDR + (nextFrameReadCursor * FRAM_DATA_FRAME_SIZE);
 	framRead(&fram_frame, framDataAddr, FRAM_DATA_FRAME_SIZE);
 
@@ -129,8 +96,12 @@ uint8_t fileTransferNextFrame(uint8_t* frame) {
  * @return The size of the frame placed into the buffer; 0 on error.
  */
 uint8_t fileTransferCurrentFrame(uint8_t* frame) {
+	// get the read cursor from FRAM
+	uint16_t frameReadCursor = 0;
+	framRead(&frameReadCursor, FRAM_READ_CURSOR_ADDR, 2);
 
 	// read current frame from FRAM
+	fram_frame_t fram_frame = {0};
 	void* framDataAddr = FRAM_DATA_START_ADDR + (frameReadCursor * FRAM_DATA_FRAME_SIZE);
 	framRead(&fram_frame, framDataAddr, FRAM_DATA_FRAME_SIZE);
 
@@ -162,6 +133,12 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	if (size == 0 || size > (uint8_t)PROTO_MAX_ENCODED_SIZE)
 		return E_PARAM_OUTOFBOUNDS;
 
+	// get the write & read cursors from FRAM
+	uint16_t frameWriteCursor = 0;
+	uint16_t frameReadCursor = 0;
+	framRead(&frameWriteCursor, FRAM_WRITE_CURSOR_ADDR, 2);
+	framRead(&frameReadCursor, FRAM_READ_CURSOR_ADDR, 2);
+
 	// ensure we are not about to overwrite frames that have not been read
 	if (frameWriteCursor == frameReadCursor)
 		return ERROR_CURSOR;
@@ -177,6 +154,7 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	memcpy(newMessageAddr, message, size);
 
 	// wrap new message
+	fram_frame_t fram_frame = {0};
 	fram_frame.size = messageWrap(&newMessage, fram_frame.data);
 
 	// write data in FRAM
@@ -198,3 +176,22 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	return SUCCESS;
 }
 
+
+/**
+ * Resets the file transfer content in FRAM to the following initial values:
+ *  - Write Cursor = 1
+ *  - Read Cursor  = 0
+ *  - All data frames are filled with 0.
+ */
+void fileTransferReset(void) {
+	// reset the cursors to their default values
+	uint16_t defaultCursors[2] = {1,0};
+	framWrite(&defaultCursors, FRAM_WRITE_CURSOR_ADDR, 4);
+
+	// reset all data frames to zero
+	fram_frame_t emptyFrame = {0};
+	for(int i=0; i<MAX_FRAME_COUNT; i++) {
+		void* framDataAddr = FRAM_DATA_START_ADDR + (i * FRAM_DATA_FRAME_SIZE);
+		framWrite(&emptyFrame, framDataAddr, FRAM_DATA_FRAME_SIZE);
+	}
+}
