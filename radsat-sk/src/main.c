@@ -34,7 +34,7 @@
 #include <RTelemetryCollectionTask.h>
 #include <RSatelliteWatchdogTask.h>
 
-#include <RtestSuite.h>
+#include <RTestSuite.h>
 
 
 /***************************************************************************************************
