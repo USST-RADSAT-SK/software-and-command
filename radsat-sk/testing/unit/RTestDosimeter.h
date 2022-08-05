@@ -7,15 +7,13 @@
 #ifndef RTESTDOSIMETER_H_
 #define RTESTDOSIMETER_H_
 
-#ifdef TEST
-
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
-void testDosimeterAll(void);
+int testSelectDosimeter(void);
+int testDosimeterAll(void);
 
 
-#endif /* TEST */
 #endif /* RTESTDOSIMETER_H_ */

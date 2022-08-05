@@ -34,8 +34,9 @@
 #include <RTelemetryCollectionTask.h>
 #include <RSatelliteWatchdogTask.h>
 
+#ifdef TEST
 #include <RTestSuite.h>
-
+#endif
 
 /***************************************************************************************************
                                    DEFINITIONS AND PRIVATE GLOBALS
@@ -376,6 +377,16 @@ void MissionInitTask(void* parameters) {
 
 	int error = SUCCESS;
 
+#ifdef TEST
+
+	// TODO: run tests
+	error = selectAndExecuteTest();
+	if (error)
+		debugPrint("Error running selectAndExecuteTest. error = %d\n", error);
+
+
+#else	/* TEST */
+
 	// initialize the Hardware Abstraction Library (HAL) drivers
 	error = initDrivers();
 	if (error != SUCCESS) {
@@ -404,24 +415,23 @@ void MissionInitTask(void* parameters) {
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
 	}
 
-#ifdef TEST
-
-	// TODO: run tests
-
-#else	/* TEST */
-
-#endif	/* TEST */
+#ifndef DEBUG
 
 	// TODO: Antenna Diagnostic & Deployment (if necessary)
+
+#endif
 
 	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
 
 	// initialize the FreeRTOS Tasks used for typical mission operation
-	initMissionTasks();
+	error = initMissionTasks();
 	if (error != SUCCESS) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize FreeRTOS Mission Tasks.\n");
 	}
+
+#endif	/* TEST */
+
 
 	// let this task delete itself
 	vTaskDelete(NULL);

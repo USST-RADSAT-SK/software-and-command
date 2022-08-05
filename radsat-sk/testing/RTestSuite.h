@@ -14,9 +14,9 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-void testSuiteRunAll(void);
+int testSuiteRunAll(void);
 
-void selectAndExecuteTest(void);
+int selectAndExecuteTests(void);
 
 
 #endif /* RTESTSUITE_H_ */
