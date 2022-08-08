@@ -62,7 +62,7 @@
 #define TELECOMMAND_OFFSET_11           ((uint8_t) 14)
 #define TELECOMMAND_OFFSET_12           ((uint8_t) 15)
 #define TELECOMMAND_OFFSET_14           ((uint8_t) 17)
-#define TELECOMMAND_REPONSE_OFFSET		((uint8_t) 2)
+#define TELECOMMAND_RESPONSE_OFFSET		((uint8_t) 2)
 
 /* Telemetry ID numbers and Related Parameters */
 #define TELEMETRY_0                  	((uint8_t) 0x80)
@@ -194,6 +194,7 @@ typedef struct _tlm_read_sensor_mask_t {
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
+static void printDetectionData(tlm_detection_result_and_trigger_adcs_t *data);
 static uint8_t * MessageBuilder(uint8_t response_size);
 static int tlmStatus(tlm_status_t *telemetry_reply);
 static int tlmPower(tlm_power_t *telemetry_reply);
@@ -249,7 +250,6 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 
 	return error;
 }
-
 
 
 /*
@@ -340,6 +340,15 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 	return SUCCESS;
 }
 
+void printDetectionData(tlm_detection_result_and_trigger_adcs_t *data) {
+	printf("\n--- Detection Data ---\n");
+	printf("Alpha = %d\n", data->alpha);
+	printf("Beta = %d\n", data->beta);
+	printf("Capture Result = %d\n", data->captureResult);
+	printf("Detection Result = %d\n", data->detectionResult);
+	printf("----------------------\n\n");
+}
+
 /*
  * Used to created a 3D vector from a detection of both sensors
  *
@@ -348,76 +357,90 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
  * @return 0 on success, otherwise failure
  */
 int detectionAndInterpret(detection_results_t *data) {
-	int error;
+	int error = 0;
 	uint16_t alphaSunSensor;
 	uint16_t betaSunSensor;
 	uint16_t alphaImageSensor;
-
 	uint16_t betaImageSensor;
-	tlm_detection_result_and_trigger_adcs_t *sun_sensor_data = {0};
-	tlm_detection_result_and_trigger_adcs_t *image_sensor_data = {0};
+	tlm_detection_result_and_trigger_adcs_t sun_sensor_data = {0};
+	tlm_detection_result_and_trigger_adcs_t image_sensor_data = {0};
 	interpret_detection_result_t sun_sensor_coords = {0};
 	interpret_detection_result_t image_sensor_coords = {0};
 
-
 	// Send Telecommand 20, Image Capture and Detection for camera 1, Sun sensor
-	error = tcImageCaputreAndDetection(SUN_SENSOR);
+	//error = tcImageCaptureAndDetection(SUN_SENSOR);
 
-	if (error != 0)
-		return error;
+	//if (error != 0)
+	//	return error;
+
+	printf("\n--- Sun Sensor ---\n");
+	while(error == 0 && sun_sensor_data.detectionResult <= 1) {
+		error = tlmSensorOneResultAndDetectionSRAMOne(&sun_sensor_data);
+		printf("Detection Result = %d\n", sun_sensor_data.detectionResult);
+	}
 
 	// Request results of detection from TC 20 with TLM 22
-	error = tlmSensorOneResultAndDetectionSRAMOne(sun_sensor_data);
+	//error = tlmSensorOneResultAndDetectionSRAMOne(&sun_sensor_data);
+	printDetectionData(&sun_sensor_data);
 
 	if (error != 0)
 		return error;
 
 	// If there was a failure to detect try again
-	if (sun_sensor_data->detectionResult != 7) {
-		error = tlmSensorOneResultAndDetectionSRAMOne(sun_sensor_data);
+	/*if (sun_sensor_data.detectionResult != 7) {
+		error = tlmSensorOneResultAndDetectionSRAMOne(&sun_sensor_data);
+		printDetectionData(&sun_sensor_data);
 
 		if (error != 0)
 			return error;
-	}
+	}*/
 
 	// If it was still a failure, set alpha and beta to zero
-	if (sun_sensor_data->detectionResult != 7) {
+	if (sun_sensor_data.detectionResult != 7) {
 		alphaSunSensor = 0;
 		betaSunSensor = 0;
 	}
 	else {
-		alphaSunSensor = sun_sensor_data->alpha;
-		betaSunSensor = sun_sensor_data->beta;
+		alphaSunSensor = sun_sensor_data.alpha;
+		betaSunSensor = sun_sensor_data.beta;
 	}
 
 	// Send Telecommand 20, Image Capture and Detection for camera 2, image sensor
-	error = tcImageCaputreAndDetection(IMAGE_SENSOR);
+	//error = tcImageCaptureAndDetection(IMAGE_SENSOR);
 
-	if (error != 0)
-		return error;
+	//if (error != 0)
+	//	return error;
+
+	printf("\n--- Nadir Sensor ---\n");
+	while(error == 0 && image_sensor_data.detectionResult <= 1) {
+		error = tlmSensorTwoResultAndDetectionSRAMOne(&image_sensor_data);
+		printf("Detection Result = %d\n", image_sensor_data.detectionResult);
+	}
 
 	// Request results of detection from TC 20 with TLM 22
-	error = tlmSensorOneResultAndDetectionSRAMOne(image_sensor_data);
+	//error = tlmSensorTwoResultAndDetectionSRAMOne(&image_sensor_data);
+	printDetectionData(&image_sensor_data);
 
 	if (error != 0)
 		return error;
 
 	// If there was a failure to detect try again
-	if (image_sensor_data->detectionResult != 7) {
-		error = tlmSensorOneResultAndDetectionSRAMOne(image_sensor_data);
+	/*if (image_sensor_data.detectionResult != 7) {
+		error = tlmSensorTwoResultAndDetectionSRAMOne(&image_sensor_data);
+		printDetectionData(&image_sensor_data);
 
 		if (error != 0)
 			return error;
-	}
+	}*/
 
 	// If it was still a failure, set alpha and beta to zero
-	if (image_sensor_data->detectionResult != 7) {
-		alphaSunSensor = 0;
-		betaSunSensor = 0;
+	if (image_sensor_data.detectionResult != 7) {
+		alphaImageSensor = 0;
+		betaImageSensor = 0;
 	}
 	else {
-		alphaImageSensor = image_sensor_data->alpha;
-		betaImageSensor = image_sensor_data->beta;
+		alphaImageSensor = image_sensor_data.alpha;
+		betaImageSensor = image_sensor_data.beta;
 	}
 
 	sun_sensor_coords = detectionResult(alphaSunSensor, betaSunSensor);
@@ -905,7 +928,7 @@ static int tcCameraOneDetectionThreshold(uint8_t detectionThreshold) {
 	}
 
 	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
+	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
 
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
@@ -962,7 +985,7 @@ static int tcCameraTwoDetectionThreshold(uint8_t detectionThreshold) {
 	}
 
 	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
+	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
 
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
@@ -1019,7 +1042,7 @@ static int tcCameraOneAutoAdjust(uint8_t enabler) {
 	}
 
 	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
+	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
 
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
@@ -1087,7 +1110,7 @@ static int tcCameraOneSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 	}
 
 	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
+	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
 
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
@@ -1144,7 +1167,7 @@ static int tcCameraTwoAutoAdjust(uint8_t enabler) {
 	}
 
 	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
+	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
 
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
@@ -1212,7 +1235,7 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 	}
 
 	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
+	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
 
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);

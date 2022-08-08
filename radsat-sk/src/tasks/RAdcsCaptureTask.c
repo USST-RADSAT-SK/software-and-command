@@ -6,7 +6,7 @@
 
 #include <RAdcsCaptureTask.h>
 #include <RCommon.h>
-
+#include <RCamera.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -36,6 +36,18 @@ void AdcsCaptureTask(void* parameters) {
 		// TODO: implement ADCS capture
 
 		debugPrint("AdcsCaptureTask(): About to capture ADCS data.\n");
+
+		detection_results_t data = {0};
+		detectionAndInterpret(&data);
+
+		printf("\n--- Final Axis Data ---\n");
+		printf("sunSensorX = %d\n", data.sunSensorX);
+		printf("sunSensorY = %d\n", data.sunSensorY);
+		printf("sunSensorZ = %d\n", data.sunSensorZ);
+		printf("imageSensorX = %d\n", data.imageSensorX);
+		printf("imageSensorY = %d\n", data.imageSensorY);
+		printf("imageSensorZ = %d\n", data.imageSensorZ);
+		printf("----------------------\n\n");
 
 		vTaskDelay(ADCS_CAPURE_TASK_DELAY_MS);
 	}

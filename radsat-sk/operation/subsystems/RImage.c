@@ -26,7 +26,7 @@
 #define TELECOMMAND_OFFSET_0            ((uint8_t) 3)
 #define TELECOMMAND_OFFSET_1            ((uint8_t) 4)
 #define TELECOMMAND_OFFSET_2            ((uint8_t) 5)
-#define TELECOMMAND_REPONSE_OFFSET		((uint8_t) 2)
+#define TELECOMMAND_RESPONSE_OFFSET		((uint8_t) 2)
 
 #define TELEMETRY_3                 	((uint8_t) 0x83)
 #define TELEMETRY_21                 	((uint8_t) 0x95)
@@ -122,7 +122,7 @@ int tcImageCaputre(uint8_t SRAM, uint8_t location) {
 	}
 
 	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
+	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
 
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
@@ -244,7 +244,7 @@ int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size) {
 	}
 
 	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
+	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
 
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
@@ -355,7 +355,7 @@ int tcAdvanceImageDownload(uint16_t nextFrameNumber) {
 	}
 
 	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
+	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
 
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);

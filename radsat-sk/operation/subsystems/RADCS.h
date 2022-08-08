@@ -27,7 +27,7 @@ typedef struct _interpret_detection_result_t {
                                              PUBLIC API
 ***************************************************************************************************/
 
-int tcImageCaputreAndDetection(uint8_t camera);
+int tcImageCaptureAndDetection(uint8_t camera);
 int tlmSensorOneResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_t *telemetry_reply);
 int tlmSensorTwoResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_t *telemetry_reply);
 interpret_detection_result_t detectionResult(uint16_t alpha, uint16_t beta);

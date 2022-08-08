@@ -23,7 +23,7 @@
 #define TELECOMMAND_OFFSET_ID           ((uint8_t) 2)
 #define TELECOMMAND_OFFSET_0            ((uint8_t) 3)
 #define TELECOMMAND_OFFSET_1            ((uint8_t) 4)
-#define TELECOMMAND_REPONSE_OFFSET		((uint8_t) 2)
+#define TELECOMMAND_RESPONSE_OFFSET		((uint8_t) 2)
 
 #define TELEMETRY_22                    ((uint8_t) 0x96)
 #define TELEMETRY_25                    ((uint8_t) 0x99)
@@ -67,7 +67,7 @@ static uint8_t * MessageBuilder(uint8_t response_size);
  * @param camera defines which camera to use for detection
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
-int tcImageCaputreAndDetection(uint8_t camera) {
+int tcImageCaptureAndDetection(uint8_t camera) {
 	uint8_t *telecommandBuffer;
 	uint8_t *telecommandResponse;
 	uint16_t sizeOfBuffer;
@@ -90,12 +90,12 @@ int tcImageCaputreAndDetection(uint8_t camera) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
+	// Free the dynamically allocated buffer
+	free(telecommandBuffer);
+
 	if (error != 0) {
 		return E_GENERIC;
 	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
 
 	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
 	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
@@ -105,11 +105,12 @@ int tcImageCaputreAndDetection(uint8_t camera) {
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0) {
+		free(telecommandResponse);
 		return E_GENERIC;
 	}
 
 	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_REPONSE_OFFSET];
+	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
 
 	// Free the dynamically allocated buffer
 	free(telecommandResponse);
@@ -146,13 +147,12 @@ int tlmSensorOneResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
-	if (error != 0) {
-		free(telemetryBuffer);
-		return E_GENERIC;
-	}
-
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
+
+	if (error != 0) {
+		return E_GENERIC;
+	}
 
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
 	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_6);
@@ -202,13 +202,12 @@ int tlmSensorTwoResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
-	if (error != 0) {
-		free(telemetryBuffer);
-		return E_GENERIC;
-	}
-
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
+
+	if (error != 0) {
+		return E_GENERIC;
+	}
 
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
 	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_6);
@@ -243,14 +242,16 @@ int tlmSensorTwoResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_
 interpret_detection_result_t detectionResult(uint16_t alpha, uint16_t beta) {
 	uint16_t theta;
 	uint16_t phi;
-	interpret_detection_result_t data;
+	interpret_detection_result_t data = {0};
 
-	theta = sqrt((alpha/100) * (alpha/100) + (beta/100) * (beta/100));
+	// TODO: Convert alpha/beta 16 bits values in range of -100deg to 100deg
+
+	/*theta = sqrt((alpha/100) * (alpha/100) + (beta/100) * (beta/100));
 	phi = atan2(beta,alpha);
 
 	data.X_AXIS = sin(theta)*cos(phi);
 	data.Y_AXIS = sin(theta)*sin(phi);
-	data.Z_AXIS = cos(theta);
+	data.Z_AXIS = cos(theta);*/
 
 	return data;
 }
