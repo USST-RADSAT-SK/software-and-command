@@ -9,6 +9,7 @@
 #include <RCommon.h>
 #include <stdlib.h>
 #include <string.h>
+#include <freertos/task.h>
 
 /***************************************************************************************************
                                             DEFINITIONS
@@ -71,13 +72,13 @@ static uint8_t* MessageBuilder(uint8_t response_size);
                                              PUBLIC API
 ***************************************************************************************************/
 /*
- * Used to send image capture telecommand (TC ID 21) to image sensor
+ * Used to send image capture telecommand (TC ID 21)
  *
  * @param SRAM defines which SRAM to use on Cubesense
  * @param location defines which SRAM slot to use within selected SRAM
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
-int tcImageCaputre(uint8_t SRAM, uint8_t location) {
+int tcImageCapture(uint8_t camera, uint8_t SRAM, uint8_t location) {
 	uint8_t *telecommandBuffer;
 	uint8_t *telecommandResponse;
 	uint16_t sizeOfBuffer;
@@ -92,7 +93,7 @@ int tcImageCaputre(uint8_t SRAM, uint8_t location) {
 	telecommandBuffer[TELECOMMAND_OFFSET_ID] = TELECOMMAND_21;
 
     // Fill buffer with Camera selection
-	telecommandBuffer[TELECOMMAND_OFFSET_0] = IMAGE_SENSOR;
+	telecommandBuffer[TELECOMMAND_OFFSET_0] = camera;
 
 	// Fill buffer with SRAM
 	telecommandBuffer[TELECOMMAND_OFFSET_1] = SRAM;
@@ -103,12 +104,12 @@ int tcImageCaputre(uint8_t SRAM, uint8_t location) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
+	// Free the dynamically allocated buffer
+	free(telecommandBuffer);
+
 	if (error != 0) {
 		return E_GENERIC;
 	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
 
 	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
 	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
@@ -118,6 +119,7 @@ int tcImageCaputre(uint8_t SRAM, uint8_t location) {
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0) {
+		free(telecommandResponse);
 		return E_GENERIC;
 	}
 
@@ -159,13 +161,12 @@ int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
-	if (error != 0) {
-		free(telemetryBuffer);
-		return E_GENERIC;
-	}
-
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
+
+	if (error != 0) {
+		return E_GENERIC;
+	}
 
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
 	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_6);
@@ -183,7 +184,6 @@ int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply) {
 	memcpy(&telemetry_reply->beta, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->beta));
 	telemetry_reply->captureResult = telemetryBuffer[TELEMETRY_OFFSET_4];
 	telemetry_reply->detectionResult = telemetryBuffer[TELEMETRY_OFFSET_5];
-
 
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
@@ -225,12 +225,12 @@ int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
+	// Free the dynamically allocated buffer
+	free(telecommandBuffer);
+
 	if (error != 0) {
 		return E_GENERIC;
 	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
 
 	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
 	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
@@ -240,6 +240,7 @@ int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size) {
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0) {
+		free(telecommandResponse);
 		return E_GENERIC;
 	}
 
@@ -281,13 +282,12 @@ int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
-	if (error != 0) {
-		free(telemetryBuffer);
-		return E_GENERIC;
-	}
-
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
+
+	if (error != 0) {
+		return E_GENERIC;
+	}
 
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
 	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_3);
@@ -331,17 +331,18 @@ int tcAdvanceImageDownload(uint16_t nextFrameNumber) {
 	telecommandBuffer[TELECOMMAND_OFFSET_ID] = TELECOMMAND_65;
 
 	// Fill buffer with Next frame number
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_0], nextFrameNumber, sizeof(nextFrameNumber));
+	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_0], &nextFrameNumber, sizeof(nextFrameNumber));
 
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
-	if (error != 0) {
-		return E_GENERIC;
-	}
-
 	// Free the dynamically allocated buffer
 	free(telecommandBuffer);
+
+	if (error != 0) {
+		printf("UART Transmit Error: %i\n", error);
+		return E_GENERIC;
+	}
 
 	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
 	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
@@ -350,7 +351,12 @@ int tcAdvanceImageDownload(uint16_t nextFrameNumber) {
 	// Read automatically reply to telecommand
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
+	// TODO: Figure out why code below the uartReceive() never gets execute when requesting frame 31
+	// The code gets stuck on the uartReceive()...
+
 	if (error != 0) {
+		printf("UART Receive Error: %i\n", error);
+		free(telecommandResponse);
 		return E_GENERIC;
 	}
 
@@ -361,6 +367,7 @@ int tcAdvanceImageDownload(uint16_t nextFrameNumber) {
 	free(telecommandResponse);
 
 	if (tcErrorFlag != 0) {
+		printf("\nTC 65 Reply Error Flag: %i\n", tcErrorFlag);
 		return E_GENERIC;
 	}
 
@@ -389,24 +396,21 @@ int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply) {
     // Fill buffer with telemetry ID
 	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_3;
 
-   // Send Telemetry Request
-	 error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
-
-	if (error != 0) {
-		free(telemetryBuffer);
-		return E_GENERIC;
-	}
+    // Send Telemetry Request
+	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
 
+	if (error != 0) {
+		return E_GENERIC;
+	}
 
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
-	telemetryBuffer = telemetryMessageBuilder(TELEMETRY_REPLY_SIZE_3);
+	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_3);
 
-  // Reading Automatic reply from CubeSense regarding status of Telemetry request
+    // Reading Automatic reply from CubeSense regarding status of Telemetry request
 	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_3_LEN);
-
 
 	if (error != 0) {
 		free(telemetryBuffer);

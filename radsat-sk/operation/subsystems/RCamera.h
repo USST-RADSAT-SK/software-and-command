@@ -16,7 +16,7 @@
 #define FRAME_BYTES						128
 
 /*maximum number of frames in one image*/
-#define MAXIMUM_FRAMES			        8192
+#define MAXIMUM_FRAMES			        128 // Original value: 8192
 
 /*maximum number of bytes in one image */
 #define MAXIMUM_BYTES					1048576
@@ -42,7 +42,7 @@ typedef struct _CameraTelemetry_PowerTelemetry {
 } CameraTelemetry_PowerTelemetry;
 
 /* Struct that holds all Camera configuration related telemetry */
-typedef struct _CameraTelemetry_ConfiguarationTelemetry {
+typedef struct _CameraTelemetry_ConfigurationTelemetry {
     uint8_t detectionThreshold;
     uint8_t autoAdjustMode;
     uint16_t exposure;
@@ -69,14 +69,16 @@ typedef struct _tlm_image_frame_t {
 typedef struct _full_image_t {
 	uint8_t image_ID;
 	tlm_image_frame_t *imageFrames[MAXIMUM_FRAMES];
-}full_image_t;
+} full_image_t;
 
 /****************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
+int captureImage(void);
 int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *image);
 int detectionAndInterpret(detection_results_t *data);
+int cameraConfig(CameraTelemetry *cameraTelemetry);
 int cameraTelemetry(CameraTelemetry *cameraTelemetry);
 
 #endif /* RCAMERA_H_ */

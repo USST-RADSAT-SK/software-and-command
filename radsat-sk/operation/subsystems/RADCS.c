@@ -15,6 +15,7 @@
                                             DEFINITIONS
 ***************************************************************************************************/
 
+
 #define TELECOMMAND_20    	          	((uint8_t) 0x14)
 
 #define TELECOMMAND_20_LEN              ((uint8_t) 3)
@@ -26,9 +27,13 @@
 #define TELECOMMAND_RESPONSE_OFFSET		((uint8_t) 2)
 
 #define TELEMETRY_22                    ((uint8_t) 0x96)
+#define TELEMETRY_23                    ((uint8_t) 0x97)
+#define TELEMETRY_24                    ((uint8_t) 0x98)
 #define TELEMETRY_25                    ((uint8_t) 0x99)
 
 #define TELEMETRY_22_LEN				((uint8_t) 10)
+#define TELEMETRY_23_LEN				((uint8_t) 10)
+#define TELEMETRY_24_LEN				((uint8_t) 10)
 #define TELEMETRY_25_LEN				((uint8_t) 10)
 #define TELEMETRY_REQUEST_LEN			((uint8_t) 1)
 #define TELEMETRY_REPLY_SIZE_6			((uint8_t) 6)
@@ -178,12 +183,12 @@ int tlmSensorOneResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_
 }
 
 /*
- * Used to request the previous detection results (TLM ID 25)
+ * Used to request the previous detection results (TLM ID 23)
  *
  * @param camera defines which camera to use for detection
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
-int tlmSensorTwoResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_t *telemetry_reply) {
+int tlmSensorTwoResultAndDetectionSRAMTwo(tlm_detection_result_and_trigger_adcs_t *telemetry_reply) {
 	uint8_t* telemetryBuffer;
 	uint16_t sizeOfBuffer;
 	int error;
@@ -197,7 +202,7 @@ int tlmSensorTwoResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_
 	sizeOfBuffer = TELEMETRY_REQUEST_LEN + BASE_MESSAGE_LEN;
 
     // Fill buffer with telemetry ID
-	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_25;
+	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_23;
 
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
@@ -213,7 +218,7 @@ int tlmSensorTwoResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_
 	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_6);
 
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
-	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_25_LEN);
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_23_LEN);
 
 	if (error != 0) {
 		free(telemetryBuffer);
@@ -244,14 +249,14 @@ interpret_detection_result_t detectionResult(uint16_t alpha, uint16_t beta) {
 	uint16_t phi;
 	interpret_detection_result_t data = {0};
 
-	// TODO: Convert alpha/beta 16 bits values in range of -100deg to 100deg
+	// TODO: Do we need to convert alpha/beta 16 bits values in range of -100deg to 100deg?
 
-	/*theta = sqrt((alpha/100) * (alpha/100) + (beta/100) * (beta/100));
+	theta = sqrt((alpha/100) * (alpha/100) + (beta/100) * (beta/100));
 	phi = atan2(beta,alpha);
 
 	data.X_AXIS = sin(theta)*cos(phi);
 	data.Y_AXIS = sin(theta)*sin(phi);
-	data.Z_AXIS = cos(theta);*/
+	data.Z_AXIS = cos(theta);
 
 	return data;
 }

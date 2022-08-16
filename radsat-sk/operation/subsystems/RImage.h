@@ -58,7 +58,7 @@ typedef struct _image_t {
 ***************************************************************************************************/
 
 int tcAdvanceImageDownload(uint16_t nextFrameNumber);
-int tcImageCaputre(uint8_t SRAM, uint8_t location);
+int tcImageCapture(uint8_t camera, uint8_t SRAM, uint8_t location);
 int tlmTelecommandAcknowledge(tlm_telecommand_ack_t *telemetry_reply);
 int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply);
 int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size);

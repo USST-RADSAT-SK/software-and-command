@@ -13,8 +13,8 @@
 #include <RImage.h>
 #include <RADCS.h>
 #include <RCommon.h>
-#include <hal/Timing/RTT.h>
 #include <math.h>
+#include <freertos/task.h>
 
 /***************************************************************************************************
                                PRIVATE DEFINITIONS AND VARIABLES
@@ -66,11 +66,13 @@
 
 /* Telemetry ID numbers and Related Parameters */
 #define TELEMETRY_0                  	((uint8_t) 0x80)
+#define TELEMETRY_2						((uint8_t) 0x82)
 #define TELEMETRY_26                	((uint8_t) 0x9A)
 #define TELEMETRY_40                    ((uint8_t) 0xA8)
 #define TELEMETRY_64                 	((uint8_t) 0xC0)
 
 #define TELEMETRY_0_LEN					((uint8_t) 12)
+#define TELEMETRY_2_LEN					((uint8_t) 12)
 #define TELEMETRY_26_LEN				((uint8_t) 14)
 #define TELEMETRY_40_LEN				((uint8_t) 18)
 #define TELEMETRY_64_LEN				((uint8_t) 132)
@@ -79,6 +81,7 @@
 #define TELEMETRY_REPLY_SIZE_8			((uint8_t) 8)
 #define TELEMETRY_REPLY_SIZE_10			((uint8_t) 10)
 #define TELEMETRY_REPLY_SIZE_14			((uint8_t) 14)
+#define TELEMETRY_REPLY_SIZE_128		((uint8_t) 128)
 
 #define TELEMETRY_OFFSET_0              ((uint8_t) 2)
 #define TELEMETRY_OFFSET_1              ((uint8_t) 3)
@@ -197,6 +200,7 @@ typedef struct _tlm_read_sensor_mask_t {
 static void printDetectionData(tlm_detection_result_and_trigger_adcs_t *data);
 static uint8_t * MessageBuilder(uint8_t response_size);
 static int tlmStatus(tlm_status_t *telemetry_reply);
+//static int tlmCommunicationStatus(tlm_communication_status_t *telemetry_reply);
 static int tlmPower(tlm_power_t *telemetry_reply);
 static int tlmConfig(tlm_config_t *telemetry_reply);
 static int tlmImageFrame(tlm_image_frame_t *telemetry_reply);
@@ -215,40 +219,23 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
  *
  * @return error, 0 on successful, otherwise failure
  * */
- int capture(void) {
+int captureImage(void) {
 	int error;
-	tlm_telecommand_ack_t *telecommand_ack = {0};    //pointer to struct
-	tlm_detection_result_and_trigger_t *sensor_two_result = {0};
+	tlm_telecommand_ack_t telecommand_ack = {0};
 
 	// Send Telecommand to Camera to Take a Photo
-	error = tcImageCaputre(SRAM1, BOTTOM_HALVE);
+	error = tcImageCapture(IMAGE_SENSOR, SRAM2, BOTTOM_HALVE);
 
 	if (error != SUCCESS)
 		return error;
 
 	// Request telecommand acknowledgment with TLM 3
-   error = tlmTelecommandAcknowledge(telecommand_ack);
+	error = tlmTelecommandAcknowledge(&telecommand_ack);
 
 	if (error != SUCCESS)
 		return error;
 
-	// Confirm there was a Successful telecommand
-	if(telecommand_ack->tc_error_flag == TC_NO_ERROR) {
-
-		// Request for sensor 2 (Camera) results
-		error = tlmSensorTwoResult(sensor_two_result);
-
-		if (error != SUCCESS)
-			return error;
-
-		// Checks if the image was successfully captured
-		if (sensor_two_result->captureResult != 2)
-			return E_GENERIC;
-
-		return SUCCESS;
-	}
-
-	return error;
+	return telecommand_ack.tc_error_flag;
 }
 
 
@@ -263,17 +250,17 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
  * @return error, 0 on success, otherwise failure
  * */
 int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *image) {
-	unsigned int startTime;
-	unsigned int currentTime;
-	unsigned int elapsedTime;
 	int imageFrameNum = 1;
 	int error;
+	uint8_t counter = 0;
+	uint8_t isFirstRequest = 1;
 	uint16_t numOfFrames;
-	tlm_image_frame_info_t *imageFrameInfo = {0};
-	tlm_image_frame_t *imageFrame = {0};
+	tlm_image_frame_info_t imageFrameInfo = {0};
+	tlm_image_frame_t imageFrame = {0};
 
+	printf("\n--- Initializing Image Download (TC 64) of SRAM=%i and location=%i---\n", sram, location);
 	// Send telecommand 64 to initialized a download
-	error = tcInitImageDownload(sram,location,size);
+	error = tcInitImageDownload(sram, location, size);
 	if (error != SUCCESS) {
 		return error;
 	}
@@ -289,48 +276,56 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 	}
 
 	// Reset all parameters
-	startTime = 0;
-	currentTime = 0;
-	elapsedTime = 0;
 	imageFrameNum = 1;
 	memset(image->imageFrames, 0, sizeof(image->imageFrames));
 
 	// Loop for the amount of frames that are being downloaded
+	printf("\n numOfFrames = %i\n", numOfFrames);
 	for (uint16_t i = 0; i < numOfFrames; i++) {
-
-		// Start a timer and record start time, resets timer on function call
-		RTT_start();
-		startTime = RTT_GetTime();
-
-		// Need to wait until on board camera buffer empties for frame, timer used as a back up to ensure we dont deadlock, set for 2 seconds
-		while((imageFrameNum != 0) && (elapsedTime <= 2)) {
-
-			// Request Telemetry 65 To get the status of image frame buffer
-			error = tlmImageFrameInfo(imageFrameInfo);
+		printf("\nFRAME NUMBER = %i  |  Attempts:", i);
+		// Request image frame status until image frame is loaded in the camera buffer, counter used to ensure we don't deadlock
+		counter = 0;
+		while((imageFrameNum != i) && (counter < 4)) {
+			if (isFirstRequest == 1) {
+				isFirstRequest = 0;
+			} else {
+				vTaskDelay(500); // Delay in ms between each frame info requests
+			}
+			printf(" %i ", counter);
+			error = tlmImageFrameInfo(&imageFrameInfo);
 			if(error != SUCCESS){
+				printf("Image Frame Info Error: %i\n", error);
 				return error;
 			}
 
-			imageFrameNum = imageFrameInfo->imageFrameNumber;
-
-			currentTime = RTT_GetTime();
-			elapsedTime = currentTime - startTime;
-
+			imageFrameNum = imageFrameInfo.imageFrameNumber;
+			counter++;
 		}
 
 		// Collect Image Frame with TLM 64
-		error = tlmImageFrame(imageFrame);
+		error = tlmImageFrame(&imageFrame);
 		if(error != SUCCESS) {
+			printf("Image Frame Error: %i\n", error);
 			return error;
 		}
 
 		// Store Image Frame inside master struct
-		image->imageFrames[i] = imageFrame;
+		image->imageFrames[i] = &imageFrame;
 
-		// Advance Image Download to Continue to the next Frame
-		error = tcAdvanceImageDownload(i);
+		/*tlm_communication_status_t telemetry_reply;
+		error = tlmCommunicationStatus(&telemetry_reply);
 		if(error != SUCCESS) {
+			printf("Communication Status Error: %i\n", error);
 			return error;
+		}*/
+
+		if (i+1 < numOfFrames) {
+			// Advance Image Download to Continue to the next Frame
+			error = tcAdvanceImageDownload(i+1);
+			if(error != SUCCESS) {
+				printf("Advance Image Frame Error: %i\n", error);
+				return error;
+			}
 		}
 	}
 
@@ -340,12 +335,32 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 	return SUCCESS;
 }
 
+// TODO: REMOVE. Test purposes only.
+char capture_results[6][25] = {
+		"Startup",
+		"Capture Pending",
+		"Success - Own SRAM",
+		"Success - Other SRAM",
+		"Camera timeout",
+		"SRAM overcurrent"
+};
+char detection_results[8][25] = {
+		"Startup",
+		"Not scheduled",
+		"Detection Pending",
+		"Error - Too many edges",
+		"Error - Not enough edges",
+		"Error - Bad fit",
+		"Error - Sun not found",
+		"Success"
+};
+
 void printDetectionData(tlm_detection_result_and_trigger_adcs_t *data) {
 	printf("\n--- Detection Data ---\n");
-	printf("Alpha = %d\n", data->alpha);
-	printf("Beta = %d\n", data->beta);
-	printf("Capture Result = %d\n", data->captureResult);
-	printf("Detection Result = %d\n", data->detectionResult);
+	printf("Alpha Angle      = %d\n", data->alpha);
+	printf("Beta Angle       = %d\n", data->beta);
+	printf("Capture Result   = %d (%s)\n", data->captureResult, capture_results[data->captureResult]);
+	printf("Detection Result = %d (%s)\n", data->detectionResult, detection_results[data->detectionResult]);
 	printf("----------------------\n\n");
 }
 
@@ -367,33 +382,14 @@ int detectionAndInterpret(detection_results_t *data) {
 	interpret_detection_result_t sun_sensor_coords = {0};
 	interpret_detection_result_t image_sensor_coords = {0};
 
-	// Send Telecommand 20, Image Capture and Detection for camera 1, Sun sensor
-	//error = tcImageCaptureAndDetection(SUN_SENSOR);
-
-	//if (error != 0)
-	//	return error;
-
-	printf("\n--- Sun Sensor ---\n");
-	while(error == 0 && sun_sensor_data.detectionResult <= 1) {
-		error = tlmSensorOneResultAndDetectionSRAMOne(&sun_sensor_data);
-		printf("Detection Result = %d\n", sun_sensor_data.detectionResult);
-	}
+	printf("--------- SUN ---------\n");
 
 	// Request results of detection from TC 20 with TLM 22
-	//error = tlmSensorOneResultAndDetectionSRAMOne(&sun_sensor_data);
+	error = tlmSensorOneResultAndDetectionSRAMOne(&sun_sensor_data);
 	printDetectionData(&sun_sensor_data);
 
 	if (error != 0)
 		return error;
-
-	// If there was a failure to detect try again
-	/*if (sun_sensor_data.detectionResult != 7) {
-		error = tlmSensorOneResultAndDetectionSRAMOne(&sun_sensor_data);
-		printDetectionData(&sun_sensor_data);
-
-		if (error != 0)
-			return error;
-	}*/
 
 	// If it was still a failure, set alpha and beta to zero
 	if (sun_sensor_data.detectionResult != 7) {
@@ -405,33 +401,14 @@ int detectionAndInterpret(detection_results_t *data) {
 		betaSunSensor = sun_sensor_data.beta;
 	}
 
-	// Send Telecommand 20, Image Capture and Detection for camera 2, image sensor
-	//error = tcImageCaptureAndDetection(IMAGE_SENSOR);
-
-	//if (error != 0)
-	//	return error;
-
-	printf("\n--- Nadir Sensor ---\n");
-	while(error == 0 && image_sensor_data.detectionResult <= 1) {
-		error = tlmSensorTwoResultAndDetectionSRAMOne(&image_sensor_data);
-		printf("Detection Result = %d\n", image_sensor_data.detectionResult);
-	}
+	printf("-------- NADIR --------\n");
 
 	// Request results of detection from TC 20 with TLM 22
-	//error = tlmSensorTwoResultAndDetectionSRAMOne(&image_sensor_data);
+	error = tlmSensorTwoResultAndDetectionSRAMTwo(&image_sensor_data);
 	printDetectionData(&image_sensor_data);
 
 	if (error != 0)
 		return error;
-
-	// If there was a failure to detect try again
-	/*if (image_sensor_data.detectionResult != 7) {
-		error = tlmSensorTwoResultAndDetectionSRAMOne(&image_sensor_data);
-		printDetectionData(&image_sensor_data);
-
-		if (error != 0)
-			return error;
-	}*/
 
 	// If it was still a failure, set alpha and beta to zero
 	if (image_sensor_data.detectionResult != 7) {
@@ -465,46 +442,46 @@ int detectionAndInterpret(detection_results_t *data) {
  */
 int cameraTelemetry(CameraTelemetry *cameraTelemetry) {
 	int error;
-	tlm_status_t *tlmStatusStruct = {0};
-	tlm_power_t *tlmPowerStruct = {0};
-	tlm_config_t *tlmConfigStruct = {0};
+	tlm_status_t tlmStatusStruct = {0};
+	tlm_power_t tlmPowerStruct = {0};
+	tlm_config_t tlmConfigStruct = {0};
 
 	// Grab All telemetry and check if successful while doing so
-	error = tlmStatus(tlmStatusStruct);
+	error = tlmStatus(&tlmStatusStruct);
 
 	if (error != SUCCESS)
 		return error;
 
-	error = tlmPower(tlmPowerStruct);
+	error = tlmPower(&tlmPowerStruct);
 
 	if (error != SUCCESS)
 		return error;
 
-	error = tlmConfig(tlmConfigStruct);
+	error = tlmConfig(&tlmConfigStruct);
 
 	if (error != SUCCESS)
 		return error;
 
 	// Assign telemetry to master telemetry struct
-	cameraTelemetry->upTime = tlmStatusStruct->runtimeSeconds;
-	cameraTelemetry->powerTelemetry.current_3V3 = tlmPowerStruct->threeVcurrent;
-	cameraTelemetry->powerTelemetry.current_5V = tlmPowerStruct->fiveVcurrent;
-	cameraTelemetry->powerTelemetry.current_SRAM_1 = tlmPowerStruct->sramOneCurrent;
-	cameraTelemetry->powerTelemetry.current_SRAM_2 = tlmPowerStruct->sramTwoCurrent;
-	cameraTelemetry->powerTelemetry.overcurrent_SRAM_1 = tlmPowerStruct->sramOneOverCurrent;
-	cameraTelemetry->powerTelemetry.overcurrent_SRAM_2 = tlmPowerStruct->sramTwoOverCurrent;
-	cameraTelemetry->cameraOneTelemetry.autoAdjustMode = tlmConfigStruct->cameraOneAutoAdjustMode;
-	cameraTelemetry->cameraOneTelemetry.autoGainControl = tlmConfigStruct->cameraOneAGC;
-	cameraTelemetry->cameraOneTelemetry.blueGain = tlmConfigStruct->cameraOneBlueGain;
-	cameraTelemetry->cameraOneTelemetry.detectionThreshold = tlmConfigStruct->cameraOneDetectionThrshld;
-	cameraTelemetry->cameraOneTelemetry.exposure = tlmConfigStruct->cameraOneExposure;
-	cameraTelemetry->cameraOneTelemetry.redGain = tlmConfigStruct->cameraOneRedGain;
-	cameraTelemetry->cameraTwoTelemetry.autoAdjustMode = tlmConfigStruct->cameraTwoAutoAdjustMode;
-	cameraTelemetry->cameraTwoTelemetry.autoGainControl = tlmConfigStruct->cameraTwoAGC;
-	cameraTelemetry->cameraTwoTelemetry.blueGain = tlmConfigStruct->cameraTwoBlueGain;
-	cameraTelemetry->cameraTwoTelemetry.detectionThreshold = tlmConfigStruct->cameraTwoDetectionThrshld;
-	cameraTelemetry->cameraTwoTelemetry.exposure = tlmConfigStruct->cameraTwoExposure;
-	cameraTelemetry->cameraTwoTelemetry.redGain = tlmConfigStruct->cameraTwoRedGain;
+	cameraTelemetry->upTime = tlmStatusStruct.runtimeSeconds;
+	cameraTelemetry->powerTelemetry.current_3V3 = tlmPowerStruct.threeVcurrent;
+	cameraTelemetry->powerTelemetry.current_5V = tlmPowerStruct.fiveVcurrent;
+	cameraTelemetry->powerTelemetry.current_SRAM_1 = tlmPowerStruct.sramOneCurrent;
+	cameraTelemetry->powerTelemetry.current_SRAM_2 = tlmPowerStruct.sramTwoCurrent;
+	cameraTelemetry->powerTelemetry.overcurrent_SRAM_1 = tlmPowerStruct.sramOneOverCurrent;
+	cameraTelemetry->powerTelemetry.overcurrent_SRAM_2 = tlmPowerStruct.sramTwoOverCurrent;
+	cameraTelemetry->cameraOneTelemetry.autoAdjustMode = tlmConfigStruct.cameraOneAutoAdjustMode;
+	cameraTelemetry->cameraOneTelemetry.autoGainControl = tlmConfigStruct.cameraOneAGC;
+	cameraTelemetry->cameraOneTelemetry.blueGain = tlmConfigStruct.cameraOneBlueGain;
+	cameraTelemetry->cameraOneTelemetry.detectionThreshold = tlmConfigStruct.cameraOneDetectionThrshld;
+	cameraTelemetry->cameraOneTelemetry.exposure = tlmConfigStruct.cameraOneExposure;
+	cameraTelemetry->cameraOneTelemetry.redGain = tlmConfigStruct.cameraOneRedGain;
+	cameraTelemetry->cameraTwoTelemetry.autoAdjustMode = tlmConfigStruct.cameraTwoAutoAdjustMode;
+	cameraTelemetry->cameraTwoTelemetry.autoGainControl = tlmConfigStruct.cameraTwoAGC;
+	cameraTelemetry->cameraTwoTelemetry.blueGain = tlmConfigStruct.cameraTwoBlueGain;
+	cameraTelemetry->cameraTwoTelemetry.detectionThreshold = tlmConfigStruct.cameraTwoDetectionThrshld;
+	cameraTelemetry->cameraTwoTelemetry.exposure = tlmConfigStruct.cameraTwoExposure;
+	cameraTelemetry->cameraTwoTelemetry.redGain = tlmConfigStruct.cameraTwoRedGain;
 
 	return SUCCESS;
 }
@@ -711,6 +688,70 @@ static int tlmStatus(tlm_status_t *telemetry_reply) {
 }
 
 /*
+ * Used to retrieve the communication status of the Camera (TLM ID 2)
+ *
+ * @param telemetry_reply struct that holds all the information from the telemetry response
+ * @return error of telemetry request attempt. 0 on success, otherwise failure
+ * */
+/*static int tlmCommunicationStatus(tlm_communication_status_t *telemetry_reply) {
+	uint8_t *telemetryBuffer;
+	uint16_t sizeOfBuffer;
+	int error;
+
+	// ensure the input pointers are not NULL
+	if (telemetry_reply == 0)
+		return E_GENERIC;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = MessageBuilder(TELEMETRY_REQUEST_LEN);
+	sizeOfBuffer = TELEMETRY_REQUEST_LEN + BASE_MESSAGE_LEN;
+
+	// Fill buffer with telemetry ID
+	telemetryBuffer[TELEMETRY_ID_OFFSET] = TELEMETRY_2;
+
+	// Send Telemetry Request
+	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	if (error != 0)
+		return E_GENERIC;
+
+	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
+	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_8);
+
+	// Reading Automatic reply from CubeSense regarding status of Telemetry request
+	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_2_LEN);
+
+	if (error != 0) {
+		free(telemetryBuffer);
+		return E_GENERIC;
+	}
+
+	// Fill telemetry reply, data from uart read starts at index two
+	memcpy(&telemetry_reply->tcCounter, &telemetryBuffer[TELEMETRY_OFFSET_0], sizeof(telemetry_reply->tcCounter));
+	memcpy(&telemetry_reply->tlmCounter, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->tlmCounter));
+	telemetry_reply->tcBufferOverunFlag = telemetryBuffer[TELEMETRY_OFFSET_4];
+	telemetry_reply->i2ctlmReadErrorFlag = telemetryBuffer[TELEMETRY_OFFSET_5];
+	telemetry_reply->uarttlmProtocolErrorFlag = telemetryBuffer[TELEMETRY_OFFSET_6];
+	telemetry_reply->uartIncompleteMsgFlag = telemetryBuffer[TELEMETRY_OFFSET_7];
+
+	//printf("\n--- Communication Status ---\n");
+	//printf("tcCounter: %i\n", telemetry_reply->tcCounter);
+	//printf("\ntlmCounter: %i", telemetry_reply->tlmCounter);
+	//printf("tcBufferOverunFlag: %i\n", telemetry_reply->tcBufferOverunFlag);
+	//printf("i2ctlmReadErrorFlag: %i\n", telemetry_reply->i2ctlmReadErrorFlag);
+	//printf("uarttlmProtocolErrorFlag: %i\n", telemetry_reply->uarttlmProtocolErrorFlag);
+	//printf("uartIncompleteMsgFlag: %i\n\n", telemetry_reply->uartIncompleteMsgFlag);
+
+	// Free the dynamically allocated buffer
+	free(telemetryBuffer);
+
+	return SUCCESS;
+}*/
+
+/*
  * Used to retrieve the power status of the Camera (TLM ID 26)
  *
  * @param telemetry_reply struct that holds all the information from the telemetry response
@@ -855,16 +896,15 @@ int tlmImageFrame(tlm_image_frame_t *telemetry_reply) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
 
-	if (error != 0) {
-		free(telemetryBuffer);
-		return E_GENERIC;
-	}
-
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
 
+	if (error != 0) {
+		return E_GENERIC;
+	}
+
 	// Dynamically allocate a buffer to hold the telemetry message with header and footer implemented
-	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_1);
+	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_128);
 
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
 	error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, TELEMETRY_64_LEN);
@@ -909,12 +949,12 @@ static int tcCameraOneDetectionThreshold(uint8_t detectionThreshold) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
+	// Free the dynamically allocated buffer
+	free(telecommandBuffer);
+
 	if (error != 0) {
 		return E_GENERIC;
 	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
 
 	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
 	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
@@ -924,6 +964,7 @@ static int tcCameraOneDetectionThreshold(uint8_t detectionThreshold) {
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0) {
+		free(telecommandResponse);
 		return E_GENERIC;
 	}
 
@@ -966,12 +1007,12 @@ static int tcCameraTwoDetectionThreshold(uint8_t detectionThreshold) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
+	// Free the dynamically allocated buffer
+	free(telecommandBuffer);
+
 	if (error != 0) {
 		return E_GENERIC;
 	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
 
 	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
 	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
@@ -981,6 +1022,7 @@ static int tcCameraTwoDetectionThreshold(uint8_t detectionThreshold) {
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0) {
+		free(telecommandResponse);
 		return E_GENERIC;
 	}
 
@@ -1023,12 +1065,12 @@ static int tcCameraOneAutoAdjust(uint8_t enabler) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
+	// Free the dynamically allocated buffer
+	free(telecommandBuffer);
+
 	if (error != 0) {
 		return E_GENERIC;
 	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
 
 	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
 	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
@@ -1038,6 +1080,7 @@ static int tcCameraOneAutoAdjust(uint8_t enabler) {
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0) {
+		free(telecommandResponse);
 		return E_GENERIC;
 	}
 
@@ -1091,12 +1134,12 @@ static int tcCameraOneSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
+	// Free the dynamically allocated buffer
+	free(telecommandBuffer);
+
 	if (error != 0) {
 		return E_GENERIC;
 	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
 
 	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
 	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
@@ -1106,6 +1149,7 @@ static int tcCameraOneSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0) {
+		free(telecommandResponse);
 		return E_GENERIC;
 	}
 
@@ -1148,12 +1192,12 @@ static int tcCameraTwoAutoAdjust(uint8_t enabler) {
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
+	// Free the dynamically allocated buffer
+	free(telecommandBuffer);
+
 	if (error != 0) {
 		return E_GENERIC;
 	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
 
 	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
 	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
@@ -1163,6 +1207,7 @@ static int tcCameraTwoAutoAdjust(uint8_t enabler) {
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0) {
+		free(telecommandResponse);
 		return E_GENERIC;
 	}
 
@@ -1216,12 +1261,12 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
+	// Free the dynamically allocated buffer
+	free(telecommandBuffer);
+
 	if (error != 0) {
 		return E_GENERIC;
 	}
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
 
 	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
 	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
@@ -1231,6 +1276,7 @@ static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0) {
+		free(telecommandResponse);
 		return E_GENERIC;
 	}
 
