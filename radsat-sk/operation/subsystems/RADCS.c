@@ -249,14 +249,14 @@ interpret_detection_result_t detectionResult(uint16_t alpha, uint16_t beta) {
 	uint16_t phi;
 	interpret_detection_result_t data = {0};
 
-	// TODO: Do we need to convert alpha/beta 16 bits values in range of -100deg to 100deg?
+	// TODO: Change types to float or double?
 
-	theta = sqrt((alpha/100) * (alpha/100) + (beta/100) * (beta/100));
-	phi = atan2(beta,alpha);
+	/*theta = sqrt((alpha/100) * (alpha/100) + (beta/100) * (beta/100)) * M_PI/180;
+	phi = atan2(beta, alpha);
 
-	data.X_AXIS = sin(theta)*cos(phi);
-	data.Y_AXIS = sin(theta)*sin(phi);
-	data.Z_AXIS = cos(theta);
+	data.X_AXIS = sin(theta) * cos(phi);
+	data.Y_AXIS = sin(theta) * sin(phi);
+	data.Z_AXIS = cos(theta);*/
 
 	return data;
 }
@@ -279,7 +279,7 @@ static uint8_t * MessageBuilder(uint8_t response_size) {
     uint8_t total_buffer_length = response_size + BASE_MESSAGE_LEN;
 
     // Dynamically Allocate a Buffer for telemetry response
-    uint8_t* Buffer = (uint8_t*) malloc(total_buffer_length * sizeof(uint8_t));
+    uint8_t* Buffer = malloc(sizeof(*Buffer) * total_buffer_length);
 
     // Initialize all elements in the buffer with zero
     for (uint8_t i = 0; i < total_buffer_length; i++) {

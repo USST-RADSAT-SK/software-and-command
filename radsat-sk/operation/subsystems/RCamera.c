@@ -277,7 +277,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 
 	// Reset all parameters
 	imageFrameNum = 1;
-	memset(image->imageFrames, 0, sizeof(image->imageFrames));
+	//memset(image->imageFrames, 0, sizeof(image->imageFrames));
 
 	// Loop for the amount of frames that are being downloaded
 	printf("\n numOfFrames = %i\n", numOfFrames);
@@ -285,11 +285,11 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 		printf("\nFRAME NUMBER = %i  |  Attempts:", i);
 		// Request image frame status until image frame is loaded in the camera buffer, counter used to ensure we don't deadlock
 		counter = 0;
-		while((imageFrameNum != i) && (counter < 4)) {
+		while((imageFrameNum != i) && (counter < 10)) {
 			if (isFirstRequest == 1) {
 				isFirstRequest = 0;
 			} else {
-				vTaskDelay(500); // Delay in ms between each frame info requests
+				vTaskDelay(100); // Delay in ms between each frame info request
 			}
 			printf(" %i ", counter);
 			error = tlmImageFrameInfo(&imageFrameInfo);
@@ -310,7 +310,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 		}
 
 		// Store Image Frame inside master struct
-		image->imageFrames[i] = &imageFrame;
+		image->imageFrames[i] = imageFrame;
 
 		/*tlm_communication_status_t telemetry_reply;
 		error = tlmCommunicationStatus(&telemetry_reply);
@@ -545,13 +545,11 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
  * @post return 0 if image is in desired range 1 if it is not
  * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
  * @param image where the entire photo will reside with an image ID
- * @return 0 on success, otherwise faliure
+ * @return 0 on success, otherwise failure
  * */
-int SaturationFilter(uint8_t size,full_image_t *image) {
-
+int SaturationFilter(uint8_t size, full_image_t *image) {
 	unsigned short numOfFrames = 0;
-	int sum = 0;
-	int avg[] = {0};
+	uint16_t sumOfAverages = 0;
 	uint16_t allFrameAverage = 0;
 
 	switch(size) {
@@ -563,20 +561,18 @@ int SaturationFilter(uint8_t size,full_image_t *image) {
 		default: numOfFrames = 32; break;
 	}
 
-	tlm_image_frame_t *imageFrame = {0};
-
-	//average of one frame's bytes
-	for (int i = 0; i < FRAME_BYTES ; i ++ ) {
-		imageFrame = image->imageFrames[i];
-		sum += (int) imageFrame;
-		int avgOfFrames = sum/FRAME_BYTES;
-
-		//average of all the average of all frame bytes
-		for (int j; j <= numOfFrames; j++) {
-			uint16_t sumOfAverages = avg[avgOfFrames];
-			allFrameAverage = sumOfAverages/numOfFrames;
+	for (int i = 0; i < numOfFrames; i++) {
+		int sum = 0;
+		//average of one frame's bytes
+		for	(int j = 0; j < FRAME_BYTES; j++) {
+			sum += image->imageFrames[i].image_bytes[j];
 		}
+		sumOfAverages += sum/FRAME_BYTES;
 	}
+
+	//average of all the average of all frame bytes
+	allFrameAverage = sumOfAverages/numOfFrames;
+
 	// checking if the overall average is in reasonable range
 	if (allFrameAverage < 40 || allFrameAverage > 240) {
 		return 1;
@@ -602,7 +598,7 @@ static uint8_t * MessageBuilder(uint8_t response_size) {
     uint8_t total_buffer_length = response_size + BASE_MESSAGE_LEN;
 
     // Dynamically Allocate a Buffer for telemetry response
-    uint8_t* tlmBuffer = (uint8_t*) malloc(total_buffer_length * sizeof(uint8_t));
+    uint8_t* tlmBuffer = malloc(sizeof(*tlmBuffer) * total_buffer_length);
 
     // Initialize all elements in the buffer with zero
     for (uint8_t i = 0; i < total_buffer_length; i++) {

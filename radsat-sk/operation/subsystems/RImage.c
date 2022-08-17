@@ -333,6 +333,10 @@ int tcAdvanceImageDownload(uint16_t nextFrameNumber) {
 	// Fill buffer with Next frame number
 	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_0], &nextFrameNumber, sizeof(nextFrameNumber));
 
+	if (nextFrameNumber >= 30) {
+		printf("\nTelecommandBuffer: [0] = %i | [1] = %i\n", telecommandBuffer[TELECOMMAND_OFFSET_0], telecommandBuffer[TELECOMMAND_OFFSET_1]);
+	}
+
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer);
 
@@ -353,6 +357,9 @@ int tcAdvanceImageDownload(uint16_t nextFrameNumber) {
 
 	// TODO: Figure out why code below the uartReceive() never gets execute when requesting frame 31
 	// The code gets stuck on the uartReceive()...
+	if (nextFrameNumber >= 30) {
+		printf("TelecommandResponse: [0] = %i\n", telecommandResponse[TELEMETRY_OFFSET_0]);
+	}
 
 	if (error != 0) {
 		printf("UART Receive Error: %i\n", error);
@@ -464,7 +471,7 @@ static uint8_t * MessageBuilder(uint8_t response_size) {
     uint8_t total_buffer_length = response_size + BASE_MESSAGE_LEN;
 
     // Dynamically Allocate a Buffer for telemetry response
-    uint8_t* Buffer = (uint8_t*) malloc(total_buffer_length * sizeof(uint8_t));
+    uint8_t* Buffer = malloc(sizeof(*Buffer) * total_buffer_length);
 
     // Initialize all elements in the buffer with zero
     for (uint8_t i = 0; i < total_buffer_length; i++) {
