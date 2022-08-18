@@ -18,9 +18,9 @@ typedef struct _tlm_detection_result_and_trigger_adcs_t {
 
 /* Struct to define 3D vector */
 typedef struct _interpret_detection_result_t {
-	uint16_t X_AXIS;
-	uint16_t Y_AXIS;
-	uint16_t Z_AXIS;
+	float X_AXIS;
+	float Y_AXIS;
+	float Z_AXIS;
 } interpret_detection_result_t;
 
 /***************************************************************************************************

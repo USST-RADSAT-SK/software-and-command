@@ -240,23 +240,21 @@ int tlmSensorTwoResultAndDetectionSRAMTwo(tlm_detection_result_and_trigger_adcs_
 /*
  * Used to interpret detection results into a 3D vector
  *
- * @param alpha result after executing TLM22 or 25
- * @param beta result after executing TLM22 or 25
+ * @param alpha result in centidegrees after executing TLM22 or 25
+ * @param beta result in centidegrees after executing TLM22 or 25
  * @return struct containing the components of the 3D Vector
  */
 interpret_detection_result_t detectionResult(uint16_t alpha, uint16_t beta) {
-	uint16_t theta;
-	uint16_t phi;
+	float theta;
+	float phi;
 	interpret_detection_result_t data = {0};
 
-	// TODO: Change types to float or double?
-
-	/*theta = sqrt((alpha/100) * (alpha/100) + (beta/100) * (beta/100)) * M_PI/180;
+	theta = sqrt(pow((float)alpha/100, 2) + pow((float)beta/100, 2)) * M_PI/180;
 	phi = atan2(beta, alpha);
 
 	data.X_AXIS = sin(theta) * cos(phi);
 	data.Y_AXIS = sin(theta) * sin(phi);
-	data.Z_AXIS = cos(theta);*/
+	data.Z_AXIS = cos(theta);
 
 	return data;
 }
