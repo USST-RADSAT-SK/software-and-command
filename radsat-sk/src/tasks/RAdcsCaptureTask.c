@@ -38,30 +38,12 @@ void AdcsCaptureTask(void* parameters) {
 		debugPrint("AdcsCaptureTask(): About to capture ADCS data.\n");
 
 
-		// TEST PURPOSES ONLY
-		int err = 0;
-		CameraTelemetry cameraSettings = {0};
-		err = cameraTelemetry(&cameraSettings);
-		if (err != SUCCESS) {
-			printf("Error getting camera settings.\n");
-		}
-		cameraSettings.cameraOneTelemetry.exposure = 150;
-		cameraSettings.cameraTwoTelemetry.exposure = 150;
-		cameraSettings.cameraOneTelemetry.detectionThreshold = 50;
-		cameraSettings.cameraTwoTelemetry.detectionThreshold = 50;
-		//cameraSettings.cameraOneTelemetry.autoAdjustMode = 1;
-		//cameraSettings.cameraTwoTelemetry.autoAdjustMode = 1;
-		err = cameraConfig(&cameraSettings);
-		if (err != SUCCESS) {
-			printf("Error setting camera settings.\n");
-		}
-		err = cameraTelemetry(&cameraSettings);
-		if (err != SUCCESS) {
-			printf("Error getting camera settings.\n");
-		}
-
-		// TEST PURPOSES ONLY: 0 = capture & download | 1 = attitude detection
+		// TEST PURPOSES ONLY:
+		// 0 = capture & download
+		// 1 = download only
+		// 2 = attitude detection
 		uint8_t testing = 1;
+		int err;
 
 		if (testing == 0) {
 			err = captureImage();
@@ -86,29 +68,56 @@ void AdcsCaptureTask(void* parameters) {
 					//printf("\n--- END OF FRAMES ---\n");
 				}
 			}
-		} else {
+		} else if (testing == 1) {
+			full_image_t image = {0};
+			err = downloadImage(1, 0, 3, &image);
+			if (err != SUCCESS) {
+				printf("Error downloading image.\n\n");
+			} else {
+				printf("\nImage %i downloaded successfully.\n", image.image_ID);
+			}
+		} else if (testing == 2) {
 			detection_results_t data = {0};
 			uint8_t counter = 0;
 			err = 0;
-			while(counter < 10) {
+			while(counter < 20) {
 				printf("Try # %i\n", counter);
+
+				CameraTelemetry cameraSettings = {0};
+				err = cameraTelemetry(&cameraSettings);
+				if (err != SUCCESS) {
+					printf("Error getting camera settings.\n");
+				}
+				cameraSettings.cameraOneTelemetry.exposure = counter * 50;
+				cameraSettings.cameraTwoTelemetry.exposure = counter * 50;
+				cameraSettings.cameraOneTelemetry.detectionThreshold = 50; //counter * 10;
+				cameraSettings.cameraTwoTelemetry.detectionThreshold = 50; //counter * 10;
+				cameraSettings.cameraOneTelemetry.autoAdjustMode = 0;
+				cameraSettings.cameraTwoTelemetry.autoAdjustMode = 0;
+				err = cameraConfig(&cameraSettings);
+				if (err != SUCCESS) {
+					printf("Error setting camera settings.\n");
+				}
+				printf("Exposure = %i\n", cameraSettings.cameraOneTelemetry.exposure);
+				printf("Detection Threshold = %i\n", cameraSettings.cameraOneTelemetry.detectionThreshold);
+
 				err = detectionAndInterpret(&data);
 				if (err) {
 					printf("Error returned from detectionAndInterpret: %i\n", err);
+				} else {
+					printf("\n--- Final Axis Data ---\n");
+					printf("sunSensorX   = %f\n", data.sunSensorX);
+					printf("sunSensorY   = %f\n", data.sunSensorY);
+					printf("sunSensorZ   = %f\n", data.sunSensorZ);
+					printf("imageSensorX = %f\n", data.imageSensorX);
+					printf("imageSensorY = %f\n", data.imageSensorY);
+					printf("imageSensorZ = %f\n", data.imageSensorZ);
+					printf("----------------------\n\n");
 				}
-				vTaskDelay(2000);  // this delay was working earlier (but with 1s)
+				vTaskDelay(2000);
 				counter++;
 			}
 			//detectionAndInterpret(&data);
-
-			printf("--- Final Axis Data ---\n");
-			printf("sunSensorX   = %d\n", data.sunSensorX);
-			printf("sunSensorY   = %d\n", data.sunSensorY);
-			printf("sunSensorZ   = %d\n", data.sunSensorZ);
-			printf("imageSensorX = %d\n", data.imageSensorX);
-			printf("imageSensorY = %d\n", data.imageSensorY);
-			printf("imageSensorZ = %d\n", data.imageSensorZ);
-			printf("----------------------\n\n");
 		}
 
 		vTaskDelay(ADCS_CAPURE_TASK_DELAY_MS);
