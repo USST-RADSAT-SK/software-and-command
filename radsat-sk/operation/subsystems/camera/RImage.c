@@ -15,6 +15,7 @@
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
+
 #define TELECOMMAND_21               	((uint8_t) 0x15)
 #define TELECOMMAND_64               	((uint8_t) 0x40)
 #define TELECOMMAND_65               	((uint8_t) 0x41)
@@ -24,11 +25,12 @@
 #define TELECOMMAND_65_LEN           	((uint8_t) 3)
 
 #define TELEMETRY_3                 	((uint8_t) 0x83)
+#define TELEMETRY_20                    ((uint8_t) 0x94)
 #define TELEMETRY_21                 	((uint8_t) 0x95)
 #define TELEMETRY_65                 	((uint8_t) 0xC1)
 
 #define TELEMETRY_3_LEN				    ((uint8_t) 7)
-#define TELEMETRY_21_LEN				((uint8_t) 10)
+#define TELEMETRY_20_AND_21_LEN			((uint8_t) 10)
 #define TELEMETRY_65_LEN				((uint8_t) 7)
 
 #define SIZE_OF_BITMAP					((uint8_t) 4096)
@@ -39,8 +41,8 @@
 /*
  * Used to send image capture telecommand (TC ID 21)
  *
- * @param camera defines which camera to use on Cubesense
- * @param SRAM defines which SRAM to use on Cubesense
+ * @param camera defines which camera to use on Cubesense, camera 1 = 0, camera 2 = 1
+ * @param SRAM defines which SRAM to use on Cubesense, SRAM1 = 0, SRAM2 = 1
  * @param location defines which SRAM slot to use within selected SRAM
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
@@ -103,12 +105,13 @@ int tcImageCapture(uint8_t camera, uint8_t SRAM, uint8_t location) {
 }
 
 /*
- * Used to receive telemetry for sensor 2 results (TLM ID 21)
+ * Used to receive telemetry for sensor results (TLM ID 20 & 21)
  *
+ * @param camera defines the selected sensor from which the detection result will be received
  * @param telemetry_reply struct that holds all the information from the telemetry response
  * @return error of telecommand attempt. 0 on success, otherwise failure
  * */
-int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply) {
+int tlmSensorResult(uint8_t camera, tlm_detection_result_and_trigger_t *telemetry_reply) {
 	uint8_t* telemetryBuffer;
 	uint16_t sizeOfBuffer;
 	int error;
@@ -122,7 +125,13 @@ int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply) {
 	sizeOfBuffer = TELEMETRY_REQUEST_LEN + BASE_MESSAGE_LEN;
 
     // Fill buffer with telemetry ID
-	telemetryBuffer[MESSAGE_ID_OFFSET] = TELEMETRY_21;
+	if (camera == SUN_SENSOR) {
+		telemetryBuffer[MESSAGE_ID_OFFSET] = TELEMETRY_20;
+	} else if (camera == NADIR_SENSOR) {
+		telemetryBuffer[MESSAGE_ID_OFFSET] = TELEMETRY_21;
+	} else {
+		return E_GENERIC;
+	}
 
     // Send Telemetry Request
 	error = uartTransmit(UART_CAMERA_BUS, telemetryBuffer, sizeOfBuffer);
@@ -138,7 +147,7 @@ int tlmSensorTwoResult(tlm_detection_result_and_trigger_t *telemetry_reply) {
 	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_6);
 
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
-	error = receiveAndUnescapeTelemetry(telemetryBuffer, TELEMETRY_21_LEN);
+	error = receiveAndUnescapeTelemetry(telemetryBuffer, TELEMETRY_20_AND_21_LEN);
 
 	if (error != 0) {
 		free(telemetryBuffer);

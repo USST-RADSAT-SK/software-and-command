@@ -8,6 +8,14 @@
                                             DEFINITIONS
 ***************************************************************************************************/
 
+/* Enum of telemetry request ID for sensor result and new detection */
+typedef enum _SensorResultAndDetection {
+	sensor1_sram1  = 0x96, // TLM 22
+	sensor2_sram2  = 0x97, // TLM 23
+	sensor1_sram2  = 0x98, // TLM 24
+	sensor2_sram1  = 0x99  // TLM 25
+} SensorResultAndDetection;
+
 /* Struct for telemetry Detection result and Trigger, ID 20-25 */
 typedef struct _tlm_detection_result_and_trigger_adcs_t {
 	uint16_t alpha;
@@ -27,7 +35,6 @@ typedef struct _interpret_detection_result_t {
                                              PUBLIC API
 ***************************************************************************************************/
 
-int tcImageCaptureAndDetection(uint8_t camera);
-int tlmSensorOneResultAndDetectionSRAMOne(tlm_detection_result_and_trigger_adcs_t *telemetry_reply);
-int tlmSensorTwoResultAndDetectionSRAMTwo(tlm_detection_result_and_trigger_adcs_t *telemetry_reply);
+int tcImageCaptureAndDetection(uint8_t camera, uint8_t sram);
+int tlmSensorResultAndDetection(tlm_detection_result_and_trigger_adcs_t *telemetry_reply, SensorResultAndDetection sensorSelection);
 interpret_detection_result_t detectionResult(uint16_t alpha, uint16_t beta);

@@ -28,25 +28,10 @@
 #define TELECOMMAND_43                  ((uint8_t) 0x2B)
 #define TELECOMMAND_44                  ((uint8_t) 0x2C)
 #define TELECOMMAND_45                  ((uint8_t) 0x2D)
-#define TELECOMMAND_50                  ((uint8_t) 0x32)
-#define TELECOMMAND_51                  ((uint8_t) 0x33)
-#define TELECOMMAND_52               	((uint8_t) 0x34)
-#define TELECOMMAND_53               	((uint8_t) 0x35)
-#define TELECOMMAND_54                  ((uint8_t) 0x36)
-#define TELECOMMAND_55                  ((uint8_t) 0x37)
 
-#define TELECOMMAND_40_LEN              ((uint8_t) 2)
-#define TELECOMMAND_41_LEN              ((uint8_t) 2)
-#define TELECOMMAND_42_LEN              ((uint8_t) 2)
-#define TELECOMMAND_43_LEN              ((uint8_t) 6)
-#define TELECOMMAND_44_LEN              ((uint8_t) 2)
-#define TELECOMMAND_45_LEN              ((uint8_t) 6)
-#define TELECOMMAND_50_LEN              ((uint8_t) 5)
-#define TELECOMMAND_51_LEN              ((uint8_t) 5)
-#define TELECOMMAND_52_LEN              ((uint8_t) 10)
-#define TELECOMMAND_53_LEN              ((uint8_t) 10)
-#define TELECOMMAND_54_LEN              ((uint8_t) 16)
-#define TELECOMMAND_55_LEN              ((uint8_t) 16)
+#define TELECOMMAND_40_AND_41_LEN       ((uint8_t) 2)
+#define TELECOMMAND_42_AND_44_LEN       ((uint8_t) 2)
+#define TELECOMMAND_43_AND_45_LEN       ((uint8_t) 6)
 
 /* Telemetry ID numbers and Related Parameters */
 #define TELEMETRY_0                  	((uint8_t) 0x80)
@@ -75,7 +60,7 @@ typedef struct _tlm_status_t {
 typedef struct _tlm_communication_status_t {
 	uint16_t tcCounter;
 	uint16_t tlmCounter;
-	uint8_t  tcBufferOverunFlag;
+	uint8_t  tcBufferOverrunFlag;
 	uint8_t  i2ctlmReadErrorFlag;
 	uint8_t	 uarttlmProtocolErrorFlag;
 	uint8_t  uartIncompleteMsgFlag;
@@ -92,9 +77,9 @@ typedef struct _tlm_power_t {
 } tlm_power_t;
 
 /* Struct for telemetry configuration, ID 40 */
-typedef struct _tlm_config_t{
-	uint8_t cameraOneDetectionThrshld;
-	uint8_t cameraTwoDetectionThrshld;
+typedef struct _tlm_config_t {
+	uint8_t cameraOneDetectionThreshold;
+	uint8_t cameraTwoDetectionThreshold;
 	uint8_t cameraOneAutoAdjustMode;
 	uint16_t cameraOneExposure;
 	uint8_t cameraOneAGC;
@@ -144,12 +129,9 @@ static int tlmStatus(tlm_status_t *telemetry_reply);
 static int tlmPower(tlm_power_t *telemetry_reply);
 static int tlmConfig(tlm_config_t *telemetry_reply);
 static int tlmImageFrame(tlm_image_frame_t *telemetry_reply);
-static int tcCameraOneDetectionThreshold(uint8_t detectionThreshold);
-static int tcCameraTwoDetectionThreshold(uint8_t detectionThreshold);
-static int tcCameraOneAutoAdjust(uint8_t enabler);
-static int tcCameraOneSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_gain, uint8_t red_gain);
-static int tcCameraTwoAutoAdjust(uint8_t enabler);
-static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_gain, uint8_t red_gain);
+static int tcCameraDetectionThreshold(uint8_t camera, uint8_t detectionThreshold);
+static int tcCameraAutoAdjust(uint8_t camera, uint8_t enabler);
+static int tcCameraSettings(uint8_t camera, uint16_t exposureTime, uint8_t AGC, uint8_t blue_gain, uint8_t red_gain);
 
 /***************************************************************************************************
                                              PUBLIC API
@@ -164,7 +146,7 @@ int captureImage(void) {
 	tlm_telecommand_ack_t telecommand_ack = {0};
 
 	// Send Telecommand to Camera to Take a Photo
-	error = tcImageCapture(IMAGE_SENSOR, SRAM2, BOTTOM_HALVE);
+	error = tcImageCapture(NADIR_SENSOR, SRAM2, BOTTOM_HALVE);
 
 	if (error != SUCCESS)
 		return error;
@@ -306,17 +288,17 @@ int detectionAndInterpret(detection_results_t *data) {
 	int error = 0;
 	uint16_t alphaSunSensor;
 	uint16_t betaSunSensor;
-	uint16_t alphaImageSensor;
-	uint16_t betaImageSensor;
+	uint16_t alphaNadirSensor;
+	uint16_t betaNadirSensor;
 	tlm_detection_result_and_trigger_adcs_t sun_sensor_data = {0};
-	tlm_detection_result_and_trigger_adcs_t image_sensor_data = {0};
+	tlm_detection_result_and_trigger_adcs_t nadir_sensor_data = {0};
 	interpret_detection_result_t sun_sensor_coords = {0};
-	interpret_detection_result_t image_sensor_coords = {0};
+	interpret_detection_result_t nadir_sensor_coords = {0};
 
 	printf("\n--------- SUN ---------");
 
 	// Request results of detection with TLM 22
-	error = tlmSensorOneResultAndDetectionSRAMOne(&sun_sensor_data);
+	error = tlmSensorResultAndDetection(&sun_sensor_data, sensor1_sram1);
 	printDetectionData(&sun_sensor_data);
 
 	if (error != 0)
@@ -335,32 +317,32 @@ int detectionAndInterpret(detection_results_t *data) {
 	printf("\n-------- NADIR --------");
 
 	// Request results of detection with TLM 23
-	error = tlmSensorTwoResultAndDetectionSRAMTwo(&image_sensor_data);
-	printDetectionData(&image_sensor_data);
+	error = tlmSensorResultAndDetection(&nadir_sensor_data, sensor2_sram2);
+	printDetectionData(&nadir_sensor_data);
 
 	if (error != 0)
 		return error;
 
 	// If it was still a failure, set alpha and beta to zero
-	if (image_sensor_data.detectionResult != 7) {
-		alphaImageSensor = 0;
-		betaImageSensor = 0;
+	if (nadir_sensor_data.detectionResult != 7) {
+		alphaNadirSensor = 0;
+		betaNadirSensor = 0;
 	}
 	else {
-		alphaImageSensor = image_sensor_data.alpha;
-		betaImageSensor = image_sensor_data.beta;
+		alphaNadirSensor = nadir_sensor_data.alpha;
+		betaNadirSensor = nadir_sensor_data.beta;
 	}
 
 	sun_sensor_coords = detectionResult(alphaSunSensor, betaSunSensor);
-	image_sensor_coords = detectionResult(alphaImageSensor, betaImageSensor);
+	nadir_sensor_coords = detectionResult(alphaNadirSensor, betaNadirSensor);
 
 	// Fill struct with data
 	data->sunSensorX = sun_sensor_coords.X_AXIS;
 	data->sunSensorY = sun_sensor_coords.Y_AXIS;
 	data->sunSensorZ = sun_sensor_coords.Z_AXIS;
-	data->imageSensorX = image_sensor_coords.X_AXIS;
-	data->imageSensorY = image_sensor_coords.Y_AXIS;
-	data->imageSensorZ = image_sensor_coords.Z_AXIS;
+	data->nadirSensorX = nadir_sensor_coords.X_AXIS;
+	data->nadirSensorY = nadir_sensor_coords.Y_AXIS;
+	data->nadirSensorZ = nadir_sensor_coords.Z_AXIS;
 
 	return SUCCESS;
 }
@@ -404,13 +386,13 @@ int cameraTelemetry(CameraTelemetry *cameraTelemetry) {
 	cameraTelemetry->cameraOneTelemetry.autoAdjustMode = tlmConfigStruct.cameraOneAutoAdjustMode;
 	cameraTelemetry->cameraOneTelemetry.autoGainControl = tlmConfigStruct.cameraOneAGC;
 	cameraTelemetry->cameraOneTelemetry.blueGain = tlmConfigStruct.cameraOneBlueGain;
-	cameraTelemetry->cameraOneTelemetry.detectionThreshold = tlmConfigStruct.cameraOneDetectionThrshld;
+	cameraTelemetry->cameraOneTelemetry.detectionThreshold = tlmConfigStruct.cameraOneDetectionThreshold;
 	cameraTelemetry->cameraOneTelemetry.exposure = tlmConfigStruct.cameraOneExposure;
 	cameraTelemetry->cameraOneTelemetry.redGain = tlmConfigStruct.cameraOneRedGain;
 	cameraTelemetry->cameraTwoTelemetry.autoAdjustMode = tlmConfigStruct.cameraTwoAutoAdjustMode;
 	cameraTelemetry->cameraTwoTelemetry.autoGainControl = tlmConfigStruct.cameraTwoAGC;
 	cameraTelemetry->cameraTwoTelemetry.blueGain = tlmConfigStruct.cameraTwoBlueGain;
-	cameraTelemetry->cameraTwoTelemetry.detectionThreshold = tlmConfigStruct.cameraTwoDetectionThrshld;
+	cameraTelemetry->cameraTwoTelemetry.detectionThreshold = tlmConfigStruct.cameraTwoDetectionThreshold;
 	cameraTelemetry->cameraTwoTelemetry.exposure = tlmConfigStruct.cameraTwoExposure;
 	cameraTelemetry->cameraTwoTelemetry.redGain = tlmConfigStruct.cameraTwoRedGain;
 
@@ -426,31 +408,31 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 	int error;
 
 	// Update Auto adjust for camera one
-	error = tcCameraOneAutoAdjust(cameraTelemetry->cameraOneTelemetry.autoAdjustMode);
+	error = tcCameraAutoAdjust(SUN_SENSOR, cameraTelemetry->cameraOneTelemetry.autoAdjustMode);
 	if(error != SUCCESS) {
 		return error;
 	}
 
 	// Update Auto adjust for camera two
-	error = tcCameraTwoAutoAdjust(cameraTelemetry->cameraTwoTelemetry.autoAdjustMode);
+	error = tcCameraAutoAdjust(NADIR_SENSOR, cameraTelemetry->cameraTwoTelemetry.autoAdjustMode);
 	if (error != SUCCESS) {
 		return error;
 	}
 
 	// Update detection Threshold for camera one
-	error = tcCameraOneDetectionThreshold(cameraTelemetry->cameraOneTelemetry.detectionThreshold);
+	error = tcCameraDetectionThreshold(SUN_SENSOR, cameraTelemetry->cameraOneTelemetry.detectionThreshold);
 	if (error != SUCCESS) {
 		return error;
 	}
 
 	// Update detection Threshold for camera two
-	error = tcCameraTwoDetectionThreshold(cameraTelemetry->cameraTwoTelemetry.detectionThreshold);
+	error = tcCameraDetectionThreshold(NADIR_SENSOR, cameraTelemetry->cameraTwoTelemetry.detectionThreshold);
 	if (error != SUCCESS) {
 		return error;
 	}
 
 	// Update camera one settings
-	error = tcCameraOneSettings(cameraTelemetry->cameraOneTelemetry.exposure,
+	error = tcCameraSettings(SUN_SENSOR, cameraTelemetry->cameraOneTelemetry.exposure,
 				cameraTelemetry->cameraOneTelemetry.autoGainControl,
 				cameraTelemetry->cameraOneTelemetry.blueGain,
 				cameraTelemetry->cameraOneTelemetry.redGain);
@@ -459,7 +441,7 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
 	}
 
 	// Update camera Two settings
-	error = tcCameraTwoSettings(cameraTelemetry->cameraTwoTelemetry.exposure,
+	error = tcCameraSettings(NADIR_SENSOR, cameraTelemetry->cameraTwoTelemetry.exposure,
 				cameraTelemetry->cameraTwoTelemetry.autoGainControl,
 				cameraTelemetry->cameraTwoTelemetry.blueGain,
 				cameraTelemetry->cameraTwoTelemetry.redGain);
@@ -672,8 +654,8 @@ static int tlmConfig(tlm_config_t *telemetry_reply) {
 	}
 
 	// Fill telemetry reply, data from uart read starts at index two
-	telemetry_reply->cameraOneDetectionThrshld = telemetryBuffer[TELEMETRY_OFFSET_0];
-	telemetry_reply->cameraTwoDetectionThrshld = telemetryBuffer[TELEMETRY_OFFSET_1];
+	telemetry_reply->cameraOneDetectionThreshold = telemetryBuffer[TELEMETRY_OFFSET_0];
+	telemetry_reply->cameraTwoDetectionThreshold = telemetryBuffer[TELEMETRY_OFFSET_1];
 	telemetry_reply->cameraOneAutoAdjustMode = telemetryBuffer[TELEMETRY_OFFSET_2];
 	memcpy(&telemetry_reply->cameraOneExposure, &telemetryBuffer[TELEMETRY_OFFSET_3], sizeof(telemetry_reply->cameraOneExposure));
 	telemetry_reply->cameraOneAGC = telemetryBuffer[TELEMETRY_OFFSET_5];
@@ -744,12 +726,13 @@ int tlmImageFrame(tlm_image_frame_t *telemetry_reply) {
 }
 
 /*
- * Used to adjust the detection threshold for camera 1
+ * Used to adjust the detection threshold for the given camera
  *
+ * @param camera defines the camera to which the threshold will be applied
  * @param detectionThreshold the value for threshold
- * @return error on tc attempt, 0 on success, otherwise failure
+ * @return error on telecommand attempt, 0 on success, otherwise failure
  */
-static int tcCameraOneDetectionThreshold(uint8_t detectionThreshold) {
+static int tcCameraDetectionThreshold(uint8_t camera, uint8_t detectionThreshold) {
 	uint8_t *telecommandBuffer;
 	uint8_t *telecommandResponse;
 	uint16_t sizeOfBuffer;
@@ -757,11 +740,17 @@ static int tcCameraOneDetectionThreshold(uint8_t detectionThreshold) {
 	int error;
 
 	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
-	telecommandBuffer = MessageBuilder(TELECOMMAND_40_LEN);
-	sizeOfBuffer = TELECOMMAND_40_LEN + BASE_MESSAGE_LEN;
+	telecommandBuffer = MessageBuilder(TELECOMMAND_40_AND_41_LEN);
+	sizeOfBuffer = TELECOMMAND_40_AND_41_LEN + BASE_MESSAGE_LEN;
 
 	// Fill buffer with Telecommand ID
-	telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_40;
+	if (camera == SUN_SENSOR) {
+		telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_40;
+	} else if (camera == NADIR_SENSOR) {
+		telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_41;
+	} else {
+		return E_GENERIC;
+	}
 
 	// Fill buffer with detection threshold
 	telecommandBuffer[TELECOMMAND_OFFSET_0] = detectionThreshold;
@@ -802,70 +791,13 @@ static int tcCameraOneDetectionThreshold(uint8_t detectionThreshold) {
 }
 
 /*
- * Used to adjust the detection threshold for camera 2
+ * Used to adjust the enable/disable the auto-adjust for the given camera
  *
- * @param detectionThreshold the value for threshold
- * @return error on tc attempt, 0 on success, otherwise failure
- */
-static int tcCameraTwoDetectionThreshold(uint8_t detectionThreshold) {
-	uint8_t *telecommandBuffer;
-	uint8_t *telecommandResponse;
-	uint16_t sizeOfBuffer;
-	uint8_t tcErrorFlag;
-	int error;
-
-	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
-	telecommandBuffer = MessageBuilder(TELECOMMAND_41_LEN);
-	sizeOfBuffer = TELECOMMAND_41_LEN + BASE_MESSAGE_LEN;
-
-	// Fill buffer with Telecommand ID
-	telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_41;
-
-	// Fill buffer with detection threshold
-	telecommandBuffer[TELECOMMAND_OFFSET_0] = detectionThreshold;
-
-    // Send Telecommand
-	error = escapeAndTransmitTelecommand(telecommandBuffer, sizeOfBuffer);
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
-
-	if (error != 0) {
-		return E_GENERIC;
-	}
-
-	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
-	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
-	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
-
-	// Read automatically reply to telecommand
-	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
-
-	if (error != 0) {
-		free(telecommandResponse);
-		return E_GENERIC;
-	}
-
-	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
-
-	// Free the dynamically allocated buffer
-	free(telecommandResponse);
-
-	if (tcErrorFlag != 0) {
-		return E_GENERIC;
-	}
-
-	return SUCCESS;
-}
-
-/*
- * Used to adjust the enable/disable the auto-adjust for camera one
- *
+ * @param camera defines the camera to which the auto-adjust will be applied
  * @param enabler Determines to enable or disable the auto adjust
  * @return error of telecommand. 0 on success, otherwise failure
  */
-static int tcCameraOneAutoAdjust(uint8_t enabler) {
+static int tcCameraAutoAdjust(uint8_t camera, uint8_t enabler) {
 	uint8_t *telecommandBuffer;
 	uint8_t *telecommandResponse;
 	uint16_t sizeOfBuffer;
@@ -873,11 +805,17 @@ static int tcCameraOneAutoAdjust(uint8_t enabler) {
 	int error;
 
 	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
-	telecommandBuffer = MessageBuilder(TELECOMMAND_42_LEN);
-	sizeOfBuffer = TELECOMMAND_42_LEN + BASE_MESSAGE_LEN;
+	telecommandBuffer = MessageBuilder(TELECOMMAND_42_AND_44_LEN);
+	sizeOfBuffer = TELECOMMAND_42_AND_44_LEN + BASE_MESSAGE_LEN;
 
 	// Fill buffer with Telecommand ID
-	telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_42;
+	if (camera == SUN_SENSOR) {
+		telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_42;
+	} else if (camera == NADIR_SENSOR) {
+		telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_44;
+	} else {
+		return E_GENERIC;
+	}
 
 	// Fill buffer with detection threshold
 	telecommandBuffer[TELECOMMAND_OFFSET_0] = enabler;
@@ -920,12 +858,13 @@ static int tcCameraOneAutoAdjust(uint8_t enabler) {
 /*
  * Used to Adjust the camera 1 settings and change the exposure, gain, blue, red control
  *
+ * @param camera defines the camera to which the settings will be applied
  * @param exposureTime changes the exposure value register
  * @param AGC changes the gain control register
  * @param blue_gain changes the blue gain control register
  * @param red_gain changes the red gain control register
  */
-static int tcCameraOneSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_gain, uint8_t red_gain) {
+static int tcCameraSettings(uint8_t camera, uint16_t exposureTime, uint8_t AGC, uint8_t blue_gain, uint8_t red_gain) {
 	uint8_t *telecommandBuffer;
 	uint8_t *telecommandResponse;
 	uint16_t sizeOfBuffer;
@@ -933,138 +872,17 @@ static int tcCameraOneSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_
 	int error;
 
 	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
-	telecommandBuffer = MessageBuilder(TELECOMMAND_43_LEN);
-	sizeOfBuffer = TELECOMMAND_43_LEN + BASE_MESSAGE_LEN;
+	telecommandBuffer = MessageBuilder(TELECOMMAND_43_AND_45_LEN);
+	sizeOfBuffer = TELECOMMAND_43_AND_45_LEN + BASE_MESSAGE_LEN;
 
 	// Fill buffer with Telecommand ID
-	telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_43;
-
-	// Fill buffer with exposureTime
-	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_0], &exposureTime, sizeof(exposureTime));
-
-	// Fill buffer with AGC
-	telecommandBuffer[TELECOMMAND_OFFSET_2] = AGC;
-
-	// Fill buffer with blue gain
-	telecommandBuffer[TELECOMMAND_OFFSET_3] = blue_gain;
-
-	// Fill buffer with red gain
-	telecommandBuffer[TELECOMMAND_OFFSET_4] = red_gain;
-
-    // Send Telecommand
-	error = escapeAndTransmitTelecommand(telecommandBuffer, sizeOfBuffer);
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
-
-	if (error != 0) {
+	if (camera == SUN_SENSOR) {
+		telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_43;
+	} else if (camera == NADIR_SENSOR) {
+		telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_45;
+	} else {
 		return E_GENERIC;
 	}
-
-	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
-	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
-	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
-
-	// Read automatically reply to telecommand
-	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
-
-	if (error != 0) {
-		free(telecommandResponse);
-		return E_GENERIC;
-	}
-
-	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
-
-	// Free the dynamically allocated buffer
-	free(telecommandResponse);
-
-	if (tcErrorFlag != 0) {
-		return E_GENERIC;
-	}
-
-	return SUCCESS;
-}
-
-/*
- * Used to adjust the enable/disable the auto-adjust for camera one
- *
- * @param enabler Determines to enable or disable the auto adjust
- * @return error of telecommand. 0 on success, otherwise failure
- */
-static int tcCameraTwoAutoAdjust(uint8_t enabler) {
-	uint8_t *telecommandBuffer;
-	uint8_t *telecommandResponse;
-	uint16_t sizeOfBuffer;
-	uint8_t tcErrorFlag;
-	int error;
-
-	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
-	telecommandBuffer = MessageBuilder(TELECOMMAND_44_LEN);
-	sizeOfBuffer = TELECOMMAND_44_LEN + BASE_MESSAGE_LEN;
-
-	// Fill buffer with Telecommand ID
-	telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_44;
-
-	// Fill buffer with detection threshold
-	telecommandBuffer[TELECOMMAND_OFFSET_0] = enabler;
-
-    // Send Telemetry Request
-	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer); // No escaping needed
-
-	// Free the dynamically allocated buffer
-	free(telecommandBuffer);
-
-	if (error != 0) {
-		return E_GENERIC;
-	}
-
-	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
-	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
-	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
-
-	// Read automatically reply to telecommand
-	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
-
-	if (error != 0) {
-		free(telecommandResponse);
-		return E_GENERIC;
-	}
-
-	// Receive the telecommand response from buffer
-	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
-
-	// Free the dynamically allocated buffer
-	free(telecommandResponse);
-
-	if (tcErrorFlag != 0) {
-		return E_GENERIC;
-	}
-
-	return SUCCESS;
-}
-
-/*
- * Used to Adjust the camera 2 settings and change the exposure, gain, blue, red control
- *
- * @param exposureTime changes the exposure value register
- * @param AGC changes the gain control register
- * @param blue_gain changes the blue gain control register
- * @param red_gain changes the red gain control register
- */
-static int tcCameraTwoSettings(uint16_t exposureTime, uint8_t AGC, uint8_t blue_gain, uint8_t red_gain) {
-	uint8_t *telecommandBuffer;
-	uint8_t *telecommandResponse;
-	uint16_t sizeOfBuffer;
-	uint8_t tcErrorFlag;
-	int error;
-
-	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
-	telecommandBuffer = MessageBuilder(TELECOMMAND_45_LEN);
-	sizeOfBuffer = TELECOMMAND_45_LEN + BASE_MESSAGE_LEN;
-
-	// Fill buffer with Telecommand ID
-	telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_45;
 
 	// Fill buffer with exposureTime
 	memcpy(&telecommandBuffer[TELECOMMAND_OFFSET_0], &exposureTime, sizeof(exposureTime));

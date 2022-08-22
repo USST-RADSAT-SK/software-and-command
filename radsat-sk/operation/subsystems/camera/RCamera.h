@@ -26,9 +26,9 @@ typedef struct _detection_results_t {
 	float sunSensorX;
 	float sunSensorY;
 	float sunSensorZ;
-	float imageSensorX;
-	float imageSensorY;
-	float imageSensorZ;
+	float nadirSensorX;
+	float nadirSensorY;
+	float nadirSensorZ;
 } detection_results_t;
 
 /* Struct that holds all power related telemetry */

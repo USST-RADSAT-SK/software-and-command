@@ -52,7 +52,7 @@
 #define END_IDENTIFIER                  ((uint16_t) 0xFF)
 
 #define SUN_SENSOR	         	        ((uint8_t) 0)
-#define IMAGE_SENSOR	                ((uint8_t) 1)
+#define NADIR_SENSOR	                ((uint8_t) 1)
 #define SRAM1                           ((uint8_t) 0)
 #define SRAM2                           ((uint8_t) 1)
 #define TOP_HALVE                       ((uint8_t) 0)
