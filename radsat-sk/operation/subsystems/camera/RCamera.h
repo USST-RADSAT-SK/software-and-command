@@ -15,9 +15,6 @@
 /*number of bytes in one frame of an image*/
 #define FRAME_BYTES						128
 
-/*maximum number of frames in one image*/
-#define MAXIMUM_FRAMES			        128 // Original value: 8192
-
 /*maximum number of bytes in one image */
 #define MAXIMUM_BYTES					1048576
 
@@ -64,19 +61,21 @@ typedef struct _tlm_image_frame_t {
 	uint8_t image_bytes[FRAME_BYTES];
 } tlm_image_frame_t;
 
-//TODO: RCamera.h: Change the struct to a dynamic allocation or something less wasteful for full image
 /* Struct that holds full image with ID */
 typedef struct _full_image_t {
 	uint8_t image_ID;
-	tlm_image_frame_t imageFrames[MAXIMUM_FRAMES];
+	uint8_t imageSize;    // CubeSense's size (0 to 4)
+	uint16_t framesCount;
+	tlm_image_frame_t imageFrames[];
 } full_image_t;
 
 /****************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
+full_image_t * initializeNewImage(uint8_t size);
 int captureImage(void);
-int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *image);
+int downloadImage(uint8_t sram, uint8_t location, full_image_t *image);
 int detectionAndInterpret(detection_results_t *data);
 int cameraConfig(CameraTelemetry *cameraTelemetry);
 int cameraTelemetry(CameraTelemetry *cameraTelemetry);

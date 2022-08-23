@@ -21,6 +21,12 @@
                                PRIVATE DEFINITIONS AND VARIABLES
 ***************************************************************************************************/
 
+/* Interval in milliseconds before retrying a frame info request (40ms seems to be the lower limit) */
+#define IMAGE_FRAME_INTERVAL_MS			40
+
+/* Maximum number of requests before timing out (set to 2 seconds) */
+#define IMAGE_FRAME_MAX_RETRY			(2000 / IMAGE_FRAME_INTERVAL_MS)
+
 /* Telecommand ID numbers and Related Parameters */
 #define TELECOMMAND_40               	((uint8_t) 0x28)
 #define TELECOMMAND_41               	((uint8_t) 0x29)
@@ -132,10 +138,30 @@ static int tlmImageFrame(tlm_image_frame_t *telemetry_reply);
 static int tcCameraDetectionThreshold(uint8_t camera, uint8_t detectionThreshold);
 static int tcCameraAutoAdjust(uint8_t camera, uint8_t enabler);
 static int tcCameraSettings(uint8_t camera, uint16_t exposureTime, uint8_t AGC, uint8_t blue_gain, uint8_t red_gain);
+static uint16_t getNumberOfFramesFromSize(uint8_t size);
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
+
+/*
+ * Memory allocation and initialization of a new image of a given size
+ *
+ * @note it is important to free the allocated pointer memory after usage
+ * @param size defines the image size used to allocate memory, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64
+ * @return pointer to a new image in memory
+ */
+full_image_t * initializeNewImage(uint8_t size) {
+	uint16_t numberOfFrames = getNumberOfFramesFromSize(size);
+	full_image_t *image = calloc(1, sizeof(*image) + sizeof(tlm_image_frame_t) * numberOfFrames);
+	printf("Image allocated memory size = %i bytes\n", sizeof(*image) + sizeof(tlm_image_frame_t) * numberOfFrames);
+	if (image != NULL) {
+		image->imageSize = size;
+		image->framesCount = numberOfFrames;
+	}
+	return image;
+}
+
 /*
  * Used to capture an image with CubeSense Camera
  *
@@ -166,53 +192,41 @@ int captureImage(void) {
  *
  * @param sram defines which SRAM to use on Cubesense
  * @param location defines which SRAM slot to use within selected SRAM, 0 = top, 1 = bottom
- * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
  * @param image defines a pointer to where the entire photo will reside with an image ID
  *
  * @return error, 0 on success, otherwise failure
  * */
-int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *image) {
+int downloadImage(uint8_t sram, uint8_t location, full_image_t *image) {
 	int imageFrameNum = 1;
 	int error;
 	uint8_t counter = 0;
 	uint8_t isFirstRequest = 1;
-	uint16_t numOfFrames;
 	tlm_image_frame_info_t imageFrameInfo = {0};
 	tlm_image_frame_t imageFrame = {0};
 
-	printf("\n--- Initializing Image Download (TC 64) of SRAM=%i and location=%i---\n", sram, location);
+	// Verify if image has been initialized
+	if (image == NULL) {
+		return E_GENERIC;
+	}
+
+	printf("\n--- Initializing Image Download (TC 64) of SRAM=%i and location=%i---\n\n", sram, location);
 	// Send telecommand 64 to initialize a download
-	error = tcInitImageDownload(sram, location, size);
+	error = tcInitImageDownload(sram, location, image->imageSize);
 	if (error != SUCCESS) {
 		return error;
 	}
 
-	// From size of image download determine loop variable
-	switch(size) {
-		case 0: numOfFrames = 8192; break; 	// 1024x1024
-		case 1: numOfFrames = 2048; break;
-		case 2: numOfFrames = 512; break;
-		case 3: numOfFrames = 128; break;
-		case 4: numOfFrames = 32; break; 	// 64x64
-		default: numOfFrames = 32; break;
-	}
-
-	// Reset all parameters
-	imageFrameNum = 1;
-	memset(image->imageFrames, 0, sizeof(image->imageFrames));
-
 	// Loop for the amount of frames that are being downloaded
-	printf("\n numOfFrames = %i\n", numOfFrames);
-	for (uint16_t i = 0; i < numOfFrames; i++) {
+	for (uint16_t i = 0; i < image->framesCount; i++) {
 		printf("\nFRAME NUMBER = %i  |  Attempts:", i);
 		// Request image frame status until image frame is loaded in the camera buffer,
-		// the counter is used to ensure we don't deadlock and timeout is set to 2 seconds
+		// the counter is used to ensure we don't deadlock
 		counter = 0;
-		while((imageFrameNum != i) && (counter < 20)) {
+		while((imageFrameNum != i) && (counter < IMAGE_FRAME_MAX_RETRY)) {
 			if (isFirstRequest == 1) {
 				isFirstRequest = 0;
 			} else {
-				vTaskDelay(100); // Delay in ms between each frame info request
+				vTaskDelay(IMAGE_FRAME_INTERVAL_MS); // Delay in ms between each frame info request
 			}
 			printf(" %i ", counter);
 			error = tlmImageFrameInfo(&imageFrameInfo);
@@ -233,7 +247,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 		// Store Image Frame inside master struct
 		image->imageFrames[i] = imageFrame;
 
-		if (i+1 < numOfFrames) {
+		if (i+1 < image->framesCount) {
 			// Advance Image Download to Continue to the next Frame
 			error = tcAdvanceImageDownload(i+1);
 			if(error != SUCCESS) {
@@ -243,7 +257,7 @@ int downloadImage(uint8_t sram, uint8_t location, uint8_t size, full_image_t *im
 	}
 
 	// Give the image an ID
-	image->image_ID = sram + location;
+	image->image_ID = sram + (location << 1);
 
 	return SUCCESS;
 }
@@ -456,25 +470,14 @@ int cameraConfig(CameraTelemetry *cameraTelemetry) {
  * Filtering out unwanted images. Use the images within range of 40 to 240 on the grayscale range
  *
  * @post return 0 if image is in desired range 1 if it is not
- * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64,
  * @param image where the entire photo will reside with an image ID
  * @return 0 on success, otherwise failure
  * */
-int SaturationFilter(uint8_t size, full_image_t *image) {
-	unsigned short numOfFrames = 0;
+int SaturationFilter(full_image_t *image) {
 	uint16_t sumOfAverages = 0;
 	uint16_t allFrameAverage = 0;
 
-	switch(size) {
-		case 0: numOfFrames = 8192; break; 	// 1024x1024
-		case 1: numOfFrames = 2048; break;
-		case 2: numOfFrames = 512; break;
-		case 3: numOfFrames = 128; break;
-		case 4: numOfFrames = 32; break; 	// 64x64
-		default: numOfFrames = 32; break;
-	}
-
-	for (int i = 0; i < numOfFrames; i++) {
+	for (int i = 0; i < image->framesCount; i++) {
 		int sum = 0;
 		//average of one frame's bytes
 		for	(int j = 0; j < FRAME_BYTES; j++) {
@@ -484,7 +487,7 @@ int SaturationFilter(uint8_t size, full_image_t *image) {
 	}
 
 	//average of all the average of all frame bytes
-	allFrameAverage = sumOfAverages/numOfFrames;
+	allFrameAverage = sumOfAverages/image->framesCount;
 
 	// checking if the overall average is in reasonable range
 	if (allFrameAverage < 40 || allFrameAverage > 240) {
@@ -929,4 +932,21 @@ static int tcCameraSettings(uint8_t camera, uint16_t exposureTime, uint8_t AGC, 
 	}
 
 	return SUCCESS;
+}
+
+/*
+ * Get the number of frames required for a given CubeSense image size
+ *
+ * @param size defines the resolution of the image to download, 0 = 1024x1024, 1 = 512x512, 2 = 256x256, 3 = 128x128, 4 = 64x64
+ * @return number of frames corresponding to the desired size
+ */
+static uint16_t getNumberOfFramesFromSize(uint8_t size) {
+	switch(size) {
+		case 0: return 8192; // 1024x1024
+		case 1: return 2048; // 512x512
+		case 2: return 512;  // 256x256
+		case 3: return 128;  // 128x128
+		case 4: return 32; 	 // 64x64
+		default: return 32;
+	}
 }
