@@ -37,4 +37,4 @@ typedef struct _interpret_detection_result_t {
 
 int tcImageCaptureAndDetection(uint8_t camera, uint8_t sram);
 int tlmSensorResultAndDetection(tlm_detection_result_and_trigger_adcs_t *telemetry_reply, SensorResultAndDetection sensorSelection);
-interpret_detection_result_t detectionResult(uint16_t alpha, uint16_t beta);
+interpret_detection_result_t calculateDetectionVector(uint16_t alpha, uint16_t beta);

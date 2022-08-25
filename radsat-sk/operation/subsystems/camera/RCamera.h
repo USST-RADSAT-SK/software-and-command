@@ -74,10 +74,10 @@ typedef struct _full_image_t {
 ***************************************************************************************************/
 
 full_image_t * initializeNewImage(uint8_t size);
-int captureImage(void);
+int captureImage(uint8_t camera, uint8_t sram, uint8_t location);
 int downloadImage(uint8_t sram, uint8_t location, full_image_t *image);
-int detectionAndInterpret(detection_results_t *data);
-int cameraConfig(CameraTelemetry *cameraTelemetry);
-int cameraTelemetry(CameraTelemetry *cameraTelemetry);
+int getResultsAndTriggerNewDetection(detection_results_t *data);
+int setCameraConfig(CameraTelemetry *cameraTelemetry);
+int getCameraTelemetry(CameraTelemetry *cameraTelemetry);
 
 #endif /* RCAMERA_H_ */

@@ -130,7 +130,6 @@ typedef struct _tlm_read_sensor_mask_t {
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
 ***************************************************************************************************/
-static void printDetectionData(tlm_detection_result_and_trigger_adcs_t *data);
 static int tlmStatus(tlm_status_t *telemetry_reply);
 static int tlmPower(tlm_power_t *telemetry_reply);
 static int tlmConfig(tlm_config_t *telemetry_reply);
@@ -165,14 +164,17 @@ full_image_t * initializeNewImage(uint8_t size) {
 /*
  * Used to capture an image with CubeSense Camera
  *
+ * @param camera defines which sensor to use to capture an image, 0 = Camera 1, 1 = Camera 2
+ * @param sram defines which SRAM to use on Cubesense, 0 = SRAM1, 1 = SRAM2
+ * @param location defines which SRAM slot to use within selected SRAM, 0 = top, 1 = bottom
  * @return error, 0 on successful, otherwise failure
  * */
-int captureImage(void) {
+int captureImage(uint8_t camera, uint8_t sram, uint8_t location) {
 	int error;
 	tlm_telecommand_ack_t telecommand_ack = {0};
 
 	// Send Telecommand to Camera to Take a Photo
-	error = tcImageCapture(NADIR_SENSOR, SRAM2, BOTTOM_HALVE);
+	error = tcImageCapture(camera, sram, location);
 
 	if (error != SUCCESS)
 		return error;
@@ -262,35 +264,6 @@ int downloadImage(uint8_t sram, uint8_t location, full_image_t *image) {
 	return SUCCESS;
 }
 
-// TODO: REMOVE. Test purposes only.
-char capture_results[6][25] = {
-		"Startup",
-		"Capture Pending",
-		"Success - Own SRAM",
-		"Success - Other SRAM",
-		"Camera timeout",
-		"SRAM overcurrent"
-};
-char detection_results[8][25] = {
-		"Startup",
-		"Not scheduled",
-		"Detection Pending",
-		"Error - Too many edges",
-		"Error - Not enough edges",
-		"Error - Bad fit",
-		"Error - Sun not found",
-		"Success"
-};
-
-void printDetectionData(tlm_detection_result_and_trigger_adcs_t *data) {
-	printf("\n--- Detection Data ---\n");
-	printf("Alpha Angle      = %d\n", data->alpha);
-	printf("Beta Angle       = %d\n", data->beta);
-	printf("Capture Result   = %d (%s)\n", data->captureResult, capture_results[data->captureResult]);
-	printf("Detection Result = %d (%s)\n", data->detectionResult, detection_results[data->detectionResult]);
-	printf("----------------------\n");
-}
-
 /*
  * Used to created a 3D vector from a detection of both sensors
  *
@@ -298,57 +271,45 @@ void printDetectionData(tlm_detection_result_and_trigger_adcs_t *data) {
  * @param data a struct that will contain the components of 2 3D vectors
  * @return 0 on success, otherwise failure
  */
-int detectionAndInterpret(detection_results_t *data) {
+int getResultsAndTriggerNewDetection(detection_results_t *data) {
 	int error = 0;
-	uint16_t alphaSunSensor;
-	uint16_t betaSunSensor;
-	uint16_t alphaNadirSensor;
-	uint16_t betaNadirSensor;
 	tlm_detection_result_and_trigger_adcs_t sun_sensor_data = {0};
 	tlm_detection_result_and_trigger_adcs_t nadir_sensor_data = {0};
 	interpret_detection_result_t sun_sensor_coords = {0};
 	interpret_detection_result_t nadir_sensor_coords = {0};
 
 	printf("\n--------- SUN ---------");
-
-	// Request results of detection with TLM 22
+	// Request results of Sun detection with TLM 22
 	error = tlmSensorResultAndDetection(&sun_sensor_data, sensor1_sram1);
-	printDetectionData(&sun_sensor_data);
-
-	if (error != 0)
-		return error;
-
-	// If it was still a failure, set alpha and beta to zero
-	if (sun_sensor_data.detectionResult != 7) {
-		alphaSunSensor = 0;
-		betaSunSensor = 0;
-	}
-	else {
-		alphaSunSensor = sun_sensor_data.alpha;
-		betaSunSensor = sun_sensor_data.beta;
-	}
+	if (error != 0) return error;
 
 	printf("\n-------- NADIR --------");
-
-	// Request results of detection with TLM 23
+	// Request results of nadir detection with TLM 23
 	error = tlmSensorResultAndDetection(&nadir_sensor_data, sensor2_sram2);
-	printDetectionData(&nadir_sensor_data);
+	if (error != 0) return error;
 
-	if (error != 0)
-		return error;
-
-	// If it was still a failure, set alpha and beta to zero
-	if (nadir_sensor_data.detectionResult != 7) {
-		alphaNadirSensor = 0;
-		betaNadirSensor = 0;
+	// If either detection result is "not scheduled", wait 1s and send another request
+	if (sun_sensor_data.detectionResult == 1 || nadir_sensor_data.detectionResult == 1) {
+		vTaskDelay(1000);
+		if (sun_sensor_data.detectionResult == 1) {
+			printf("\n--------- SUN ---------");
+			error = tlmSensorResultAndDetection(&sun_sensor_data, sensor1_sram1);
+			if (error != 0) return error;
+		}
+		if (nadir_sensor_data.detectionResult == 1) {
+			printf("\n-------- NADIR --------");
+			error = tlmSensorResultAndDetection(&nadir_sensor_data, sensor2_sram2);
+			if (error != 0) return error;
+		}
 	}
-	else {
-		alphaNadirSensor = nadir_sensor_data.alpha;
-		betaNadirSensor = nadir_sensor_data.beta;
-	}
 
-	sun_sensor_coords = detectionResult(alphaSunSensor, betaSunSensor);
-	nadir_sensor_coords = detectionResult(alphaNadirSensor, betaNadirSensor);
+	// If detection is successful, calculate the detection results
+	if (sun_sensor_data.detectionResult == 7) {
+		sun_sensor_coords = calculateDetectionVector(sun_sensor_data.alpha, sun_sensor_data.beta);
+	}
+	if (nadir_sensor_data.detectionResult == 7) {
+		nadir_sensor_coords = calculateDetectionVector(nadir_sensor_data.alpha, nadir_sensor_data.beta);
+	}
 
 	// Fill struct with data
 	data->sunSensorX = sun_sensor_coords.X_AXIS;
@@ -367,7 +328,7 @@ int detectionAndInterpret(detection_results_t *data) {
  * @param cameraTelemetry a struct that will used to house all important telemetry on board
  * @return 0 on success, otherwise failure
  */
-int cameraTelemetry(CameraTelemetry *cameraTelemetry) {
+int getCameraTelemetry(CameraTelemetry *cameraTelemetry) {
 	int error;
 	tlm_status_t tlmStatusStruct = {0};
 	tlm_power_t tlmPowerStruct = {0};
@@ -418,7 +379,7 @@ int cameraTelemetry(CameraTelemetry *cameraTelemetry) {
  *
  * @param cameraTelemetry a struct that will contain the values that want to be adjusted
  * */
-int cameraConfig(CameraTelemetry *cameraTelemetry) {
+int setCameraConfig(CameraTelemetry *cameraTelemetry) {
 	int error;
 
 	// Update Auto adjust for camera one

@@ -21,6 +21,36 @@
 
 #define TELEMETRY_22_TO_25_LEN			((uint8_t) 10)
 
+
+// TODO: REMOVE. Test purposes only.
+static void printDetectionData(tlm_detection_result_and_trigger_adcs_t *data);
+char capture_results[6][25] = {
+		"Startup",
+		"Capture Pending",
+		"Success - Own SRAM",
+		"Success - Other SRAM",
+		"Camera timeout",
+		"SRAM overcurrent"
+};
+char detection_results[8][25] = {
+		"Startup",
+		"Not scheduled",
+		"Detection Pending",
+		"Error - Too many edges",
+		"Error - Not enough edges",
+		"Error - Bad fit",
+		"Error - Sun not found",
+		"Success"
+};
+void printDetectionData(tlm_detection_result_and_trigger_adcs_t *data) {
+	printf("\n--- Detection Data ---\n");
+	printf("Alpha Angle      = %d\n", data->alpha);
+	printf("Beta Angle       = %d\n", data->beta);
+	printf("Capture Result   = %d (%s)\n", data->captureResult, capture_results[data->captureResult]);
+	printf("Detection Result = %d (%s)\n", data->detectionResult, detection_results[data->detectionResult]);
+	printf("----------------------\n");
+}
+
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
@@ -140,6 +170,8 @@ int tlmSensorResultAndDetection(tlm_detection_result_and_trigger_adcs_t *telemet
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
 
+	printDetectionData(telemetry_reply);
+
 	return SUCCESS;
 }
 
@@ -150,7 +182,7 @@ int tlmSensorResultAndDetection(tlm_detection_result_and_trigger_adcs_t *telemet
  * @param beta result in centidegrees after executing TLM22 or 25
  * @return struct containing the components of the 3D Vector
  */
-interpret_detection_result_t detectionResult(uint16_t alpha, uint16_t beta) {
+interpret_detection_result_t calculateDetectionVector(uint16_t alpha, uint16_t beta) {
 	float theta;
 	float phi;
 	interpret_detection_result_t data = {0};
