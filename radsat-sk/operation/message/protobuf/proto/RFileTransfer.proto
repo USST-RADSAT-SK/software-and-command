@@ -74,25 +74,95 @@ message transceiver_telemetry {
 	transmitter_telemetry transmitter	= 2;	///< Transmitter Telemetry
 }
 
+// Camera power related telemetry
+// Used internally; not sent as standalone message
+message camera_power_telemetry {
+	float current_3V3			= 1;
+    float current_5V			= 2;
+    float current_SRAM_1		= 3;
+    float current_SRAM_2		= 4;
+    uint32 overcurrent_SRAM_1	= 5;
+    uint32 overcurrent_SRAM_2	= 6;
+}
+
+// Camera configuration related telemetry
+// Used internally; not sent as standalone message
+message camera_configuration_telemetry {
+    uint32 detectionThreshold	= 1;
+    uint32 autoAdjustMode		= 2;
+    uint32 exposure				= 3;
+    uint32 autoGainControl		= 4;
+    uint32 blueGain				= 5;
+    uint32 redGain				= 6;
+}
+
 // Information about the state of the Camera
 message camera_telemetry {
 	uint32 uptime	= 1;	///< Local uptime (since last startup) in seconds
+	camera_power_telemetry powerTelemetry				= 2;
+	camera_configuration_telemetry cameraOneTelemetry	= 3;
+	camera_configuration_telemetry cameraTwoTelemetry	= 4;
+}
+
+// Data for the sun sensor telemetry
+// Used internally; not sent as standalone message
+message sun_sensor_data {
+	float xPos	= 1;
+	float xNeg	= 2;
+	float yPos	= 3;
+	float yNeg	= 4;
+	float zPos	= 5;
+	float zNeg	= 6;
 }
 
 // Information about the state of the Electrical Power Supply
 message eps_telemetry {
-
+	sun_sensor_data sunSensorData	= 1;
+	float outputVoltageBCR			= 2;
+	float outputVoltageBatteryBus	= 3;
+	float outputVoltage5VBus		= 4;
+	float outputVoltage3V3Bus		= 5;
+	float outputCurrentBCR_mA		= 6;
+	float outputCurrentBatteryBus	= 7;
+	float outputCurrent5VBus		= 8;
+	float outputCurrent3V3Bus		= 9;
+	float PdbTemperature			= 10;
 }
 
 // Information about the state of the Battery
 message battery_telemetry {
+	float outputVoltageBatteryBus	= 1;
+	float outputVoltage5VBus		= 2;
+	float outputVoltage3V3Bus		= 3;
+	float outputCurrentBatteryBus	= 4;
+	float outputCurrent5VBus		= 5;
+	float outputCurrent3V3Bus		= 6;
+	float batteryCurrentDirection	= 7;
+	float motherboardTemp			= 8;
+	float daughterboardTemp1		= 9; 
+	float daughterboardTemp2		= 10;
+	float daughterboardTemp3		= 11;
+}
 
+// Telemetry data for a single antenna microcontroller 
+// Used internally; not sent as standalone message
+message antenna_side_data {
+	uint32 deployedAntenna1 = 1;
+	uint32 deployedAntenna2 = 2;
+	uint32 deployedAntenna3 = 3;
+	uint32 deployedAntenna4 = 4;
+	uint32 armed            = 5;
+	float  boardTemp        = 6;
+	uint32 uptime           = 7;
 }
 
 // Information about the state of the Antenna
 message antenna_telemetry {
-
+	antenna_side_data sideA = 1;
+	antenna_side_data sideB = 2;
 }
+
+
 
 // Payload Data for a single Dosimeter board
 // Used internally; not sent as standalone message

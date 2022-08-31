@@ -2,6 +2,7 @@
  * @file RProtobuf.c
  * @date January 25, 2021
  * @author Tyrel Kostyk (tck290)
+ * Last edited 27 July 2022 by Brian Pitzel
  */
 
 #include <RProtobuf.h>
@@ -26,11 +27,12 @@ uint8_t protoEncode(radsat_message* rawMessage, uint8_t* outgoingBuffer) {
 		return 0;
 
 	// create stream object
-	pb_ostream_t stream = pb_ostream_from_buffer((uint8_t*)rawMessage, PROTO_MAX_ENCODED_SIZE);
+	pb_ostream_t stream = pb_ostream_from_buffer(outgoingBuffer, PROTO_MAX_ENCODED_SIZE);
 
 	// encode the message into the byte array
-	if (pb_encode(&stream, radsat_message_fields, outgoingBuffer))
+	if (pb_encode(&stream, radsat_message_fields, (uint8_t*)rawMessage)){
 		return stream.bytes_written;
+	}
 
 	// if the encoding failed, return 0
 	return 0;
@@ -41,17 +43,18 @@ uint8_t protoEncode(radsat_message* rawMessage, uint8_t* outgoingBuffer) {
  * Decode an encoded protobuf message.
  *
  * @param incomingBuffer The buffer containing the encoded message (no header).
+ * @param bufferSize The size of incomingBuffer in bytes.
  * @param decodedMessage The message that will be populated with the decoded message.
  * @return 0 if the message is decoded successfully, otherwise error occured.
  */
-int protoDecode(uint8_t* incomingBuffer, radsat_message* decodedMessage) {
+int protoDecode(uint8_t* incomingBuffer, uint8_t bufferSize, radsat_message* decodedMessage) {
 
 	// ensure incoming buffers are not NULL
 	if (incomingBuffer == 0 || decodedMessage == 0)
 		return E_INPUT_POINTER_NULL;
 
 	// create stream object
-	pb_istream_t stream = pb_istream_from_buffer((uint8_t*)incomingBuffer, PROTO_MAX_ENCODED_SIZE);
+	pb_istream_t stream = pb_istream_from_buffer((uint8_t*)incomingBuffer, bufferSize);
 
 	// decode the message into the empty message struct
 	uint8_t success = pb_decode(&stream, radsat_message_fields, decodedMessage);
