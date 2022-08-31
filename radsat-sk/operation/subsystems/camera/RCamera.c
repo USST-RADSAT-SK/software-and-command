@@ -28,6 +28,7 @@
 #define IMAGE_FRAME_MAX_RETRY			(2000 / IMAGE_FRAME_INTERVAL_MS)
 
 /* Telecommand ID numbers and Related Parameters */
+#define TELECOMMAND_0               	((uint8_t) 0x00)
 #define TELECOMMAND_40               	((uint8_t) 0x28)
 #define TELECOMMAND_41               	((uint8_t) 0x29)
 #define TELECOMMAND_42               	((uint8_t) 0x2A)
@@ -35,6 +36,7 @@
 #define TELECOMMAND_44                  ((uint8_t) 0x2C)
 #define TELECOMMAND_45                  ((uint8_t) 0x2D)
 
+#define TELECOMMAND_0_LEN               ((uint8_t) 2)
 #define TELECOMMAND_40_AND_41_LEN       ((uint8_t) 2)
 #define TELECOMMAND_42_AND_44_LEN       ((uint8_t) 2)
 #define TELECOMMAND_43_AND_45_LEN       ((uint8_t) 6)
@@ -453,6 +455,64 @@ int SaturationFilter(full_image_t *image) {
 	// checking if the overall average is in reasonable range
 	if (allFrameAverage < 40 || allFrameAverage > 240) {
 		return 1;
+	}
+
+	return SUCCESS;
+}
+
+/*
+ * Send a reset telecommand to reset the given CubeSense system (TC 0)
+ *
+ * @param resetOption defines the system to reset, 1 = reset communication, 2 = reset cameras, 3 = reset MCU
+ * @return 0 on success, otherwise failure
+ */
+int executeReset(uint8_t resetOption) {
+	uint8_t *telecommandBuffer;
+	uint8_t *telecommandResponse;
+	uint16_t sizeOfBuffer;
+	uint8_t tcErrorFlag;
+	int error;
+
+	// Dynamically allocate a buffer to hold the Telecommand message with header and footer implemented
+	telecommandBuffer = MessageBuilder(TELECOMMAND_0_LEN);
+	sizeOfBuffer = TELECOMMAND_0_LEN + BASE_MESSAGE_LEN;
+
+	// Fill buffer with Telecommand ID
+	telecommandBuffer[MESSAGE_ID_OFFSET] = TELECOMMAND_0;
+
+	// Fill buffer with detection threshold
+	telecommandBuffer[TELECOMMAND_OFFSET_0] = resetOption;
+
+	// Send telecommand
+	error = uartTransmit(UART_CAMERA_BUS, telecommandBuffer, sizeOfBuffer); // No escaping needed
+
+	// Free the dynamically allocated buffer
+	free(telecommandBuffer);
+
+	if (error != 0) {
+		return E_GENERIC;
+	}
+
+	// Dynamically allocate a buffer to hold the telecommand message with header and footer implemented
+	telecommandResponse = MessageBuilder(TELECOMMAND_RESPONSE_LEN);
+	sizeOfBuffer = TELECOMMAND_RESPONSE_LEN + BASE_MESSAGE_LEN;
+
+	// Read automatically reply to telecommand
+	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
+
+	if (error != 0) {
+		free(telecommandResponse);
+		return E_GENERIC;
+	}
+
+	// Receive the telecommand response from buffer
+	tcErrorFlag = telecommandResponse[TELECOMMAND_RESPONSE_OFFSET];
+
+	// Free the dynamically allocated buffer
+	free(telecommandResponse);
+
+	if (tcErrorFlag != 0) {
+		return E_GENERIC;
 	}
 
 	return SUCCESS;

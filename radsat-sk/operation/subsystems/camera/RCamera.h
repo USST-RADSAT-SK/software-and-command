@@ -79,5 +79,6 @@ int downloadImage(uint8_t sram, uint8_t location, full_image_t *image);
 int getResultsAndTriggerNewDetection(detection_results_t *data);
 int setCameraConfig(CameraTelemetry *cameraTelemetry);
 int getCameraTelemetry(CameraTelemetry *cameraTelemetry);
+int executeReset(uint8_t resetOption);
 
 #endif /* RCAMERA_H_ */
