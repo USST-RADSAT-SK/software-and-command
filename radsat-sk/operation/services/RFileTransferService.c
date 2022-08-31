@@ -10,6 +10,8 @@
 #include <RMessage.h>
 #include <string.h>
 #include <RCommon.h>
+#include <RTransceiver.h>
+#include <math.h>
 
 
 /**
@@ -91,6 +93,7 @@ uint8_t fileTransferNextFrame(uint8_t* frame) {
  */
 uint8_t fileTransferCurrentFrame(uint8_t* frame) {
 
+	sqrt(1);
 	// only provide a frame if the cursor is pointing at a valid frame
 	if (frames[frameReadCursor].size > 0)
 		memcpy(frame, frames[frameReadCursor].data, frames[frameReadCursor].size);
@@ -133,17 +136,25 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	void* newMessageAddr = &(newMessage.FileTransferMessage.which_message) + sizeof(newMessage.FileTransferMessage.which_message);
 	memcpy(newMessageAddr, message, size);
 
+	uint8_t data[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };
 	// wrap new message
-	frames[frameWriteCursor].size = messageWrap(&newMessage, frames[frameWriteCursor].data);
+	//frames[frameWriteCursor].size = messageWrap(&newMessage, frames[frameWriteCursor].data);
+	uint8_t sizealt = messageWrap(&newMessage, data);
 
-	// return error if message wrapping failed
-	if (frames[frameWriteCursor].size == 0)
-		return ERROR_MESSAGE_WRAPPING;
+	uint8_t slots = 0;
+	//int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRemaining)
+	int error = transceiverSendFrame(data, sizealt, &slots);
+	if(error){
+		debugPrint("TX error = %d\n", error);
+	}
+//	// return error if message wrapping failed
+//	if (frames[frameWriteCursor].size == 0)
+//		return ERROR_MESSAGE_WRAPPING;
 
 	// upon success, increment cursor
-	frameWriteCursor++;
-	if (frameWriteCursor == MAX_FRAME_COUNT)
-		frameWriteCursor = 0;
+	//frameWriteCursor++;
+//	if (frameWriteCursor == MAX_FRAME_COUNT)
+//		frameWriteCursor = 0;
 
 	// return success
 	return SUCCESS;

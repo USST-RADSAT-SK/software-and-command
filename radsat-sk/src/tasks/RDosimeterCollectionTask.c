@@ -20,7 +20,7 @@
 #define DOSIMETER_READINGS_PER_DAY			(6)
 
 /** Dosimeter Collection Task delay (in ms). */
-#define DOSIMETER_COLLECTION_TASK_DELAY_MS	(MS_PER_DAY / DOSIMETER_READINGS_PER_DAY)
+#define DOSIMETER_COLLECTION_TASK_DELAY_MS	(1000)
 
 
 /***************************************************************************************************

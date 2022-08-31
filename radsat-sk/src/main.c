@@ -380,7 +380,7 @@ void MissionInitTask(void* parameters) {
 #ifdef TEST
 
 	// TODO: run tests
-	error = selectAndExecuteTest();
+	error = selectAndExecuteTests();
 	if (error)
 		debugPrint("Error running selectAndExecuteTest. error = %d\n", error);
 

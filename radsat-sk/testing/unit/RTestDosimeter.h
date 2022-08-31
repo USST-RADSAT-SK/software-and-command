@@ -8,11 +8,13 @@
 #define RTESTDOSIMETER_H_
 
 
+
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
-int testSelectDosimeter(void);
+int testSelectDosimeter(unsigned int autoSelection);
+int checkDosimeter(void);
 int testDosimeterAll(void);
 
 

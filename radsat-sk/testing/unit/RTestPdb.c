@@ -33,6 +33,15 @@ static int testPdb(void){
                                              PUBLIC API
 ***************************************************************************************************/
 
+
+
+int testPdbAll(void) {
+	int error = 0;
+	error = testPdb();
+	return error;
+
+}
+
 int testSelectPdb(unsigned int autoSelection) {
 	unsigned int selection = autoSelection;
 	int returnValue = 0;
@@ -58,12 +67,5 @@ int testSelectPdb(unsigned int autoSelection) {
 	}
 
 	return returnValue;
-
-}
-
-int testPdbAll(void) {
-	int error = 0;
-	error = testpdb();
-	return error;
 
 }
