@@ -9,6 +9,7 @@
 #include <RProtocolService.h>
 #include <RTelecommandService.h>
 #include <RFileTransferService.h>
+#include <RCommunicationStateMachine.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -46,60 +47,60 @@
 #define COMMUNICATION_TX_TASK_LONG_DELAY_MS		((portTickType)TRANCEIVER_TX_MAX_FRAME_SIZE)
 
 
-/** Abstraction of the response states */
-typedef enum _response_state_t {
-	responseStateIdle	= 0,	///> Awaiting response from Ground Station
-	responseStateReady	= 1,	///> Ready to transmit to Ground Station
-} response_state_t;
+///** Abstraction of the response states */
+//typedef enum _response_state_t {
+//	responseStateIdle	= 0,	///> Awaiting response from Ground Station
+//	responseStateReady	= 1,	///> Ready to transmit to Ground Station
+//} response_state_t;
+//
+//
+///** Abstraction of the ACK/NACK return types */
+//typedef enum _response_t {
+//	responseAck		= protocol_message_Ack_tag,	///> Acknowledge (the message was received properly)
+//	responseNack	= protocol_message_Nack_tag,	///> Negative Acknowledge (the message was NOT received properly)
+//} response_t;
+//
+//
+///** Abstraction of the communication modes */
+//typedef enum _comm_mode_t {
+//	commModeQuiet			= -1,	///> Prevent downlink transmissions and automatic state changes
+//	commModeIdle			= 0,	///> Not in a pass
+//	commModeTelecommand		= 1,	///> Receiving Telecommands from Ground Station
+//	commModeFileTransfer	= 2,	///> Transmitting data to the Ground Station
+//} comm_mode_t;
+//
+//
+///** Co-ordinates tasks during the telecommand phase */
+//typedef struct _telecommand_state_t {
+//	response_state_t transmitReady;	///> Whether the Satellite is ready to transmit a response (ACK, NACK, etc.)
+//	response_t responseToSend;		///> What response to send, when ready
+//} telecommand_state_t;
+//
+//
+///** Co-ordinates tasks during the file transfer phase */
+//typedef struct _file_transfer_state_t {
+//	response_state_t transmitReady;		///> Whether the Satellite is ready to transmit another Frame (telemetry, etc.)
+//	response_t responseReceived;		///> What response was received (ACK, NACK, etc.) regarding the previous message
+//	uint8_t transmissionErrors;			///> Error counter for recording consecutive NACKs
+//} file_transfer_state_t;
+//
+//
+///** Wrapper structure for communications co-ordination */
+//typedef struct _communication_state_t {
+//	comm_mode_t mode;					///> The current state of the Communications Tasks
+//	telecommand_state_t telecommand;	///> The state during the Telecommand mode
+//	file_transfer_state_t fileTransfer;	///> The state during the File Transfer mode
+//} communication_state_t;
 
 
-/** Abstraction of the ACK/NACK return types */
-typedef enum _response_t {
-	responseAck		= protocol_message_Ack_tag,	///> Acknowledge (the message was received properly)
-	responseNack	= protocol_message_Nack_tag,	///> Negative Acknowledge (the message was NOT received properly)
-} response_t;
-
-
-/** Abstraction of the communication modes */
-typedef enum _comm_mode_t {
-	commModeQuiet			= -1,	///> Prevent downlink transmissions and automatic state changes
-	commModeIdle			= 0,	///> Not in a pass
-	commModeTelecommand		= 1,	///> Receiving Telecommands from Ground Station
-	commModeFileTransfer	= 2,	///> Transmitting data to the Ground Station
-} comm_mode_t;
-
-
-/** Co-ordinates tasks during the telecommand phase */
-typedef struct _telecommand_state_t {
-	response_state_t transmitReady;	///> Whether the Satellite is ready to transmit a response (ACK, NACK, etc.)
-	response_t responseToSend;		///> What response to send, when ready
-} telecommand_state_t;
-
-
-/** Co-ordinates tasks during the file transfer phase */
-typedef struct _file_transfer_state_t {
-	response_state_t transmitReady;		///> Whether the Satellite is ready to transmit another Frame (telemetry, etc.)
-	response_t responseReceived;		///> What response was received (ACK, NACK, etc.) regarding the previous message
-	uint8_t transmissionErrors;			///> Error counter for recording consecutive NACKs
-} file_transfer_state_t;
-
-
-/** Wrapper structure for communications co-ordination */
-typedef struct _communication_state_t {
-	comm_mode_t mode;					///> The current state of the Communications Tasks
-	telecommand_state_t telecommand;	///> The state during the Telecommand mode
-	file_transfer_state_t fileTransfer;	///> The state during the File Transfer mode
-} communication_state_t;
-
-
-/** Timer for pass mode */
-static xTimerHandle passTimer;
-
-/** Timer for quiet mode */
-static xTimerHandle quietTimer;
-
-/** Communication co-orditation structure */
-static communication_state_t state = { 0 };
+///** Timer for pass mode */
+//static xTimerHandle passTimer;
+//
+///** Timer for quiet mode */
+//static xTimerHandle quietTimer;
+//
+///** Communication co-orditation structure */
+//static communication_state_t state = { 0 };
 
 
 /***************************************************************************************************
@@ -148,6 +149,8 @@ void CommunicationRxTask(void* parameters) {
 	uint16_t rxMessageSize = 0;	// size (in bytes) of a received frame
 	uint8_t rxMessage[TRANCEIVER_RX_MAX_FRAME_SIZE] = { 0 };	// input buffer for received frames
 
+	uint8_t messageTag = 0;
+
 	while (1) {
 
 		// get the number of frames currently in the receive buffer
@@ -162,74 +165,90 @@ void CommunicationRxTask(void* parameters) {
 			memset(rxMessage, 0, sizeof(rxMessage));
 			error = transceiverGetFrame(rxMessage, &rxMessageSize);
 
-			// handle valid frames once obtained
-			if (rxMessageSize > 0 && error == 0) {
+			// attempt to extract a protocol message
+			messageTag = protocolHandle(rxMessage, rxMessageSize);
 
-				// transition out of idle mode and into pass mode (if not already done)
-				if (state.mode == commModeIdle)
-					startPassMode();
+			// if a protocol message
+			if (messageTag != 0){
 
-				// telecommand (or quiet) mode, awaiting the next telecommand from the Ground Station
-				if ((state.mode == commModeTelecommand || state.mode == commModeQuiet)
-				&& (!state.telecommand.transmitReady))
-				{
-					// send telecommands to Telecommand Service for execution; extract specific telecommand
-					uint8_t telecommand = telecommandHandle(rxMessage, rxMessageSize);
+				// handle protocol
+				switch (messageTag) {
 
-					// a valid telecommand was received and extracted
-					if (telecommand > 0)
-						state.telecommand.responseToSend = responseAck;
+					// ack
+					case (protocol_message_Ack_tag):
+						ackReceived();
+						break;
 
-					// no valid telecommand could be extracted
-					else
-						state.telecommand.responseToSend = responseNack;
+					// nack
+					case (protocol_message_Nack_tag):
+						nackReceived();
+						break;
 
-					// prepare to send ACK/NACK response
-					state.telecommand.transmitReady = responseStateReady;
+					default:
+						nackReceived();
+						break;
+				}
+			}
 
-					// handle additional (communication-related) telecommand actions if necessary
-					switch (telecommand) {
+			// otherwise, attempt to extract and execute a telecommand message
+			else{
 
-						// indicates that a telecommands are done; ready for file transfers
-						case (telecommand_message_BeginFileTransfer_tag):
-							// prepare for File Transfer Mode
-							state.mode = commModeFileTransfer;
+				messageTag = telecommandHandle(rxMessage, rxMessageSize);
+
+				// if a valid message
+				if (messageTag != 0){
+
+					// handle protocol
+					switch (messageTag) {
+
+						// beginPass
+						case (telecommand_message_BeginPass_tag):
+							beginPass();
 							break;
 
-						// indicates that all downlink activities shall be ceased
+						// beginFileTransfer
+						case (telecommand_message_BeginFileTransfer_tag):
+							beginFileTransfer();
+							break;
+
+						// ceaseTransmission
 						case (telecommand_message_CeaseTransmission_tag):
-							// immediately cease all downlink communications
 							ceaseTransmission();
 							break;
 
-						// indicates that downlink activities may be resumed
+						// ceaseTransmission
 						case (telecommand_message_ResumeTransmission_tag):
-							// immediately resume all downlink communications
 							resumeTransmission();
 							break;
 
+						// updateTime
+						case (telecommand_message_UpdateTime_tag):
+							updateTime();
+							break;
+
+						// reset
+						case (telecommand_message_Reset_tag):
+							reset();
+							break;
+
 						default:
-							// do nothing; all other responsibilities are managed within the Telecommand Service
+							// todo: should the default be to send a nack?
+							sendNack();
 							break;
 					}
 				}
-
-				// file transfer mode, awaiting ACK/NACK from the Ground Station
-				else if (state.mode == commModeFileTransfer && !state.fileTransfer.transmitReady)
-				{
-					// forward message to the Protocol Service and extract the received ACK/NACK response
-					response_t response = protocolHandle(rxMessage, rxMessageSize);
-
-					// prepare to send subsequent (or resend previous) file transfer frame
-					state.fileTransfer.responseReceived = response;
-					state.fileTransfer.transmitReady = responseStateReady;
+				// if no telecommand message successfully received, send a nack
+				else{
+					sendNack();
 				}
 			}
 		}
-
 		vTaskDelay(COMMUNICATION_RX_TASK_DELAY_MS);
 	}
 }
+
+
+
 
 
 /**
@@ -260,68 +279,11 @@ void CommunicationTxTask(void* parameters) {
 
 	while (1) {
 
-		// pass mode is active
-		if (communicationPassModeActive()) {
+		txMessageSize = getNextFrame();
 
-			// ready to send ACK/NACK to the Ground Station
-			if (state.telecommand.transmitReady) {
-
-				// serialize the ACK/NACK response to be sent
-				txMessageSize = protocolGenerate(state.telecommand.responseToSend, txMessage);
-
-				// send the message
-				if (txMessageSize > 0)
-					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
-
-				// prepare to receive next message
-				if (error == 0 && txMessageSize > 0)
-					state.telecommand.transmitReady = responseStateIdle;
-			}
-
-			// file transfer mode, ready to transmit a message
-			else if (state.mode == commModeFileTransfer && state.fileTransfer.transmitReady) {
-
-				// ACK received from ground Station; obtain next message and send it
-				if (state.fileTransfer.responseReceived == responseAck) {
-
-					// clear transmission error counter
-					state.fileTransfer.transmissionErrors = 0;
-
-					// obtain new message and size from File Transfer Service
-					txMessageSize = fileTransferNextFrame(txMessage);
-
-					// send the message if one exists
-					if (txMessageSize > 0) {
-						error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
-
-						// prepare to receive ACK/NACK
-						if (error == 0)
-							state.telecommand.transmitReady = responseStateIdle;
-						// force NACK in order to resend the packet
-						else
-							state.fileTransfer.responseReceived = responseNack;
-					}
-				}
-
-				// NACK received from ground Station; re-send the previous message
-				else {
-
-					// record the NACK
-					state.fileTransfer.transmissionErrors++;
-
-					// abort transmission if the error limit is exceeded
-					if (state.fileTransfer.transmissionErrors > NACK_ERROR_LIMIT)
-						endPassMode();
-
-					// resend the message
-					error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
-
-					// prepare to receive ACK/NACK
-					if (error == 0)
-						state.telecommand.transmitReady = responseStateIdle;
-				}
-			}
-		}
+		// send the message
+		if (txMessageSize > 0)
+			error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
 
 		// increase Task delay time when the Transmitter's buffer is full to give it time to transmit
 		if (txSlotsRemaining > 0)
