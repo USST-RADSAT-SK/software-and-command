@@ -154,8 +154,8 @@ void CommunicationRxTask(void* parameters) {
 	while (1) {
 
 		// get the number of frames currently in the receive buffer
-		rxFrameCount = 0;
-		error = transceiverRxFrameCount(&rxFrameCount);
+		rxFrameCount = 1;//0;
+		//error = transceiverRxFrameCount(&rxFrameCount);
 
 		// obtain frames when present
 		if (rxFrameCount > 0 && error == 0) {
@@ -216,7 +216,7 @@ void CommunicationRxTask(void* parameters) {
 							ceaseTransmission();
 							break;
 
-						// ceaseTransmission
+						// resumeTransmission
 						case (telecommand_message_ResumeTransmission_tag):
 							resumeTransmission();
 							break;
@@ -258,7 +258,7 @@ void CommunicationRxTask(void* parameters) {
  * (i.e. receiving telecommands), this task is responsible for transmitting the appropriate ACKs
  * (or NACKs) and updating the flags (that are local and private to this module). When in a pass
  * and in the File Transfer mode, this task is responsible for transmitting frames that are ready
- * for downlink transmission. Preperation of downlink messages is done by another module prior to
+ * for downlink transmission. Preparation of downlink messages is done by another module prior to
  * the pass duration.
  *
  * @note	This is a high priority task.

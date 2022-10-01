@@ -297,7 +297,7 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create CommunicationTxTask.\n");
 		return E_GENERIC;
 	}
-
+/*
 	// initialize the Dosimeter Collection Task
 	error = xTaskCreate(DosimeterCollectionTask,
 						(const signed char*)"Dosimeter Collection Task",
@@ -362,7 +362,7 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create SatelliteWatchdogTask.\n");
 		return E_GENERIC;
 	}
-
+*/
 	return SUCCESS;
 }
 
@@ -414,12 +414,17 @@ void MissionInitTask(void* parameters) {
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
 	}
 
+	while(1){
+
+
+	}
+
 	// initialize the FreeRTOS Tasks used for typical mission operation
 	initMissionTasks();
-	if (error != SUCCESS) {
+	//if (error != SUCCESS) {
 		// TODO: report to system manager
-		debugPrint("MissionInitTask(): failed to initialize FreeRTOS Mission Tasks.\n");
-	}
+	//	debugPrint("MissionInitTask(): failed to initialize FreeRTOS Mission Tasks.\n");
+	//}
 
 	// let this task delete itself
 	vTaskDelete(NULL);

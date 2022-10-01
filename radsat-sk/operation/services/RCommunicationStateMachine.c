@@ -244,7 +244,7 @@ uint8_t getNextFrame(uint8_t *txMessage) {
 
 		return txMessageSize;
 
-		}
+	}
 
 	// if we are in Idle mode:
 	if(state.mode == commModeIdle || state.mode == commModeQuiet){
@@ -264,39 +264,43 @@ uint8_t getNextFrame(uint8_t *txMessage) {
 			// obtain new message and size from File Transfer Service
 			txMessageSize = fileTransferNextFrame(txMessage);
 
-			/** todo: this part needs to be looked over more closely
-			 *
-			 * // prepare to receive ACK/NACK
-			 * if (txMessageSize > 0)
-			 * 	state.telecommand.transmitReady = responseStateIdle;
-			 * // force NACK in order to resend the packet
-			 * else
-			 *	state.fileTransfer.responseReceived = responseNack;
-			 */
+			// this part should be looked over more closely
+
+			// prepare to receive ACK/NACK
+			if (txMessageSize > 0)
+				state.telecommand.transmitReady = responseStateIdle;
+
+			// todo: does something need to happen if txMessageSize <=0? Does the caller handle it?
 
 			return txMessageSize;
 		}
 
-		// NACK received from ground Station; re-send the previous message
+		// NACK or nothing received from ground Station; re-send the previous message
 		else {
 
 			// record the NACK
 			state.fileTransfer.transmissionErrors++;
 
-			// abort transmission if the error limit is exceeded
+			// abort pass if the error limit is exceeded
 			if (state.fileTransfer.transmissionErrors > NACK_ERROR_LIMIT)
 				endPassMode();
 
-			// todo: return the same message that was just returned
+			// return the same message that was just sent
+			txMessageSize = fileTransferCurrentFrame(txMessage);
 
 			// prepare to receive ACK/NACK
-				if (error == 0)
-					state.telecommand.transmitReady = responseStateIdle;
+			if (txMessageSize > 0)
+				state.telecommand.transmitReady = responseStateIdle;
+
+			// todo: does something need to happen if txMessageSize <=0? Does the caller handle it?
+
+			return txMessageSize;
 		}
+
 	}
 
 	// todo: if we are in ImageTransfer mode:
-	// if(state.mode == commModeImageTransfer && state.imageTransfer.transmitReady == responseStateReady){}
+	//if(state.mode == commModeImageTransfer && state.imageTransfer.transmitReady == responseStateReady){}
 
 	// todo: default/no return state:
 	//if (state.mode == default)

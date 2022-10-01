@@ -163,7 +163,6 @@ message antenna_telemetry {
 }
 
 
-
 // Payload Data for a single Dosimeter board
 // Used internally; not sent as standalone message
 message dosimeter_board_data {

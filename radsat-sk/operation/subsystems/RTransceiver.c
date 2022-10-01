@@ -110,24 +110,27 @@ int transceiverRxFrameCount(uint16_t* numberOfFrames) {
  * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
 int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
+	uint16_t slaveAddress = 0x15;
 
 	// transceiver must be initialized first
-	if (!initialized)
-		return E_NOT_INITIALIZED;
+	//if (!initialized)
+	//	return E_NOT_INITIALIZED;
 
 	// ensure the pointers are valid
 	if (messageBuffer == 0 || sizeOfMessage == 0)
 		return E_INPUT_POINTER_NULL;
 
-	// create an RX Frame struct to receive the frame (and length) into
-	ISIStrxvuRxFrame frame = {
-		.rx_framedata = messageBuffer,
-	};
+	int error = i2cRecieve(slaveAddress, messageBuffer, sizeOfMessage);
 
-	int error = IsisTrxvu_rcGetCommandFrame(TRANSCEIVER_INDEX, &frame);
+	// create an RX Frame struct to receive the frame (and length) into
+	//ISIStrxvuRxFrame frame = {
+	//	.rx_framedata = messageBuffer,
+	//};
+
+	//int error = IsisTrxvu_rcGetCommandFrame(TRANSCEIVER_INDEX, &frame);
 
 	// provide the size of the message to the caller
-	*sizeOfMessage = frame.rx_length;
+	//*sizeOfMessage = frame.rx_length;
 
 	// TODO: record errors (if present) to System Manager
 
@@ -144,16 +147,18 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
  * @return	Error code; 0 for success, otherwise see hal/error.c
  */
 int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRemaining) {
-
+	uint16_t slaveAddress = 0x15;
 	// transceiver must be initialized first
-	if (!initialized)
-		return E_NOT_INITIALIZED;
+	//if (!initialized)
+	//	return E_NOT_INITIALIZED;
 
 	// ensure the pointer is valid (slotsRemaining is optional)
 	if (message == 0)
 		return E_INPUT_POINTER_NULL;
 
-	int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, slotsRemaining);
+	int error = i2cTransmit(slaveAddress, message, messageSize);
+
+	//int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, slotsRemaining);
 
 	// TODO: record errors (if present) to System Manager
 
