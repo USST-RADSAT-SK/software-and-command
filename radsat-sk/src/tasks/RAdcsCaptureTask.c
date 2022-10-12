@@ -6,7 +6,7 @@
 
 #include <RAdcsCaptureTask.h>
 #include <RCommon.h>
-
+#include <RCamera.h>
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 
@@ -19,7 +19,7 @@
 #define ADCS_CAPTURES_PER_HOUR	(1)
 
 /** ADCS Capture Task delay (in ms). */
-#define ADCS_CAPURE_TASK_DELAY_MS	(MS_PER_HOUR / ADCS_CAPTURES_PER_HOUR)
+#define ADCS_CAPTURE_TASK_DELAY_MS	(MS_PER_HOUR / ADCS_CAPTURES_PER_HOUR)
 
 
 /***************************************************************************************************
@@ -37,6 +37,9 @@ void AdcsCaptureTask(void* parameters) {
 
 		debugPrint("AdcsCaptureTask(): About to capture ADCS data.\n");
 
-		vTaskDelay(ADCS_CAPURE_TASK_DELAY_MS);
+		// TODO
+		// To get detection results and trigger new detection, use --> "getResultsAndTriggerNewDetection(...)"
+
+		vTaskDelay(ADCS_CAPTURE_TASK_DELAY_MS);
 	}
 }
