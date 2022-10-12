@@ -8,7 +8,7 @@
 //#include <RImage.h>
 #include <RCommon.h>
 #include <stdlib.h>
-//#include <string.h>
+#include <string.h>
 //#include <freertos/task.h>
 
 /***************************************************************************************************
@@ -114,26 +114,23 @@ int escapeAndTransmitTelecommand(uint8_t *telecommandBuffer, uint8_t messageSize
  * @return error of telecommand attempt. 0 on success, otherwise failure
  */
 int receiveAndUnescapeTelemetry(uint8_t *telemetryBuffer, uint8_t messageSize) {
-	int error;
-	uint8_t currentByte;
-	uint8_t isEscapeCharacter = 0;
+	// Receive the message via UART
+	int error = uartReceive(UART_CAMERA_BUS, telemetryBuffer, messageSize);
+	if (error != 0) {
+		printf("receiveAndUnescapeTelemetry(): Error during first uartReceive()... (error=%d)\n", error);
+		return E_GENERIC;
+	}
 
-	for(uint8_t i = 0; i < messageSize; i++) {
-		// Read a single byte at a time to catch escape characters
-		error = uartReceive(UART_CAMERA_BUS, &currentByte, 1);
-		if (error != 0) {
-			return E_GENERIC;
-		}
-
-		// Check for escaped characters in the data bytes
-		if (i >= TELEMETRY_OFFSET_0 && i < messageSize - 2) {
-			if (isEscapeCharacter == 0 && currentByte == ESCAPE_CHARACTER) {
-				isEscapeCharacter = 1;
-				i--; // Current byte is escaping the following data byte, so ignore it since it is an extra byte
-			} else {
-				// Assign the data byte to the buffer
-				telemetryBuffer[i] = currentByte;
-				isEscapeCharacter = 0;
+	// Check for escaped characters in the data bytes
+	for(uint8_t i = TELEMETRY_OFFSET_0; i < messageSize - 2; i++) {
+		if (telemetryBuffer[i] == ESCAPE_CHARACTER) {
+			// Left shift array to remove the duplicated escape character
+			memmove(&telemetryBuffer[i+1], &telemetryBuffer[i+2], (messageSize-i-1)*sizeof(uint8_t));
+			// Read one more byte from UART and store at the end of the buffer
+			error = uartReceive(UART_CAMERA_BUS, &telemetryBuffer[messageSize-1], 1);
+			if (error != 0) {
+				printf("receiveAndUnescapeTelemetry(): Error during second uartReceive()... (error=%d)\n", error);
+				return E_GENERIC;
 			}
 		}
 	}

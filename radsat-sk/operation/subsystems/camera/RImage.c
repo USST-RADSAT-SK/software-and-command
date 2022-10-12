@@ -204,6 +204,7 @@ int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size) {
 	free(telecommandBuffer);
 
 	if (error != 0) {
+		printf("tcInitImageDownload(): Error during uartTransmit()...\n");
 		return E_GENERIC;
 	}
 
@@ -215,6 +216,7 @@ int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size) {
 	error = uartReceive(UART_CAMERA_BUS, telecommandResponse, sizeOfBuffer);
 
 	if (error != 0) {
+		printf("tcInitImageDownload(): Error during uartReceive()...");
 		free(telecommandResponse);
 		return E_GENERIC;
 	}
@@ -226,6 +228,7 @@ int tcInitImageDownload(uint8_t SRAM, uint8_t location, uint8_t size) {
 	free(telecommandResponse);
 
 	if (tcErrorFlag != 0) {
+		printf("tcInitImageDownload(): Bad tcErrorFlag...\n");
 		return E_GENERIC;
 	}
 
@@ -261,6 +264,7 @@ int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply) {
 	free(telemetryBuffer);
 
 	if (error != 0) {
+		printf("tlmImageFrameInfo(): Error during uartTransmit()... (error=%d)\n", error);
 		return E_GENERIC;
 	}
 
@@ -271,6 +275,7 @@ int tlmImageFrameInfo(tlm_image_frame_info_t *telemetry_reply) {
 	error = receiveAndUnescapeTelemetry(telemetryBuffer, TELEMETRY_65_LEN);
 
 	if (error != 0) {
+		printf("tlmImageFrameInfo(): Error during receiveAndUnescapeTelemetry()... (error=%d)\n", error);
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}

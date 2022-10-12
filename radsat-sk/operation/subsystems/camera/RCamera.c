@@ -190,6 +190,32 @@ int captureImage(uint8_t camera, uint8_t sram, uint8_t location) {
 	return telecommand_ack.tc_error_flag;
 }
 
+/*
+ * Used to capture an image with CubeSense Camera and trigger a detection on the captured image
+ *
+ * @param camera defines which sensor to use to capture an image, 0 = Camera 1, 1 = Camera 2
+ * @param sram defines which SRAM to use on Cubesense, 0 = SRAM1, 1 = SRAM2
+ * @return error, 0 on successful, otherwise failure
+ * */
+int captureImageAndDetect(uint8_t camera, uint8_t sram) {
+	int error;
+	tlm_telecommand_ack_t telecommand_ack = {0};
+
+	// Send TLM 20 to take a picture and trigger detection on it
+	error = tcImageCaptureAndDetection(camera, sram);
+
+	if (error != SUCCESS)
+		return error;
+
+	// Request telecommand acknowledgment with TLM 3
+	error = tlmTelecommandAcknowledge(&telecommand_ack);
+
+	if (error != SUCCESS)
+		return error;
+
+	return telecommand_ack.tc_error_flag;
+}
+
 
 /*
  * Used to Download an image from CubeSense Camera
@@ -217,6 +243,7 @@ int downloadImage(uint8_t sram, uint8_t location, full_image_t *image) {
 	// Send telecommand 64 to initialize a download
 	error = tcInitImageDownload(sram, location, image->imageSize);
 	if (error != SUCCESS) {
+		printf("Error during tcInitImageDownload()...\n");
 		return error;
 	}
 
@@ -252,6 +279,8 @@ int downloadImage(uint8_t sram, uint8_t location, full_image_t *image) {
 		image->imageFrames[i] = imageFrame;
 
 		if (i+1 < image->framesCount) {
+			// Quickly pause the task to allow other important tasks to execute if necessary
+			vTaskDelay(1);
 			// Advance Image Download to Continue to the next Frame
 			error = tcAdvanceImageDownload(i+1);
 			if(error != SUCCESS) {
@@ -267,18 +296,34 @@ int downloadImage(uint8_t sram, uint8_t location, full_image_t *image) {
 }
 
 /*
- * Used to created a 3D vector from a detection of both sensors
+ * Run the image capture & detection and return the detection status.
+ *
+ * @param sensorSelection defines the selected sensor to get the detection results from
+ * @return 0 on success, otherwise failure
+ */
+int getSingleDetectionStatus(SensorResultAndDetection sensorSelection) {
+	int error = 0;
+	tlm_detection_result_and_trigger_adcs_t sensor_data = {0};
+
+	// Request detection results for the selected sensor
+	error = tlmSensorResultAndDetection(&sensor_data, sensorSelection);
+	if (error != SUCCESS) return error;
+
+	return sensor_data.detectionResult == 7 ? SUCCESS : 1;
+}
+
+/*
+ * Used to created a 3D vector from a detection of both sensors, then
+ * trigger a new image capture for further detection.
  *
  * @note The RADSAT-SK ADCS will only have access to SRAM1
- * @param data a struct that will contain the components of 2 3D vectors
- * @return 0 on success, otherwise failure
+ * @param data a struct that will contain the sun and nadir detection angles
+ * @return error; 0 on success, otherwise failure
  */
 int getResultsAndTriggerNewDetection(detection_results_t *data) {
 	int error = 0;
 	tlm_detection_result_and_trigger_adcs_t sun_sensor_data = {0};
 	tlm_detection_result_and_trigger_adcs_t nadir_sensor_data = {0};
-	interpret_detection_result_t sun_sensor_coords = {0};
-	interpret_detection_result_t nadir_sensor_coords = {0};
 
 	printf("\n--------- SUN ---------");
 	// Request results of Sun detection with TLM 22
@@ -306,37 +351,55 @@ int getResultsAndTriggerNewDetection(detection_results_t *data) {
 	}
 
 	// If detection is successful, calculate the detection results
+	uint8_t success = 1;
 	if (sun_sensor_data.detectionResult == 7) {
-		sun_sensor_coords = calculateDetectionVector(sun_sensor_data.alpha, sun_sensor_data.beta);
+		data->sunTimestamp = sun_sensor_data.timestamp;
+		data->sunAlphaAngle = sun_sensor_data.alpha;
+		data->sunBetaAngle = sun_sensor_data.beta;
+		success = 0;
 	}
 	if (nadir_sensor_data.detectionResult == 7) {
-		nadir_sensor_coords = calculateDetectionVector(nadir_sensor_data.alpha, nadir_sensor_data.beta);
+		data->nadirTimestamp = nadir_sensor_data.timestamp;
+		data->nadirAlphaAngle = nadir_sensor_data.alpha;
+		data->nadirBetaAngle = nadir_sensor_data.beta;
+		success = 0;
 	}
 
-	// Fill struct with data
-	data->sunSensorX = sun_sensor_coords.X_AXIS;
-	data->sunSensorY = sun_sensor_coords.Y_AXIS;
-	data->sunSensorZ = sun_sensor_coords.Z_AXIS;
-	data->nadirSensorX = nadir_sensor_coords.X_AXIS;
-	data->nadirSensorY = nadir_sensor_coords.Y_AXIS;
-	data->nadirSensorZ = nadir_sensor_coords.Z_AXIS;
+	return success;
+}
+
+/*
+ * Trigger a new image capture and detection for both camera sensors.
+ *
+ * @return error; 0 on success, otherwise failure
+ */
+int triggerNewDetectionForBothSensors(void) {
+	int error = 0;
+
+	// New capture and detect with the Sun camera
+	error = captureImageAndDetect(SUN_SENSOR, SRAM1);
+	if (error != SUCCESS) return error;
+
+	// New capture and detect with the Earth camera
+	error = captureImageAndDetect(NADIR_SENSOR, SRAM2);
+	if (error != SUCCESS) return error;
 
 	return SUCCESS;
 }
 
 /*
- * Used to collect the telemetry on the CubeSense Camera
+ * Used to collect the settings on the CubeSense Camera
  *
- * @param cameraTelemetry a struct that will used to house all important telemetry on board
+ * @param cameraSettings a struct that will used to house all important settings on board
  * @return 0 on success, otherwise failure
  */
-int getCameraTelemetry(CameraTelemetry *cameraTelemetry) {
+int getSettings(CameraSettings *cameraSettings) {
 	int error;
 	tlm_status_t tlmStatusStruct = {0};
 	tlm_power_t tlmPowerStruct = {0};
 	tlm_config_t tlmConfigStruct = {0};
 
-	// Grab All telemetry and check if successful while doing so
+	// Grab All settings and check if successful while doing so
 	error = tlmStatus(&tlmStatusStruct);
 
 	if (error != SUCCESS)
@@ -352,26 +415,26 @@ int getCameraTelemetry(CameraTelemetry *cameraTelemetry) {
 	if (error != SUCCESS)
 		return error;
 
-	// Assign telemetry to master telemetry struct
-	cameraTelemetry->upTime = tlmStatusStruct.runtimeSeconds;
-	cameraTelemetry->powerTelemetry.current_3V3 = tlmPowerStruct.threeVcurrent;
-	cameraTelemetry->powerTelemetry.current_5V = tlmPowerStruct.fiveVcurrent;
-	cameraTelemetry->powerTelemetry.current_SRAM_1 = tlmPowerStruct.sramOneCurrent;
-	cameraTelemetry->powerTelemetry.current_SRAM_2 = tlmPowerStruct.sramTwoCurrent;
-	cameraTelemetry->powerTelemetry.overcurrent_SRAM_1 = tlmPowerStruct.sramOneOverCurrent;
-	cameraTelemetry->powerTelemetry.overcurrent_SRAM_2 = tlmPowerStruct.sramTwoOverCurrent;
-	cameraTelemetry->cameraOneTelemetry.autoAdjustMode = tlmConfigStruct.cameraOneAutoAdjustMode;
-	cameraTelemetry->cameraOneTelemetry.autoGainControl = tlmConfigStruct.cameraOneAGC;
-	cameraTelemetry->cameraOneTelemetry.blueGain = tlmConfigStruct.cameraOneBlueGain;
-	cameraTelemetry->cameraOneTelemetry.detectionThreshold = tlmConfigStruct.cameraOneDetectionThreshold;
-	cameraTelemetry->cameraOneTelemetry.exposure = tlmConfigStruct.cameraOneExposure;
-	cameraTelemetry->cameraOneTelemetry.redGain = tlmConfigStruct.cameraOneRedGain;
-	cameraTelemetry->cameraTwoTelemetry.autoAdjustMode = tlmConfigStruct.cameraTwoAutoAdjustMode;
-	cameraTelemetry->cameraTwoTelemetry.autoGainControl = tlmConfigStruct.cameraTwoAGC;
-	cameraTelemetry->cameraTwoTelemetry.blueGain = tlmConfigStruct.cameraTwoBlueGain;
-	cameraTelemetry->cameraTwoTelemetry.detectionThreshold = tlmConfigStruct.cameraTwoDetectionThreshold;
-	cameraTelemetry->cameraTwoTelemetry.exposure = tlmConfigStruct.cameraTwoExposure;
-	cameraTelemetry->cameraTwoTelemetry.redGain = tlmConfigStruct.cameraTwoRedGain;
+	// Assign settings to master settings struct
+	cameraSettings->upTime = tlmStatusStruct.runtimeSeconds;
+	cameraSettings->powerSettings.current_3V3 = tlmPowerStruct.threeVcurrent;
+	cameraSettings->powerSettings.current_5V = tlmPowerStruct.fiveVcurrent;
+	cameraSettings->powerSettings.current_SRAM_1 = tlmPowerStruct.sramOneCurrent;
+	cameraSettings->powerSettings.current_SRAM_2 = tlmPowerStruct.sramTwoCurrent;
+	cameraSettings->powerSettings.overcurrent_SRAM_1 = tlmPowerStruct.sramOneOverCurrent;
+	cameraSettings->powerSettings.overcurrent_SRAM_2 = tlmPowerStruct.sramTwoOverCurrent;
+	cameraSettings->cameraOneSettings.autoAdjustMode = tlmConfigStruct.cameraOneAutoAdjustMode;
+	cameraSettings->cameraOneSettings.autoGainControl = tlmConfigStruct.cameraOneAGC;
+	cameraSettings->cameraOneSettings.blueGain = tlmConfigStruct.cameraOneBlueGain;
+	cameraSettings->cameraOneSettings.detectionThreshold = tlmConfigStruct.cameraOneDetectionThreshold;
+	cameraSettings->cameraOneSettings.exposure = tlmConfigStruct.cameraOneExposure;
+	cameraSettings->cameraOneSettings.redGain = tlmConfigStruct.cameraOneRedGain;
+	cameraSettings->cameraTwoSettings.autoAdjustMode = tlmConfigStruct.cameraTwoAutoAdjustMode;
+	cameraSettings->cameraTwoSettings.autoGainControl = tlmConfigStruct.cameraTwoAGC;
+	cameraSettings->cameraTwoSettings.blueGain = tlmConfigStruct.cameraTwoBlueGain;
+	cameraSettings->cameraTwoSettings.detectionThreshold = tlmConfigStruct.cameraTwoDetectionThreshold;
+	cameraSettings->cameraTwoSettings.exposure = tlmConfigStruct.cameraTwoExposure;
+	cameraSettings->cameraTwoSettings.redGain = tlmConfigStruct.cameraTwoRedGain;
 
 	return SUCCESS;
 }
@@ -379,49 +442,49 @@ int getCameraTelemetry(CameraTelemetry *cameraTelemetry) {
 /*
  * In the case the ground station wants to adjust camera settings
  *
- * @param cameraTelemetry a struct that will contain the values that want to be adjusted
+ * @param cameraSettings a struct that will contain the values that want to be adjusted
  * */
-int setCameraConfig(CameraTelemetry *cameraTelemetry) {
+int setSettings(CameraSettings *cameraSettings) {
 	int error;
 
 	// Update Auto adjust for camera one
-	error = tcCameraAutoAdjust(SUN_SENSOR, cameraTelemetry->cameraOneTelemetry.autoAdjustMode);
+	error = tcCameraAutoAdjust(SUN_SENSOR, cameraSettings->cameraOneSettings.autoAdjustMode);
 	if(error != SUCCESS) {
 		return error;
 	}
 
 	// Update Auto adjust for camera two
-	error = tcCameraAutoAdjust(NADIR_SENSOR, cameraTelemetry->cameraTwoTelemetry.autoAdjustMode);
+	error = tcCameraAutoAdjust(NADIR_SENSOR, cameraSettings->cameraTwoSettings.autoAdjustMode);
 	if (error != SUCCESS) {
 		return error;
 	}
 
 	// Update detection Threshold for camera one
-	error = tcCameraDetectionThreshold(SUN_SENSOR, cameraTelemetry->cameraOneTelemetry.detectionThreshold);
+	error = tcCameraDetectionThreshold(SUN_SENSOR, cameraSettings->cameraOneSettings.detectionThreshold);
 	if (error != SUCCESS) {
 		return error;
 	}
 
 	// Update detection Threshold for camera two
-	error = tcCameraDetectionThreshold(NADIR_SENSOR, cameraTelemetry->cameraTwoTelemetry.detectionThreshold);
+	error = tcCameraDetectionThreshold(NADIR_SENSOR, cameraSettings->cameraTwoSettings.detectionThreshold);
 	if (error != SUCCESS) {
 		return error;
 	}
 
 	// Update camera one settings
-	error = tcCameraSettings(SUN_SENSOR, cameraTelemetry->cameraOneTelemetry.exposure,
-				cameraTelemetry->cameraOneTelemetry.autoGainControl,
-				cameraTelemetry->cameraOneTelemetry.blueGain,
-				cameraTelemetry->cameraOneTelemetry.redGain);
+	error = tcCameraSettings(SUN_SENSOR, cameraSettings->cameraOneSettings.exposure,
+				cameraSettings->cameraOneSettings.autoGainControl,
+				cameraSettings->cameraOneSettings.blueGain,
+				cameraSettings->cameraOneSettings.redGain);
 	if(error != SUCCESS) {
 		return error;
 	}
 
 	// Update camera Two settings
-	error = tcCameraSettings(NADIR_SENSOR, cameraTelemetry->cameraTwoTelemetry.exposure,
-				cameraTelemetry->cameraTwoTelemetry.autoGainControl,
-				cameraTelemetry->cameraTwoTelemetry.blueGain,
-				cameraTelemetry->cameraTwoTelemetry.redGain);
+	error = tcCameraSettings(NADIR_SENSOR, cameraSettings->cameraTwoSettings.exposure,
+				cameraSettings->cameraTwoSettings.autoGainControl,
+				cameraSettings->cameraTwoSettings.blueGain,
+				cameraSettings->cameraTwoSettings.redGain);
 	if(error != SUCCESS) {
 		return error;
 	}
@@ -726,6 +789,7 @@ int tlmImageFrame(tlm_image_frame_t *telemetry_reply) {
 	free(telemetryBuffer);
 
 	if (error != 0) {
+		printf("tlmImageFrame(): Error during uartTransmit()... (error=%d)\n", error);
 		return E_GENERIC;
 	}
 
@@ -736,6 +800,7 @@ int tlmImageFrame(tlm_image_frame_t *telemetry_reply) {
 	error = receiveAndUnescapeTelemetry(telemetryBuffer, TELEMETRY_64_LEN);
 
 	if (error != 0) {
+		printf("tlmImageFrame(): Error during receiveAndUnescapeTelemetry()... (error=%d)\n", error);
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}
