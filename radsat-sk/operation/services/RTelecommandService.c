@@ -93,9 +93,11 @@ uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
 
 		// TO ADD: Change both cameras' settings
 		case (254):
-			// TODO: Pass arguments (CameraSettings struct)
+			// TODO: Pass arguments (2x CameraSettings_ConfigurationSettings struct)
 			if (!getCubeSenseUsageState()) {
-				error = setCamerasSettings((CameraSettings){0});
+				CameraSettings_ConfigurationSettings sunSettings = {0};
+				CameraSettings_ConfigurationSettings nadirSettings = {0};
+				error = setCamerasSettings(sunSettings, nadirSettings);
 				if (error != 0) {
 					printf("Error updating cameras settings.\n");
 				}
@@ -111,10 +113,7 @@ uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
 		// TO ADD: Change automatic image download size
 		case (252):
 			// TODO: Pass argument (0, 1, 2, 3 or 4)
-			error = setImageDownloadSize(0);
-			if (error != 0) {
-				printf("Invalid image download size.\n");
-			}
+			setImageDownloadSize(0);
 			break;
 
 		// TO ADD: Set image as ready for a new capture
@@ -130,7 +129,6 @@ uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
 
 		// TO ADD: Take manual image
 		case (249):
-			// TODO: Pass arguments?
 			if (!getCubeSenseUsageState()) {
 				error = requestImageCapture(NADIR_SENSOR, SRAM2, BOTTOM_HALVE);
 				if (error != 0) {
@@ -153,13 +151,15 @@ uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
 		// TO ADD: Update ADCS settings
 		case (247):
 			// TODO: Pass arguments (nb of measurements in a burst, interval between measurements)
-			setADCSCaptureSettings(5, 2000);
+			setADCSBurstSettings(5, 5000);
 			break;
 
 		// TO ADD: Reset the adcs readiness flag so it can take another burst of measurements
 		case (246):
 			setADCSReadyForNewBurst();
 			break;
+
+		// TODO: Implement missing camera telecommands
 
 
 		// unknown telecommand

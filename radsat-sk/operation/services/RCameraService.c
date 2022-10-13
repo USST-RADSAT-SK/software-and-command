@@ -24,9 +24,6 @@
 /* Delay in milliseconds to allow image capture to be completed */
 #define IMAGE_CAPTURE_DELAY_MS			(1000)
 
-/** Maximum value of the current frame index, used as the default initial value. **/
-#define MAX_FRAME_INDEX					(65535)
-
 /** Stack size (in bytes) allotted to the image download FreeRTOS Task. */
 #define DOWNLOAD_TASK_STACK_SIZE		(configMINIMAL_STACK_SIZE + 50)
 
@@ -34,7 +31,8 @@
 static CameraSettings cameraSettings = { 0 };
 //static uint8_t cameraSettingsInitialized = 0;
 
-/** Interval (in ms) for the automatic image capture. **/
+/** Interval (in ms) for the automatic image and ADCS capture tasks. **/
+int adcsCaptureInterval = 0;
 int imageCaptureInterval = 0;
 
 /** Size used for image download during automatic image capture **/
@@ -49,7 +47,7 @@ static uint8_t imageReadyForDownlink = 0;
 static uint8_t imageReadyForNewCapture = 1;
 
 /** Index of the current image frame prepared for downlink. */
-static uint16_t currentImageFrameIndex = MAX_FRAME_INDEX;
+static int currentImageFrameIndex = -1;
 
 /** Flag indicating that the CubeSense is currently in use. Used to prevent conflicts. **/
 static uint8_t cubeSenseIsInUse = 0;
@@ -107,10 +105,11 @@ int requestReset(uint8_t resetOption) {
 /*
  * Set settings for both CubeSense cameras.
  *
- * @param newSettings defines the cameras settings to set
+ * @param sunSettings defines the Sun camera settings to set
+ * @param nadirSettings defines the nadir camera settings to set
  * @return error, 0 for success, otherwise failure
  */
-int setCamerasSettings(CameraSettings newSettings) {
+int setCamerasSettings(CameraSettings_ConfigurationSettings sunSettings, CameraSettings_ConfigurationSettings nadirSettings) {
 	// Flag CubeSense as "in use"
 	cubeSenseIsInUse = 1;
 
@@ -122,7 +121,6 @@ int setCamerasSettings(CameraSettings newSettings) {
 		error = getSettings(&cameraSettings);
 		if (error != SUCCESS) {
 			printf("Failed to get camera settings...\n");
-			// TODO
 			cubeSenseIsInUse = 0;
 			return E_GENERIC;
 		}
@@ -131,7 +129,8 @@ int setCamerasSettings(CameraSettings newSettings) {
 		cameraSettingsInitialized = 1;
 	}*/
 
-	cameraSettings = newSettings;
+	cameraSettings.cameraOneSettings = sunSettings;
+	cameraSettings.cameraTwoSettings = nadirSettings;
 
 	// TODO: TO DELETE
 	//cameraSettings.cameraTwoSettings.exposure = 10000;
@@ -141,7 +140,6 @@ int setCamerasSettings(CameraSettings newSettings) {
 	cubeSenseIsInUse = 0;
 	if (error != SUCCESS) {
 		printf("Failed to update camera settings...\n");
-		// TODO
 		return E_GENERIC;
 	}
 
@@ -149,14 +147,34 @@ int setCamerasSettings(CameraSettings newSettings) {
 }
 
 
+
+/*
+ * Set the interval used for automatic ADCS capture.
+ *
+ * @param interval defines the delay between each run of the ADCS capture task
+ */
+void setADCSCaptureInterval(int interval) {
+	adcsCaptureInterval = interval;
+}
+
+
+/*
+ * Get the interval used for automatic ADCS capture.
+ *
+ * @return interval, in milliseconds
+ */
+int getADCSCaptureInterval(void) {
+	return adcsCaptureInterval;
+}
+
 /*
  * Set the capture settings used for ADCS measurement, which
- * will execute a burst of measurements.
+ * will execute a sequential burst of measurements.
  *
  * @param nbMeasurements defines the number of measurements in the burst
- * @param interval defines the interval (in ms) between measurements
+ * @param interval defines the interval (in ms) between measurements in a burst
  */
-void setADCSCaptureSettings(uint8_t nbMeasurements, int interval) {
+void setADCSBurstSettings(uint8_t nbMeasurements, int interval) {
 	adcsSettings.nbMeasurements = nbMeasurements;
 	adcsSettings.interval = interval;
 }
@@ -220,6 +238,8 @@ int takeADCSBurstMeasurements(void) {
 
 /*
  * Get the ADCS burst measurement results.
+ *
+ * @return struct holding the ADCS measurement results for the burst
  */
 adcs_detection_results_t * getADCSBurstResults(void) {
 	return adcsResults;
@@ -261,6 +281,8 @@ uint8_t getADCSReadyForNewBurstState(void) {
 
 /*
  * Set the interval used for automatic image capture.
+ *
+ * @param interval defines the delay between each run of the image capture task
  */
 void setImageCaptureInterval(int interval) {
 	imageCaptureInterval = interval;
@@ -280,15 +302,14 @@ int getImageCaptureInterval(void) {
 /*
  * Set the image download size used for automatic image capture.
  *
- * @return error, 0 for success, 1 for failure
+ * @param size defines the image download size ranging from 0 (largest) to 4 (smallest)
  */
-int setImageDownloadSize(uint8_t size) {
+void setImageDownloadSize(uint8_t size) {
 	// Check for invalid size
 	if (size > 4)
-		return 1;
+		size = 4;
 
 	imageDownloadSize = size;
-	return SUCCESS;
 }
 
 
@@ -435,19 +456,6 @@ int requestImageDownload(uint8_t sram, uint8_t size) {
 
 
 /*
- * Clear the image stored and memory.
- */
-void clearImage(void) {
-	// Reset the image downlink ready flag since allocated memory is freed
-	imageReadyForDownlink = 0;
-	// Free the previous image allocated memory
-	free(image);
-	// Reset the image frame index
-	currentImageFrameIndex = MAX_FRAME_INDEX;
-}
-
-
-/*
  * Set the image ready for new capture flag.
  */
 void setImageReadyForNewCapture(void) {
@@ -505,35 +513,45 @@ uint8_t getCubeSenseUsageState(void) {
  *
  * @param index defines the value to set the image transfer frame index
  */
-void setImageTransferFrameIndex(uint16_t index) {
+void setImageTransferFrameIndex(int index) {
 	currentImageFrameIndex = index;
 }
 
 /**
- * Provide the next image frame.
+ * Provide the next image frame. Calling the function passed the number of image frames
+ * will loop back at the first image frame (circular buffer).
  *
  * @param frame pointer to a buffer that the frame will be placed into. Set by function.
  * @return The size of the image frame placed into the buffer; 0 on error.
  */
-uint8_t imageTransferNextFrame(uint8_t* frame) {
+uint8_t imageTransferNextFrame(image_frame_t* frame) {
+	// Check for null pointer
+	if (frame == NULL)
+		return 0;
+
 	// Check stored image validity
 	if (!imageReadyForDownlink)
 		return 0;
 
 	// Validate that there is a next frame
-	uint16_t nextFrameIndex = currentImageFrameIndex + 1;
-	if (nextFrameIndex >= image->framesCount)
+	int nextFrameIndex = currentImageFrameIndex + 1;
+	if (nextFrameIndex < 0)
 		return 0;
 
 	// Increment image frame index
 	currentImageFrameIndex++;
 
+	// Circular indexing
+	if (currentImageFrameIndex >= image->framesCount)
+		currentImageFrameIndex = 0;
+
 	// Get image frame size
 	uint8_t size = sizeof(image->imageFrames[currentImageFrameIndex].image_bytes);
 
 	// Copy the image frame to the argument pointer
-	printf("Copying image frame index %i containing %i bytes.\n", currentImageFrameIndex, size);
-	memcpy(frame, image->imageFrames[currentImageFrameIndex].image_bytes, size);
+	//printf("Copying image frame index %d containing %i bytes.\n", currentImageFrameIndex, size);
+	memcpy(frame->image_bytes, image->imageFrames[currentImageFrameIndex].image_bytes, size);
+	frame->frameIndex = currentImageFrameIndex;
 
 	// Return size of the frame
 	return size;
@@ -546,7 +564,7 @@ uint8_t imageTransferNextFrame(uint8_t* frame) {
  * @param frame pointer to a buffer that the frame will be placed into. Set by function.
  * @return The size of the image frame placed into the buffer; 0 on error.
  */
-uint8_t imageTransferCurrentFrame(uint8_t* frame) {
+uint8_t imageTransferCurrentFrame(image_frame_t* frame) {
 	return imageTransferSpecificFrame(frame, currentImageFrameIndex);
 }
 
@@ -558,13 +576,17 @@ uint8_t imageTransferCurrentFrame(uint8_t* frame) {
  * @param index defines which image frame to copy in the buffer
  * @return The size of the image frame placed into the buffer; 0 on error.
  */
-uint8_t imageTransferSpecificFrame(uint8_t* frame, uint16_t index) {
+uint8_t imageTransferSpecificFrame(image_frame_t* frame, int index) {
+	// Check for null pointer
+	if (frame == NULL)
+		return 0;
+
 	// Check stored image validity
 	if (!imageReadyForDownlink)
 		return 0;
 
 	// Validate image frame index
-	if (index >= image->framesCount)
+	if (index < 0 || index >= image->framesCount)
 		return 0;
 
 	// Get image frame size
@@ -572,7 +594,8 @@ uint8_t imageTransferSpecificFrame(uint8_t* frame, uint16_t index) {
 
 	// Copy the image frame to the argument pointer
 	printf("\nCopying image frame index %i containing %i bytes.\n", index, size);
-	memcpy(frame, image->imageFrames[index].image_bytes, size);
+	memcpy(frame->image_bytes, image->imageFrames[index].image_bytes, size);
+	frame->frameIndex = index;
 
 	// Return size of the frame
 	return size;
@@ -596,17 +619,19 @@ void ImageDownloadTask(void* parameters) {
 
 	printf("ImageDownloadTask 1: SRAM = %i | Size = %i\n", downloadParameters.sram, downloadParameters.size);
 
-	// Clear the stored image & reset flag and index
-	clearImage();
+	// Reset the image downlink ready flag since allocated memory is freed
+	imageReadyForDownlink = 0;
+	// Free the previous image allocated memory
+	free(image);
+	// Reset the image frame index
+	currentImageFrameIndex = -1;
+
 	// Initialize a new block of memory for the new image
 	image = initializeNewImage(downloadParameters.size);
 	// Download all image frames and store them in RAM
 	int error = downloadImage(downloadParameters.sram, BOTTOM_HALVE, image);
 	if (error != SUCCESS) {
 		printf("\nImageDownloadTask(): Failed to download all image frames...\n");
-		// TODO:
-		// - Clear the image struct? Keep it as is? Free allocated memory?
-		// - ErrorManager?
 	} else {
 		printf("\nImageDownloadTask(): Successfully downloaded image!\n");
 

@@ -100,15 +100,20 @@ void ImageCaptureTask(void* parameters) {
 			uint16_t imageFramesCount = getImageFramesCount();
 			printf("Number of frames to downlink: %i\n", imageFramesCount);
 			if (imageFramesCount > 0) {
-				//uint8_t frame[128] = {0};
-
-				/*for (int frameIndex = 0; frameIndex < imageFramesCount; frameIndex++) {
+				image_frame_t frame = {0};
+				for (int i = 0; i < imageFramesCount; i++) {
 					uint8_t frameSize = imageTransferNextFrame(&frame);
 					if (frameSize == 0) {
-						printf("Error getting frame #%i (frame of size 0)\n", frameIndex);
+						printf("Error getting frame #%i (frame of size 0)...\n", i);
 						break;
+					} else {
+						printf("Frame #%i copied successfully: ", frame.frameIndex);
+						for	(int j = 0; j < 9; j++) {
+							printf("%i, ", frame.image_bytes[j]);
+						}
+						printf("%i\n", frame.image_bytes[9]);
 					}
-				}*/
+				}
 
 				/*printf("Get first frame\n");
 				uint8_t frameSize = imageTransferNextFrame(&frame);

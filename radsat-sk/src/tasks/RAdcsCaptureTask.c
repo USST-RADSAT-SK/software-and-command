@@ -36,8 +36,11 @@ void AdcsCaptureTask(void* parameters) {
 	// ignore the input parameter
 	(void)parameters;
 
+	// Set the default automatic ADCS capture interval
+	setADCSCaptureInterval(ADCS_CAPTURE_TASK_NORMAL_DELAY_MS);
+
 	// Initialize the ADCS capture settings (5 measurements, 5 seconds between measurements)
-	setADCSCaptureSettings(5, 5000);
+	setADCSBurstSettings(5, 5000);
 
 	while (1) {
 
@@ -86,7 +89,7 @@ void AdcsCaptureTask(void* parameters) {
 			vTaskDelay(ADCS_CAPTURE_TASK_SHORT_DELAY_MS);
 		} else {
 			// Normal operations with normal delay between task execution
-			//vTaskDelay(ADCS_CAPTURE_TASK_NORMAL_DELAY_MS);
+			//vTaskDelay(getADCSCaptureInterval());
 			vTaskDelay(10000);
 		}
 	}
