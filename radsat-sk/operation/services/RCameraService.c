@@ -98,7 +98,12 @@ int requestReset(uint8_t resetOption) {
 	if (resetOption < 1 || resetOption > 3)
 		return E_GENERIC;
 
-	return executeReset(resetOption);
+	// Flag CubeSense as "in use"
+	cubeSenseIsInUse = 1;
+
+	int error = executeReset(resetOption);
+	cubeSenseIsInUse = 0;
+	return error;
 }
 
 
@@ -333,7 +338,12 @@ uint8_t getImageDownloadSize(void) {
  * @return error, 0 on success, otherwise failure
  */
 int requestImageCapture(uint8_t camera, uint8_t sram, uint8_t location) {
-	return captureImage(camera, sram, location);
+	// Flag CubeSense as "in use"
+	cubeSenseIsInUse = 1;
+
+	int error = captureImage(camera, sram, location);
+	cubeSenseIsInUse = 0;
+	return error;
 }
 
 
