@@ -50,7 +50,6 @@ void AdcsCaptureTask(void* parameters) {
 
 		// Check if CubeSense is already in use (1) or not (0)
 		uint8_t cubeSenseIsInUse = getCubeSenseUsageState();
-		printf("AdcsCaptureTask(): cubeSenseIsInUse = %d\n", cubeSenseIsInUse);
 
 		// Check if ready for a new ADCS burst measurements (1) or not (0)
 		uint8_t adcsReadyForNewBurst = getADCSReadyForNewBurstState();
@@ -60,37 +59,15 @@ void AdcsCaptureTask(void* parameters) {
 			error = takeADCSBurstMeasurements();
 			if (error != 0) {
 				printf("Failed to capture ADCS measurements...\n");
-			} else {
-				printf("Successfully captured ADCS measurements.\n");
 			}
 		}
-
-		// TODO: Call this during downlink to get ADCS burst results
-		uint8_t adcsReadyForDownlink = !getADCSReadyForNewBurstState();
-		if (adcsReadyForDownlink) {
-			adcs_detection_results_t * adcsResults = getADCSBurstResults();
-			if (adcsResults != NULL) {
-				printf("Number of valid measurements: %d\n", adcsResults->validMeasurementsCount);
-
-				for (int i = 0; i < adcsResults->validMeasurementsCount; i++) {
-					printf("Sun timestamp: %lu\n", adcsResults->results[i].sunTimestamp);
-					printf("Sun angles: %i | %i\n", adcsResults->results[i].sunAlphaAngle, adcsResults->results[i].sunBetaAngle);
-					printf("Earth timestamp: %lu\n", adcsResults->results[i].nadirTimestamp);
-					printf("Earth angles: %i | %i\n", adcsResults->results[i].nadirAlphaAngle, adcsResults->results[i].nadirBetaAngle);
-				}
-			}
-		}
-
-
-		printf("\nAdcsCaptureTask(): Finished task.\n");
 
 		if (cubeSenseIsInUse) {
 			// CubeSense was in use, wait only for a small delay to retry task
 			vTaskDelay(ADCS_CAPTURE_TASK_SHORT_DELAY_MS);
 		} else {
 			// Normal operations with normal delay between task execution
-			//vTaskDelay(getADCSCaptureInterval());
-			vTaskDelay(10000);
+			vTaskDelay(getADCSCaptureInterval());
 		}
 	}
 }

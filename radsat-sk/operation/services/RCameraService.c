@@ -137,10 +137,6 @@ int setCamerasSettings(CameraSettings_ConfigurationSettings sunSettings, CameraS
 	cameraSettings.cameraOneSettings = sunSettings;
 	cameraSettings.cameraTwoSettings = nadirSettings;
 
-	// TODO: TO DELETE
-	//cameraSettings.cameraTwoSettings.exposure = 10000;
-	//cameraSettings.cameraTwoSettings.detectionThreshold = 150;
-
 	error = setSettings(&cameraSettings);
 	cubeSenseIsInUse = 0;
 	if (error != SUCCESS) {
