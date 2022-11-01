@@ -72,10 +72,12 @@ uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* raw
 	if (wrappedMessage == 0 || rawMessage == 0)
 		return 0;
 
+
 	// decrypt entire message
 	int error = xorDecrypt(wrappedMessage, size);
 	if (error)
 		return 0;
+
 
 	// access the message header; obtain size, confirm preamble and CRC
 	radsat_sk_header_t *header = (radsat_sk_header_t *)wrappedMessage;
@@ -96,8 +98,9 @@ uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* raw
 	error = protoDecode(&wrappedMessage[RADSAT_SK_HEADER_SIZE], header->size, rawMessage);
 	if (error)
 		return 0;
-
+	debugPrint("header->size: %d\n", header->size);
 	// return the size of the message itself
+
 	return header->size;
 }
 

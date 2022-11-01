@@ -234,6 +234,7 @@ static int initSubsystems(void) {
 		return error;
 	}
 
+
 	// TODO: initialize the other subsystems that require explicit initialization
 
 	return error;
@@ -272,6 +273,8 @@ static int initMissionTasks(void) {
 
 	int error = pdPASS;
 
+
+
 	// initialize the Communication Receive Task
 	error = xTaskCreate(CommunicationRxTask,
 						(const signed char*)"Communication Receive Task",
@@ -297,7 +300,7 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create CommunicationTxTask.\n");
 		return E_GENERIC;
 	}
-/*
+	/*
 	// initialize the Dosimeter Collection Task
 	error = xTaskCreate(DosimeterCollectionTask,
 						(const signed char*)"Dosimeter Collection Task",
@@ -310,7 +313,8 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create DosimeterCollectionTask.\n");
 		return E_GENERIC;
 	}
-
+	*/
+/*
 	// initialize the Image Capture Task
 	error = xTaskCreate(ImageCaptureTask,
 						(const signed char*)"Image Capture Task",
@@ -414,10 +418,7 @@ void MissionInitTask(void* parameters) {
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
 	}
 
-	while(1){
 
-
-	}
 
 	// initialize the FreeRTOS Tasks used for typical mission operation
 	initMissionTasks();

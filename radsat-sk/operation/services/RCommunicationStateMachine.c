@@ -20,6 +20,24 @@
 /***************************************************************************************************
                                    DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
+static void startPassMode(void);
+static void endPassMode(void);
+static void endPassModeCallback(xTimerHandle timer);
+
+static void startQuietMode(void);
+static void endQuietModeCallback(xTimerHandle timer);
+
+static void resetState(void);
+
+/** Maximum possible duration of a pass is 15 minutes; value set in ms. */
+#define MAX_PASS_MODE_DURATION	((portTickType)(15*60*1000))
+
+/** Typical duration of quiet mode is 15 minutes; value set in ms. */
+#define QUIET_MODE_DURATION		((portTickType)(15*60*1000))
+
+/** Maximum amount of consecutive NACKs before transmission is aborted. */
+#define NACK_ERROR_LIMIT		((uint8_t)15)
+
 
 /** Abstraction of the response states */
 typedef enum _response_state_t {
@@ -186,7 +204,7 @@ void updateTime(void) {
 /**
  * Forces a hard reset of the satellite after receiving a reset command from the ground station
  */
-void reset(void) {
+void resetSat(void) {
 	if (state.mode == commModeTelecommand){
 		// todo: implement reset
 
@@ -206,6 +224,15 @@ void sendNack(void) {
 	}
 }
 
+/**
+ * If no telecommand has been successfully received, send a nack down
+ */
+void sendAck(void) {
+	if (state.mode == commModeTelecommand){
+		state.telecommand.transmitReady = responseStateReady;
+		state.telecommand.responseToSend = responseAck;
+	}
+}
 
 /***************************************************************************************************
                                              PUBLIC API
@@ -234,6 +261,7 @@ uint8_t getNextFrame(uint8_t *txMessage) {
 
 	// if we are in telecommand mode:
 	if(state.mode == commModeTelecommand && state.telecommand.transmitReady == responseStateReady){
+		debugPrint("telecommandMode\n");
 
 		// serialize the ack/nack response to be sent
 		txMessageSize = protocolGenerate(state.telecommand.responseToSend, txMessage);
@@ -248,13 +276,14 @@ uint8_t getNextFrame(uint8_t *txMessage) {
 
 	// if we are in Idle mode:
 	if(state.mode == commModeIdle || state.mode == commModeQuiet){
+		debugPrint("idleMode\n");
 		// no message to send
 		return 0;
 	}
 
 	// if we are in FileTransfer mode:
 	if(state.mode == commModeFileTransfer && state.fileTransfer.transmitReady == responseStateReady){
-
+		debugPrint("fileTransferMode\n");
 		// ACK received from ground Station; obtain next message and send it
 		if (state.fileTransfer.responseReceived == responseAck) {
 
@@ -305,6 +334,7 @@ uint8_t getNextFrame(uint8_t *txMessage) {
 	// todo: default/no return state:
 	//if (state.mode == default)
 	//	return 0;
+	return 0;
 }
 
 /***************************************************************************************************

@@ -110,7 +110,8 @@ int transceiverRxFrameCount(uint16_t* numberOfFrames) {
  * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
 int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
-	uint16_t slaveAddress = 0x15;
+	uint16_t slaveAddress = 0x4A;
+	uint16_t sizeToRead = 15;
 
 	// transceiver must be initialized first
 	//if (!initialized)
@@ -120,8 +121,9 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
 	if (messageBuffer == 0 || sizeOfMessage == 0)
 		return E_INPUT_POINTER_NULL;
 
-	int error = i2cRecieve(slaveAddress, messageBuffer, sizeOfMessage);
-
+	int error = i2cRecieve(slaveAddress, messageBuffer, sizeToRead); //sizeOfMessage);
+	debugPrint("error: %d\n", error);
+	*sizeOfMessage = sizeToRead;
 	// create an RX Frame struct to receive the frame (and length) into
 	//ISIStrxvuRxFrame frame = {
 	//	.rx_framedata = messageBuffer,
@@ -147,7 +149,7 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
  * @return	Error code; 0 for success, otherwise see hal/error.c
  */
 int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRemaining) {
-	uint16_t slaveAddress = 0x15;
+	uint16_t slaveAddress = 0x4A;
 	// transceiver must be initialized first
 	//if (!initialized)
 	//	return E_NOT_INITIALIZED;
@@ -155,7 +157,7 @@ int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRe
 	// ensure the pointer is valid (slotsRemaining is optional)
 	if (message == 0)
 		return E_INPUT_POINTER_NULL;
-
+	debugPrint("trxSendFrame\n");
 	int error = i2cTransmit(slaveAddress, message, messageSize);
 
 	//int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, slotsRemaining);

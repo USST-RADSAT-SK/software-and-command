@@ -20,6 +20,9 @@
  * @return The tag of the processed telecommand (0 on failure).
  */
 uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
+	debugPrint("got to telecommand handle\n");
+	uint8_t rawSize = 0;
+	uint8_t returnVal = 1;
 
 	// ensure the input pointer is not NULL
 	if (wrappedMessage == 0)
@@ -29,11 +32,12 @@ uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
 	radsat_message rawMessage = { 0 };
 
 	// unwrap the message
-	uint8_t rawSize = messageUnwrap(wrappedMessage, size, &rawMessage);
-
+	rawSize = messageUnwrap(wrappedMessage, size, &rawMessage);
+	debugPrint("rawSize: %d\n", rawSize);
 	// exit if unwrapping failed
 	if (rawSize == 0)
 		return 0;
+	debugPrint("after rawSize\n");
 
 	// exit if this message is not a telecommand message
 	if (rawMessage.which_service != radsat_message_TelecommandMessage_tag)
@@ -80,6 +84,7 @@ uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
 			// do nothing; return failure
 			return 0;
 	}
+
 
 	return telecommand;
 }

@@ -41,7 +41,7 @@ int i2cInit(void) {
 	if (initialized)
 		return SUCCESS;
 
-	int error = I2C_start(I2C_BUS_SPEED_HZ, I2C_TRANSFER_TIMEOUT);
+	int error = I2C_start(I2C_BUS_SPEED_HZ, 2500); //I2C_BUS_SPEED_HZ, I2C_TRANSFER_TIMEOUT);
 
 	// TODO: record errors (if present) to System Manager
 
@@ -93,9 +93,9 @@ int i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size) {
 	// I2C driver must be initialized
 	if (!initialized)
 		return E_NOT_INITIALIZED;
-
+	debugPrint("before\n");
 	int error = I2C_read(slaveAddress, data, size);
-
+	debugPrint("after\n");
 	// TODO: record errors (if present) to System Manager
 
 	return error;
