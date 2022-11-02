@@ -23,14 +23,13 @@
 #include <RMessage.h>
 #include <string.h>
 #include <RCommon.h>
+#include <freertos/semphr.h>
 
 
 
 /***************************************************************************************************
                                    DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
-
-
 
 /** Communication Receive Task delay (in ms). */
 #define COMMUNICATION_RX_TASK_DELAY_MS			1000//((portTickType)1)
@@ -46,61 +45,11 @@
  */
 #define COMMUNICATION_TX_TASK_LONG_DELAY_MS		1000/((portTickType)TRANCEIVER_TX_MAX_FRAME_SIZE)
 
-
-///** Abstraction of the response states */
-//typedef enum _response_state_t {
-//	responseStateIdle	= 0,	///> Awaiting response from Ground Station
-//	responseStateReady	= 1,	///> Ready to transmit to Ground Station
-//} response_state_t;
-//
-//
-///** Abstraction of the ACK/NACK return types */
-//typedef enum _response_t {
-//	responseAck		= protocol_message_Ack_tag,	///> Acknowledge (the message was received properly)
-//	responseNack	= protocol_message_Nack_tag,	///> Negative Acknowledge (the message was NOT received properly)
-//} response_t;
-//
-//
-///** Abstraction of the communication modes */
-//typedef enum _comm_mode_t {
-//	commModeQuiet			= -1,	///> Prevent downlink transmissions and automatic state changes
-//	commModeIdle			= 0,	///> Not in a pass
-//	commModeTelecommand		= 1,	///> Receiving Telecommands from Ground Station
-//	commModeFileTransfer	= 2,	///> Transmitting data to the Ground Station
-//} comm_mode_t;
-//
-//
-///** Co-ordinates tasks during the telecommand phase */
-//typedef struct _telecommand_state_t {
-//	response_state_t transmitReady;	///> Whether the Satellite is ready to transmit a response (ACK, NACK, etc.)
-//	response_t responseToSend;		///> What response to send, when ready
-//} telecommand_state_t;
-//
-//
-///** Co-ordinates tasks during the file transfer phase */
-//typedef struct _file_transfer_state_t {
-//	response_state_t transmitReady;		///> Whether the Satellite is ready to transmit another Frame (telemetry, etc.)
-//	response_t responseReceived;		///> What response was received (ACK, NACK, etc.) regarding the previous message
-//	uint8_t transmissionErrors;			///> Error counter for recording consecutive NACKs
-//} file_transfer_state_t;
-//
-//
-///** Wrapper structure for communications co-ordination */
-//typedef struct _communication_state_t {
-//	comm_mode_t mode;					///> The current state of the Communications Tasks
-//	telecommand_state_t telecommand;	///> The state during the Telecommand mode
-//	file_transfer_state_t fileTransfer;	///> The state during the File Transfer mode
-//} communication_state_t;
+#define RX_MUTEX_WAIT_TICKS 100
+#define TX_MUTEX_WAIT_TICKS 100
+xSemaphoreHandle stateMachineMutex;
 
 
-///** Timer for pass mode */
-//static xTimerHandle passTimer;
-//
-///** Timer for quiet mode */
-//static xTimerHandle quietTimer;
-//
-///** Communication co-orditation structure */
-//static communication_state_t state = { 0 };
 
 
 /***************************************************************************************************
@@ -140,15 +89,16 @@ void CommunicationRxTask(void* parameters) {
 	uint16_t rxMessageSize = 0;	// size (in bytes) of a received frame
 	uint8_t rxMessage[TRANCEIVER_RX_MAX_FRAME_SIZE] = { 0 };	// input buffer for received frames
 
-	uint8_t messageTag = 0;
-	int z = -1;
-	uint16_t sizeToRead[3] = {15, 13, 13};
+	uint8_t messageType = 0; // allows uplinkHandle to return protocol or telecommand message
 
+	uint8_t messageTag = 0;
+	int z = 0;
+	#define NUMMESSAGES 3
+	uint16_t sizeToRead[NUMMESSAGES] = {15, 13, 13};
+
+	stateMachineMutex = xSemaphoreCreateMutex();
 
 	while (1) {
-		if(z < 2){
-			z++;
-		}
 		// get the number of frames currently in the receive buffer
 		rxFrameCount = 1;//0;
 		error = 0;
@@ -171,88 +121,107 @@ void CommunicationRxTask(void* parameters) {
 
 			// attempt to extract a protocol messages
 
-			messageTag = telecommandHandle(rxMessage, rxMessageSize);
-			debugPrint("messageTag for telecommandHandle: %d\n", messageTag);
+			messageTag = uplinkHandle(rxMessage, rxMessageSize, &messageType);
 
-			// messageTag = protocolHandle(rxMessage, rxMessageSize);
-			// debugPrint("messageTag for protocolHandle: %d\n", messageTag);
-			// if a protocol message
-			if (messageTag != 0){
+			// entering state machine, grab mutex
+			if (xSemaphoreTake(stateMachineMutex, RX_MUTEX_WAIT_TICKS) == pdTRUE){
 
-				// handle protocol
-				switch (messageTag) {
+				// if a protocol message
+				if (messageType == radsat_message_ProtocolMessage_tag){
 
-					// ack
-					case (protocol_message_Ack_tag):
-						ackReceived();
-						break;
+					debugPrint("messageTag for protocol message: %d\n", messageTag);
 
-					// nack
-					case (protocol_message_Nack_tag):
-						nackReceived();
-						break;
+					// if a valid message
+					if (messageTag != 0){
 
-					default:
-						nackReceived();
-						break;
-				}
-			}
-			/*
+						// handle protocol
+						switch (messageTag) {
 
-			// otherwise, attempt to extract and execute a telecommand message
-			else{
+							// ack
+							case (protocol_message_Ack_tag):
+								ackReceived();
+								break;
 
-				messageTag = telecommandHandle(rxMessage, rxMessageSize);
-				debugPrint("messageTag for telecommandHandle: %d\n", messageTag);
-				// if a valid message
-				if (messageTag != 0){
+								// nack
+							case (protocol_message_Nack_tag):
+								nackReceived();
+								break;
 
-					// handle protocol
-					switch (messageTag) {
+							default:
+								nackReceived();
+								break;
+						}
+					}
 
-						// beginPass
-						case (telecommand_message_BeginPass_tag):
-							beginPass();
-							break;
-
-						// beginFileTransfer
-						case (telecommand_message_BeginFileTransfer_tag):
-							beginFileTransfer();
-							break;
-
-						// ceaseTransmission
-						case (telecommand_message_CeaseTransmission_tag):
-							ceaseTransmission();
-							break;
-
-						// resumeTransmission
-						case (telecommand_message_ResumeTransmission_tag):
-							resumeTransmission();
-							break;
-
-						// updateTime
-						case (telecommand_message_UpdateTime_tag):
-							updateTime();
-							break;
-
-						// reset
-						case (telecommand_message_Reset_tag):
-							resetSat();
-							break;
-
-						default:
-							// todo: should the default be to send a nack?
-							sendNack();
-							break;
+					// if no messageTag == 0, send a nack
+					else{
+						sendNack();
 					}
 				}
-				// if no telecommand message successfully received, send a nack
-				else{
-					sendNack();
+
+				// else if telecommand message, attempt to execute
+				else if(messageType == radsat_message_TelecommandMessage_tag){
+
+					debugPrint("messageTag for telecommand message: %d\n", messageTag);
+
+					// if a valid message
+					if (messageTag != 0){
+
+						// handle protocol
+						switch (messageTag) {
+
+							// beginPass
+							case (telecommand_message_BeginPass_tag):
+								beginPass();
+								break;
+
+							// beginFileTransfer
+							case (telecommand_message_BeginFileTransfer_tag):
+								beginFileTransfer();
+								break;
+
+							// ceaseTransmission
+							case (telecommand_message_CeaseTransmission_tag):
+								ceaseTransmission();
+								break;
+
+							// resumeTransmission
+							case (telecommand_message_ResumeTransmission_tag):
+								resumeTransmission();
+								break;
+
+							// updateTime
+							case (telecommand_message_UpdateTime_tag):
+								updateTime();
+								break;
+
+							// reset
+							case (telecommand_message_Reset_tag):
+								resetSat();
+								break;
+
+							default:
+								// todo: should the default be to send a nack?
+								sendNack();
+								break;
+						}
+
+					}
+
+					// if no messageTag == 0, send a nack
+					else{
+						sendNack();
+					}
 				}
-			}*/
+
+				// release mutex, done in state machine
+				xSemaphoreGive(stateMachineMutex);
+			}
+			vTaskDelay(500);//COMMUNICATION_RX_TASK_DELAY_MS);
+			if(z < NUMMESSAGES-1){
+				z++;
+			}
 		}
-		vTaskDelay(500);//COMMUNICATION_RX_TASK_DELAY_MS);
 	}
 }
 
@@ -287,7 +256,16 @@ void CommunicationTxTask(void* parameters) {
 	uint8_t txMessage[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };	// output buffer for messages to be transmitted
 
 	while (1) {
-		txMessageSize = getNextFrame(txMessage);
+
+		// getNextFrame enters the state machine, grab mutex
+		if (xSemaphoreTake(stateMachineMutex, RX_MUTEX_WAIT_TICKS) == pdTRUE){
+
+			txMessageSize = getNextFrame(txMessage);
+
+			// release mutex, done in state machine
+			xSemaphoreGive(stateMachineMutex);
+		}
+
 		debugPrint("txMessageSize = %d\n", txMessageSize);
 		// send the message
 		if (txMessageSize > 0)

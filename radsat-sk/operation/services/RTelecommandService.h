@@ -15,7 +15,7 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size);
+uint8_t uplinkHandle(uint8_t* wrappedMessage, uint8_t size, uint8_t* messageType);
 
 
 #endif /* RTELECOMMANDSERVICE_H_ */
