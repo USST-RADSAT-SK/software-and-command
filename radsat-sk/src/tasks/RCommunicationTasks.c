@@ -14,6 +14,7 @@
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <freertos/timers.h>
+#include <freertos/semphr.h>
 
 #include <string.h>
 
@@ -23,7 +24,6 @@
 #include <RMessage.h>
 #include <string.h>
 #include <RCommon.h>
-#include <freertos/semphr.h>
 
 
 
@@ -218,9 +218,12 @@ void CommunicationRxTask(void* parameters) {
 				xSemaphoreGive(stateMachineMutex);
 			}
 			vTaskDelay(500);//COMMUNICATION_RX_TASK_DELAY_MS);
-			if(z < NUMMESSAGES-1){
-				z++;
+
+			z++;
+			if(z >= NUMMESSAGES){
+				z = 0;
 			}
+
 		}
 	}
 }
