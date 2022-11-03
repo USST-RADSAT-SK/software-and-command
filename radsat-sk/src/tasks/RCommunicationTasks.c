@@ -99,131 +99,112 @@ void CommunicationRxTask(void* parameters) {
 	stateMachineMutex = xSemaphoreCreateMutex();
 
 	while (1) {
+		vTaskDelay(500);//COMMUNICATION_RX_TASK_DELAY_MS);
+
 		// get the number of frames currently in the receive buffer
 		rxFrameCount = 1;//0;
 		error = 0;
 		//error = transceiverRxFrameCount(&rxFrameCount);
 		debugPrint("Here: \n");
 		// obtain frames when present
-		if (rxFrameCount > 0 && error == 0) {
+		if (rxFrameCount == 0 || error > 0) {
+			continue;
+		}
 
-			// obtain new frame from the transceiver
-			rxMessageSize = 0;
-			memset(rxMessage, 0, sizeof(rxMessage));
-			error = transceiverGetFrame(rxMessage, &rxMessageSize);
-			rxMessageSize = sizeToRead[z];
-			debugPrint("Message size: %d \n", rxMessageSize);
-			debugPrint("Message: ");
-			for (int j = 0; j < rxMessageSize; j++){
-				debugPrint("%x",rxMessage[j]);
+		// obtain new frame from the transceiver
+		rxMessageSize = 0;
+		memset(rxMessage, 0, sizeof(rxMessage));
+		error = transceiverGetFrame(rxMessage, &rxMessageSize);
+		rxMessageSize = sizeToRead[z];
+
+		debugPrint("Message size: %d \n", rxMessageSize);
+		debugPrint("Message: ");
+		for (int j = 0; j < rxMessageSize; j++){
+			debugPrint("%x",rxMessage[j]);
+		}
+		debugPrint("\n");
+		z = (z + 1) % 3;
+		// attempt to extract a protocol messages
+
+		messageTag = uplinkHandle(rxMessage, rxMessageSize, &messageType);
+
+		// entering state machine, grab mutex
+		if (xSemaphoreTake(stateMachineMutex, RX_MUTEX_WAIT_TICKS) == pdTRUE){
+
+			if (messageTag == 0) {
+				sendNack();
 			}
-			debugPrint("\n");
+			// if a protocol message
+			else if (messageType == radsat_message_ProtocolMessage_tag){
 
-			// attempt to extract a protocol messages
+				debugPrint("messageTag for protocol message: %d\n", messageTag);
 
-			messageTag = uplinkHandle(rxMessage, rxMessageSize, &messageType);
+				// handle protocol
+				switch (messageTag) {
 
-			// entering state machine, grab mutex
-			if (xSemaphoreTake(stateMachineMutex, RX_MUTEX_WAIT_TICKS) == pdTRUE){
+					// ack
+					case (protocol_message_Ack_tag):
+						ackReceived();
+						break;
 
-				// if a protocol message
-				if (messageType == radsat_message_ProtocolMessage_tag){
-
-					debugPrint("messageTag for protocol message: %d\n", messageTag);
-
-					// if a valid message
-					if (messageTag != 0){
-
-						// handle protocol
-						switch (messageTag) {
-
-							// ack
-							case (protocol_message_Ack_tag):
-								ackReceived();
-								break;
-
-								// nack
-							case (protocol_message_Nack_tag):
-								nackReceived();
-								break;
-
-							default:
-								nackReceived();
-								break;
-						}
-					}
-
-					// if no messageTag == 0, send a nack
-					else{
-						sendNack();
-					}
+					// nack
+					case (protocol_message_Nack_tag):
+					default:
+						nackReceived();
+						break;
 				}
+			}
 
-				// else if telecommand message, attempt to execute
-				else if(messageType == radsat_message_TelecommandMessage_tag){
+			// else if telecommand message, attempt to execute
+			else if(messageType == radsat_message_TelecommandMessage_tag){
 
-					debugPrint("messageTag for telecommand message: %d\n", messageTag);
+				debugPrint("messageTag for telecommand message: %d\n", messageTag);
 
-					// if a valid message
-					if (messageTag != 0){
+				// handle protocol
+				switch (messageTag) {
 
-						// handle protocol
-						switch (messageTag) {
+					// beginPass
+					case (telecommand_message_BeginPass_tag):
+						beginPass();
+						break;
 
-							// beginPass
-							case (telecommand_message_BeginPass_tag):
-								beginPass();
-								break;
+					// beginFileTransfer
+					case (telecommand_message_BeginFileTransfer_tag):
+						beginFileTransfer();
+						break;
 
-							// beginFileTransfer
-							case (telecommand_message_BeginFileTransfer_tag):
-								beginFileTransfer();
-								break;
+					// ceaseTransmission
+					case (telecommand_message_CeaseTransmission_tag):
+						ceaseTransmission();
+						break;
 
-							// ceaseTransmission
-							case (telecommand_message_CeaseTransmission_tag):
-								ceaseTransmission();
-								break;
+					// resumeTransmission
+					case (telecommand_message_ResumeTransmission_tag):
+						resumeTransmission();
+						break;
 
-							// resumeTransmission
-							case (telecommand_message_ResumeTransmission_tag):
-								resumeTransmission();
-								break;
+					// updateTime
+					case (telecommand_message_UpdateTime_tag):
+						updateTime();
+						break;
 
-							// updateTime
-							case (telecommand_message_UpdateTime_tag):
-								updateTime();
-								break;
+					// reset
+					case (telecommand_message_Reset_tag):
+						resetSat();
+						break;
 
-							// reset
-							case (telecommand_message_Reset_tag):
-								resetSat();
-								break;
-
-							default:
-								// todo: should the default be to send a nack?
-								sendNack();
-								break;
-						}
-
-					}
-
-					// if no messageTag == 0, send a nack
-					else{
+					default:
+						// todo: should the default be to send a nack?
 						sendNack();
-					}
+						break;
 				}
-
-				// release mutex, done in state machine
-				xSemaphoreGive(stateMachineMutex);
 			}
-			vTaskDelay(500);//COMMUNICATION_RX_TASK_DELAY_MS);
-
-			z++;
-			if(z >= NUMMESSAGES){
-				z = 0;
+			else {
+				sendNack();
 			}
 
+			// release mutex, done in state machine
+			xSemaphoreGive(stateMachineMutex);
 		}
 	}
 }
