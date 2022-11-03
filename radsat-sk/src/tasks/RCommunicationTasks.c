@@ -47,7 +47,7 @@
 
 #define RX_MUTEX_WAIT_TICKS 100
 #define TX_MUTEX_WAIT_TICKS 100
-xSemaphoreHandle stateMachineMutex;
+xSemaphoreHandle stateMachineMutex = NULL;
 
 
 
@@ -93,8 +93,7 @@ void CommunicationRxTask(void* parameters) {
 
 	uint8_t messageTag = 0;
 	int z = 0;
-	#define NUMMESSAGES 3
-	uint16_t sizeToRead[NUMMESSAGES] = {15, 13, 13};
+	uint16_t sizeToRead[3] = {15, 13, 13};
 
 	stateMachineMutex = xSemaphoreCreateMutex();
 
@@ -238,6 +237,11 @@ void CommunicationTxTask(void* parameters) {
 	uint8_t txSlotsRemaining = TRANCEIVER_TX_MAX_FRAME_COUNT;	// number of open frame slots in the transmitter's buffer
 	uint8_t txMessageSize = 0;									// size (in bytes) of an outgoing frame
 	uint8_t txMessage[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };	// output buffer for messages to be transmitted
+
+	// Making sure this task doesn't try to access the Mutex before it's set
+	while (stateMachineMutex == NULL) {
+		vTaskDelay(10);
+	}
 
 	while (1) {
 
