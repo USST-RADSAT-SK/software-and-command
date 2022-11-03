@@ -5,7 +5,7 @@
  */
 
 #include <RBattery.h>
-#include <RI2C.h>
+#include <RI2c.h>
 #include <string.h>
 #include <RCommon.h>
 
