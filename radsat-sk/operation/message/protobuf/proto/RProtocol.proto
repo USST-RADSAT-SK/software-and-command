@@ -19,10 +19,12 @@ message protocol_message {
 	}
 }
 
-// Positive Acknowledgement
-message ack {
-}
-
-// Negative Acknowledgement
-message nack {
-}
+ // Positive Acknowledgement
+ message ack {
+    uint32 resp     = 1; ///< dummy variable
+ }
+ 
+ // Negative Acknowledgement
+ message nack {
+    uint32 resp     = 1; ///< dummy variable
+ }

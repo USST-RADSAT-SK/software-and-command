@@ -18,21 +18,47 @@ typedef enum _image_type_t {
 } image_type_t;
 
 /* Struct definitions */
-typedef struct _antenna_telemetry {
-    char dummy_field;
-} antenna_telemetry;
+typedef struct _antenna_side_data {
+    uint32_t deployedAntenna1;
+    uint32_t deployedAntenna2;
+    uint32_t deployedAntenna3;
+    uint32_t deployedAntenna4;
+    uint32_t armed;
+    float boardTemp;
+    uint32_t uptime;
+} antenna_side_data;
 
 typedef struct _battery_telemetry {
-    char dummy_field;
+    float outputVoltageBatteryBus;
+    float outputVoltage5VBus;
+    float outputVoltage3V3Bus;
+    float outputCurrentBatteryBus;
+    float outputCurrent5VBus;
+    float outputCurrent3V3Bus;
+    float batteryCurrentDirection;
+    float motherboardTemp;
+    float daughterboardTemp1;
+    float daughterboardTemp2;
+    float daughterboardTemp3;
 } battery_telemetry;
 
-typedef struct _eps_telemetry {
-    char dummy_field;
-} eps_telemetry;
+typedef struct _camera_configuration_telemetry {
+    uint32_t detectionThreshold;
+    uint32_t autoAdjustMode;
+    uint32_t exposure;
+    uint32_t autoGainControl;
+    uint32_t blueGain;
+    uint32_t redGain;
+} camera_configuration_telemetry;
 
-typedef struct _camera_telemetry {
-    uint32_t uptime;
-} camera_telemetry;
+typedef struct _camera_power_telemetry {
+    float current_3V3;
+    float current_5V;
+    float current_SRAM_1;
+    float current_SRAM_2;
+    uint32_t overcurrent_SRAM_1;
+    uint32_t overcurrent_SRAM_2;
+} camera_power_telemetry;
 
 typedef struct _component_error_report {
     uint32_t component;
@@ -93,6 +119,15 @@ typedef struct _receiver_telemetry {
     uint32_t frames;
 } receiver_telemetry;
 
+typedef struct _sun_sensor_data {
+    float xPos;
+    float xNeg;
+    float yPos;
+    float yNeg;
+    float zPos;
+    float zNeg;
+} sun_sensor_data;
+
 typedef struct _transmitter_telemetry {
     float reflectedPower;
     float forwardPower;
@@ -106,10 +141,35 @@ typedef struct _transmitter_telemetry {
     uint32_t uptime;
 } transmitter_telemetry;
 
+typedef struct _antenna_telemetry {
+    antenna_side_data sideA;
+    antenna_side_data sideB;
+} antenna_telemetry;
+
+typedef struct _camera_telemetry {
+    uint32_t uptime;
+    camera_power_telemetry powerTelemetry;
+    camera_configuration_telemetry cameraOneTelemetry;
+    camera_configuration_telemetry cameraTwoTelemetry;
+} camera_telemetry;
+
 typedef struct _dosimeter_data {
     dosimeter_board_data boardOne;
     dosimeter_board_data boardTwo;
 } dosimeter_data;
+
+typedef struct _eps_telemetry {
+    sun_sensor_data sunSensorData;
+    float outputVoltageBCR;
+    float outputVoltageBatteryBus;
+    float outputVoltage5VBus;
+    float outputVoltage3V3Bus;
+    float outputCurrentBCR_mA;
+    float outputCurrentBatteryBus;
+    float outputCurrent5VBus;
+    float outputCurrent3V3Bus;
+    float PdbTemperature;
+} eps_telemetry;
 
 typedef struct _transceiver_telemetry {
     receiver_telemetry receiver;
@@ -150,10 +210,14 @@ extern "C" {
 #define receiver_telemetry_init_default          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define transmitter_telemetry_init_default       {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define transceiver_telemetry_init_default       {receiver_telemetry_init_default, transmitter_telemetry_init_default}
-#define camera_telemetry_init_default            {0}
-#define eps_telemetry_init_default               {0}
-#define battery_telemetry_init_default           {0}
-#define antenna_telemetry_init_default           {0}
+#define camera_power_telemetry_init_default      {0, 0, 0, 0, 0, 0}
+#define camera_configuration_telemetry_init_default {0, 0, 0, 0, 0, 0}
+#define camera_telemetry_init_default            {0, camera_power_telemetry_init_default, camera_configuration_telemetry_init_default, camera_configuration_telemetry_init_default}
+#define sun_sensor_data_init_default             {0, 0, 0, 0, 0, 0}
+#define eps_telemetry_init_default               {sun_sensor_data_init_default, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define battery_telemetry_init_default           {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define antenna_side_data_init_default           {0, 0, 0, 0, 0, 0, 0}
+#define antenna_telemetry_init_default           {antenna_side_data_init_default, antenna_side_data_init_default}
 #define dosimeter_board_data_init_default        {0, 0, 0, 0, 0, 0, 0, 0}
 #define dosimeter_data_init_default              {dosimeter_board_data_init_default, dosimeter_board_data_init_default}
 #define image_packet_init_default                {0, _image_type_t_MIN, {0, {0}}}
@@ -166,10 +230,14 @@ extern "C" {
 #define receiver_telemetry_init_zero             {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define transmitter_telemetry_init_zero          {0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
 #define transceiver_telemetry_init_zero          {receiver_telemetry_init_zero, transmitter_telemetry_init_zero}
-#define camera_telemetry_init_zero               {0}
-#define eps_telemetry_init_zero                  {0}
-#define battery_telemetry_init_zero              {0}
-#define antenna_telemetry_init_zero              {0}
+#define camera_power_telemetry_init_zero         {0, 0, 0, 0, 0, 0}
+#define camera_configuration_telemetry_init_zero {0, 0, 0, 0, 0, 0}
+#define camera_telemetry_init_zero               {0, camera_power_telemetry_init_zero, camera_configuration_telemetry_init_zero, camera_configuration_telemetry_init_zero}
+#define sun_sensor_data_init_zero                {0, 0, 0, 0, 0, 0}
+#define eps_telemetry_init_zero                  {sun_sensor_data_init_zero, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define battery_telemetry_init_zero              {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}
+#define antenna_side_data_init_zero              {0, 0, 0, 0, 0, 0, 0}
+#define antenna_telemetry_init_zero              {antenna_side_data_init_zero, antenna_side_data_init_zero}
 #define dosimeter_board_data_init_zero           {0, 0, 0, 0, 0, 0, 0, 0}
 #define dosimeter_data_init_zero                 {dosimeter_board_data_init_zero, dosimeter_board_data_init_zero}
 #define image_packet_init_zero                   {0, _image_type_t_MIN, {0, {0}}}
@@ -179,7 +247,36 @@ extern "C" {
 #define error_report_summary_init_zero           {{0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}, {0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0}}
 
 /* Field tags (for use in manual encoding/decoding) */
-#define camera_telemetry_uptime_tag              1
+#define antenna_side_data_deployedAntenna1_tag   1
+#define antenna_side_data_deployedAntenna2_tag   2
+#define antenna_side_data_deployedAntenna3_tag   3
+#define antenna_side_data_deployedAntenna4_tag   4
+#define antenna_side_data_armed_tag              5
+#define antenna_side_data_boardTemp_tag          6
+#define antenna_side_data_uptime_tag             7
+#define battery_telemetry_outputVoltageBatteryBus_tag 1
+#define battery_telemetry_outputVoltage5VBus_tag 2
+#define battery_telemetry_outputVoltage3V3Bus_tag 3
+#define battery_telemetry_outputCurrentBatteryBus_tag 4
+#define battery_telemetry_outputCurrent5VBus_tag 5
+#define battery_telemetry_outputCurrent3V3Bus_tag 6
+#define battery_telemetry_batteryCurrentDirection_tag 7
+#define battery_telemetry_motherboardTemp_tag    8
+#define battery_telemetry_daughterboardTemp1_tag 9
+#define battery_telemetry_daughterboardTemp2_tag 10
+#define battery_telemetry_daughterboardTemp3_tag 11
+#define camera_configuration_telemetry_detectionThreshold_tag 1
+#define camera_configuration_telemetry_autoAdjustMode_tag 2
+#define camera_configuration_telemetry_exposure_tag 3
+#define camera_configuration_telemetry_autoGainControl_tag 4
+#define camera_configuration_telemetry_blueGain_tag 5
+#define camera_configuration_telemetry_redGain_tag 6
+#define camera_power_telemetry_current_3V3_tag   1
+#define camera_power_telemetry_current_5V_tag    2
+#define camera_power_telemetry_current_SRAM_1_tag 3
+#define camera_power_telemetry_current_SRAM_2_tag 4
+#define camera_power_telemetry_overcurrent_SRAM_1_tag 5
+#define camera_power_telemetry_overcurrent_SRAM_2_tag 6
 #define component_error_report_component_tag     1
 #define component_error_report_error_tag         2
 #define dosimeter_board_data_channelZero_tag     1
@@ -214,6 +311,12 @@ extern "C" {
 #define receiver_telemetry_boardTemperature_tag  9
 #define receiver_telemetry_uptime_tag            10
 #define receiver_telemetry_frames_tag            11
+#define sun_sensor_data_xPos_tag                 1
+#define sun_sensor_data_xNeg_tag                 2
+#define sun_sensor_data_yPos_tag                 3
+#define sun_sensor_data_yNeg_tag                 4
+#define sun_sensor_data_zPos_tag                 5
+#define sun_sensor_data_zNeg_tag                 6
 #define transmitter_telemetry_reflectedPower_tag 1
 #define transmitter_telemetry_forwardPower_tag   2
 #define transmitter_telemetry_busVoltage_tag     3
@@ -224,8 +327,24 @@ extern "C" {
 #define transmitter_telemetry_powerAmplifierTemperature_tag 8
 #define transmitter_telemetry_boardTemperature_tag 9
 #define transmitter_telemetry_uptime_tag         10
+#define antenna_telemetry_sideA_tag              1
+#define antenna_telemetry_sideB_tag              2
+#define camera_telemetry_uptime_tag              1
+#define camera_telemetry_powerTelemetry_tag      2
+#define camera_telemetry_cameraOneTelemetry_tag  3
+#define camera_telemetry_cameraTwoTelemetry_tag  4
 #define dosimeter_data_boardOne_tag              1
 #define dosimeter_data_boardTwo_tag              2
+#define eps_telemetry_sunSensorData_tag          1
+#define eps_telemetry_outputVoltageBCR_tag       2
+#define eps_telemetry_outputVoltageBatteryBus_tag 3
+#define eps_telemetry_outputVoltage5VBus_tag     4
+#define eps_telemetry_outputVoltage3V3Bus_tag    5
+#define eps_telemetry_outputCurrentBCR_mA_tag    6
+#define eps_telemetry_outputCurrentBatteryBus_tag 7
+#define eps_telemetry_outputCurrent5VBus_tag     8
+#define eps_telemetry_outputCurrent3V3Bus_tag    9
+#define eps_telemetry_PdbTemperature_tag         10
 #define transceiver_telemetry_receiver_tag       1
 #define transceiver_telemetry_transmitter_tag    2
 #define file_transfer_message_ObcTelemetry_tag   1
@@ -312,25 +431,95 @@ X(a, STATIC,   SINGULAR, MESSAGE,  transmitter,       2)
 #define transceiver_telemetry_receiver_MSGTYPE receiver_telemetry
 #define transceiver_telemetry_transmitter_MSGTYPE transmitter_telemetry
 
+#define camera_power_telemetry_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, FLOAT,    current_3V3,       1) \
+X(a, STATIC,   SINGULAR, FLOAT,    current_5V,        2) \
+X(a, STATIC,   SINGULAR, FLOAT,    current_SRAM_1,    3) \
+X(a, STATIC,   SINGULAR, FLOAT,    current_SRAM_2,    4) \
+X(a, STATIC,   SINGULAR, UINT32,   overcurrent_SRAM_1,   5) \
+X(a, STATIC,   SINGULAR, UINT32,   overcurrent_SRAM_2,   6)
+#define camera_power_telemetry_CALLBACK NULL
+#define camera_power_telemetry_DEFAULT NULL
+
+#define camera_configuration_telemetry_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   detectionThreshold,   1) \
+X(a, STATIC,   SINGULAR, UINT32,   autoAdjustMode,    2) \
+X(a, STATIC,   SINGULAR, UINT32,   exposure,          3) \
+X(a, STATIC,   SINGULAR, UINT32,   autoGainControl,   4) \
+X(a, STATIC,   SINGULAR, UINT32,   blueGain,          5) \
+X(a, STATIC,   SINGULAR, UINT32,   redGain,           6)
+#define camera_configuration_telemetry_CALLBACK NULL
+#define camera_configuration_telemetry_DEFAULT NULL
+
 #define camera_telemetry_FIELDLIST(X, a) \
-X(a, STATIC,   SINGULAR, UINT32,   uptime,            1)
+X(a, STATIC,   SINGULAR, UINT32,   uptime,            1) \
+X(a, STATIC,   SINGULAR, MESSAGE,  powerTelemetry,    2) \
+X(a, STATIC,   SINGULAR, MESSAGE,  cameraOneTelemetry,   3) \
+X(a, STATIC,   SINGULAR, MESSAGE,  cameraTwoTelemetry,   4)
 #define camera_telemetry_CALLBACK NULL
 #define camera_telemetry_DEFAULT NULL
+#define camera_telemetry_powerTelemetry_MSGTYPE camera_power_telemetry
+#define camera_telemetry_cameraOneTelemetry_MSGTYPE camera_configuration_telemetry
+#define camera_telemetry_cameraTwoTelemetry_MSGTYPE camera_configuration_telemetry
+
+#define sun_sensor_data_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, FLOAT,    xPos,              1) \
+X(a, STATIC,   SINGULAR, FLOAT,    xNeg,              2) \
+X(a, STATIC,   SINGULAR, FLOAT,    yPos,              3) \
+X(a, STATIC,   SINGULAR, FLOAT,    yNeg,              4) \
+X(a, STATIC,   SINGULAR, FLOAT,    zPos,              5) \
+X(a, STATIC,   SINGULAR, FLOAT,    zNeg,              6)
+#define sun_sensor_data_CALLBACK NULL
+#define sun_sensor_data_DEFAULT NULL
 
 #define eps_telemetry_FIELDLIST(X, a) \
-
+X(a, STATIC,   SINGULAR, MESSAGE,  sunSensorData,     1) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputVoltageBCR,   2) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputVoltageBatteryBus,   3) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputVoltage5VBus,   4) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputVoltage3V3Bus,   5) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputCurrentBCR_mA,   6) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputCurrentBatteryBus,   7) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputCurrent5VBus,   8) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputCurrent3V3Bus,   9) \
+X(a, STATIC,   SINGULAR, FLOAT,    PdbTemperature,   10)
 #define eps_telemetry_CALLBACK NULL
 #define eps_telemetry_DEFAULT NULL
+#define eps_telemetry_sunSensorData_MSGTYPE sun_sensor_data
 
 #define battery_telemetry_FIELDLIST(X, a) \
-
+X(a, STATIC,   SINGULAR, FLOAT,    outputVoltageBatteryBus,   1) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputVoltage5VBus,   2) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputVoltage3V3Bus,   3) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputCurrentBatteryBus,   4) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputCurrent5VBus,   5) \
+X(a, STATIC,   SINGULAR, FLOAT,    outputCurrent3V3Bus,   6) \
+X(a, STATIC,   SINGULAR, FLOAT,    batteryCurrentDirection,   7) \
+X(a, STATIC,   SINGULAR, FLOAT,    motherboardTemp,   8) \
+X(a, STATIC,   SINGULAR, FLOAT,    daughterboardTemp1,   9) \
+X(a, STATIC,   SINGULAR, FLOAT,    daughterboardTemp2,  10) \
+X(a, STATIC,   SINGULAR, FLOAT,    daughterboardTemp3,  11)
 #define battery_telemetry_CALLBACK NULL
 #define battery_telemetry_DEFAULT NULL
 
-#define antenna_telemetry_FIELDLIST(X, a) \
+#define antenna_side_data_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, UINT32,   deployedAntenna1,   1) \
+X(a, STATIC,   SINGULAR, UINT32,   deployedAntenna2,   2) \
+X(a, STATIC,   SINGULAR, UINT32,   deployedAntenna3,   3) \
+X(a, STATIC,   SINGULAR, UINT32,   deployedAntenna4,   4) \
+X(a, STATIC,   SINGULAR, UINT32,   armed,             5) \
+X(a, STATIC,   SINGULAR, FLOAT,    boardTemp,         6) \
+X(a, STATIC,   SINGULAR, UINT32,   uptime,            7)
+#define antenna_side_data_CALLBACK NULL
+#define antenna_side_data_DEFAULT NULL
 
+#define antenna_telemetry_FIELDLIST(X, a) \
+X(a, STATIC,   SINGULAR, MESSAGE,  sideA,             1) \
+X(a, STATIC,   SINGULAR, MESSAGE,  sideB,             2)
 #define antenna_telemetry_CALLBACK NULL
 #define antenna_telemetry_DEFAULT NULL
+#define antenna_telemetry_sideA_MSGTYPE antenna_side_data
+#define antenna_telemetry_sideB_MSGTYPE antenna_side_data
 
 #define dosimeter_board_data_FIELDLIST(X, a) \
 X(a, STATIC,   SINGULAR, FLOAT,    channelZero,       1) \
@@ -388,9 +577,13 @@ extern const pb_msgdesc_t obc_telemetry_msg;
 extern const pb_msgdesc_t receiver_telemetry_msg;
 extern const pb_msgdesc_t transmitter_telemetry_msg;
 extern const pb_msgdesc_t transceiver_telemetry_msg;
+extern const pb_msgdesc_t camera_power_telemetry_msg;
+extern const pb_msgdesc_t camera_configuration_telemetry_msg;
 extern const pb_msgdesc_t camera_telemetry_msg;
+extern const pb_msgdesc_t sun_sensor_data_msg;
 extern const pb_msgdesc_t eps_telemetry_msg;
 extern const pb_msgdesc_t battery_telemetry_msg;
+extern const pb_msgdesc_t antenna_side_data_msg;
 extern const pb_msgdesc_t antenna_telemetry_msg;
 extern const pb_msgdesc_t dosimeter_board_data_msg;
 extern const pb_msgdesc_t dosimeter_data_msg;
@@ -406,9 +599,13 @@ extern const pb_msgdesc_t error_report_summary_msg;
 #define receiver_telemetry_fields &receiver_telemetry_msg
 #define transmitter_telemetry_fields &transmitter_telemetry_msg
 #define transceiver_telemetry_fields &transceiver_telemetry_msg
+#define camera_power_telemetry_fields &camera_power_telemetry_msg
+#define camera_configuration_telemetry_fields &camera_configuration_telemetry_msg
 #define camera_telemetry_fields &camera_telemetry_msg
+#define sun_sensor_data_fields &sun_sensor_data_msg
 #define eps_telemetry_fields &eps_telemetry_msg
 #define battery_telemetry_fields &battery_telemetry_msg
+#define antenna_side_data_fields &antenna_side_data_msg
 #define antenna_telemetry_fields &antenna_telemetry_msg
 #define dosimeter_board_data_fields &dosimeter_board_data_msg
 #define dosimeter_data_fields &dosimeter_data_msg
@@ -424,10 +621,14 @@ extern const pb_msgdesc_t error_report_summary_msg;
 #define receiver_telemetry_size                  57
 #define transmitter_telemetry_size               51
 #define transceiver_telemetry_size               112
-#define camera_telemetry_size                    6
-#define eps_telemetry_size                       0
-#define battery_telemetry_size                   0
-#define antenna_telemetry_size                   0
+#define camera_power_telemetry_size              32
+#define camera_configuration_telemetry_size      36
+#define camera_telemetry_size                    116
+#define sun_sensor_data_size                     30
+#define eps_telemetry_size                       77
+#define battery_telemetry_size                   55
+#define antenna_side_data_size                   41
+#define antenna_telemetry_size                   86
 #define dosimeter_board_data_size                40
 #define dosimeter_data_size                      84
 #define image_packet_size                        211
