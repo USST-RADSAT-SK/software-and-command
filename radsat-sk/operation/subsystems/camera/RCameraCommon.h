@@ -58,6 +58,23 @@
 #define TOP_HALVE                       ((uint8_t) 0)
 #define BOTTOM_HALVE                    ((uint8_t) 1)
 
+/* Enum of telemetry request ID for sensor result and new detection */
+typedef enum _SensorResultAndDetection {
+	sensor1        = 0x94, // TLM 20 (no new detection)
+	sensor2        = 0x95, // TLM 21 (no new detection)
+	sensor1_sram1  = 0x96, // TLM 22
+	sensor2_sram2  = 0x97, // TLM 23
+	sensor1_sram2  = 0x98, // TLM 24
+	sensor2_sram1  = 0x99  // TLM 25
+} SensorResultAndDetection;
+
+/* Struct to define 3D vector */
+typedef struct _interpret_detection_result_t {
+	float X_AXIS;
+	float Y_AXIS;
+	float Z_AXIS;
+} interpret_detection_result_t;
+
 /****************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/

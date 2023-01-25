@@ -11,6 +11,7 @@
 #include <stdlib.h>
 #include <string.h>
 #include <math.h>
+#include <hal/Timing/Time.h>
 
 /***************************************************************************************************
                                             DEFINITIONS
@@ -19,7 +20,7 @@
 #define TELECOMMAND_20    	          	((uint8_t) 0x14)
 #define TELECOMMAND_20_LEN              ((uint8_t) 3)
 
-#define TELEMETRY_22_TO_25_LEN			((uint8_t) 10)
+#define TELEMETRY_20_TO_25_LEN			((uint8_t) 10)
 
 
 // TODO: REMOVE. Test purposes only.
@@ -48,6 +49,7 @@ void printDetectionData(tlm_detection_result_and_trigger_adcs_t *data) {
 	printf("Beta Angle       = %d\n", data->beta);
 	printf("Capture Result   = %d (%s)\n", data->captureResult, capture_results[data->captureResult]);
 	printf("Detection Result = %d (%s)\n", data->detectionResult, detection_results[data->detectionResult]);
+	printf("Timestamp        = %lu\n", data->timestamp);
 	printf("----------------------\n");
 }
 
@@ -118,7 +120,7 @@ int tcImageCaptureAndDetection(uint8_t camera, uint8_t sram) {
 }
 
 /*
- * Used to request the detection results and trigger a new detection (TLM ID 22 to 25)
+ * Used to request the detection results and trigger a new detection (TLM ID 20 to 25)
  *
  * @param telemetry_reply defines where the detection results will be stored
  * @param sensorSelection defines the selected sensor and SRAM to get the detection results from
@@ -154,7 +156,7 @@ int tlmSensorResultAndDetection(tlm_detection_result_and_trigger_adcs_t *telemet
 	telemetryBuffer = MessageBuilder(TELEMETRY_REPLY_SIZE_6);
 
     // Reading Automatic reply from CubeSense regarding status of Telemetry request
-	error = receiveAndUnescapeTelemetry(telemetryBuffer, TELEMETRY_22_TO_25_LEN);
+	error = receiveAndUnescapeTelemetry(telemetryBuffer, TELEMETRY_20_TO_25_LEN);
 
 	if (error != 0) {
 		free(telemetryBuffer);
@@ -166,6 +168,7 @@ int tlmSensorResultAndDetection(tlm_detection_result_and_trigger_adcs_t *telemet
 	memcpy(&telemetry_reply->beta, &telemetryBuffer[TELEMETRY_OFFSET_2], sizeof(telemetry_reply->beta));
 	telemetry_reply->captureResult = telemetryBuffer[TELEMETRY_OFFSET_4];
 	telemetry_reply->detectionResult = telemetryBuffer[TELEMETRY_OFFSET_5];
+	Time_getUnixEpoch((unsigned int *)&(telemetry_reply->timestamp));
 
 	// Free the dynamically allocated buffer
 	free(telemetryBuffer);
@@ -175,6 +178,8 @@ int tlmSensorResultAndDetection(tlm_detection_result_and_trigger_adcs_t *telemet
 	return SUCCESS;
 }
 
+// NOTE: Function below is no longer used since it adds to CPU processing and
+// to the downlink message size. Raw angles (alpha & beta) will be downlink instead.
 /*
  * Used to interpret detection results into a 3D vector
  *
@@ -182,7 +187,7 @@ int tlmSensorResultAndDetection(tlm_detection_result_and_trigger_adcs_t *telemet
  * @param beta result in centidegrees after executing TLM22 or 25
  * @return struct containing the components of the 3D Vector
  */
-interpret_detection_result_t calculateDetectionVector(uint16_t alpha, uint16_t beta) {
+/*interpret_detection_result_t calculateDetectionVector(uint16_t alpha, uint16_t beta) {
 	float theta;
 	float phi;
 	interpret_detection_result_t data = {0};
@@ -195,4 +200,4 @@ interpret_detection_result_t calculateDetectionVector(uint16_t alpha, uint16_t b
 	data.Z_AXIS = cos(theta);
 
 	return data;
-}
+}*/

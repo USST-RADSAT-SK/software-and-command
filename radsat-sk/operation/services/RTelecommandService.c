@@ -5,7 +5,9 @@
  */
 
 #include <RTelecommandService.h>
+#include <RCameraService.h>
 #include <RMessage.h>
+#include <stdio.h>
 
 
 /***************************************************************************************************
@@ -20,6 +22,7 @@
  * @return The tag of the processed telecommand (0 on failure).
  */
 uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
+	int error;
 
 	// ensure the input pointer is not NULL
 	if (wrappedMessage == 0)
@@ -74,6 +77,92 @@ uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
 		case (telecommand_message_Reset_tag):
 			// TODO: implement functionality
 			break;
+
+
+/*
+		// TO ADD: Reset cameras
+		case (?):
+			// TODO: Pass argument (reset option)
+			if (!getCubeSenseUsageState()) {
+				error = requestReset(resetOption);
+				if (error != 0) {
+					printf("Error resetting cameras.\n");
+				}
+			}
+			break;
+
+		// TO ADD: Change both cameras' settings
+		case (?):
+			// TODO: Pass arguments (2x CameraSettings_ConfigurationSettings struct)
+			if (!getCubeSenseUsageState()) {
+				// TODO: To replace with passed arguments
+				CameraSettings_ConfigurationSettings sunSettings = {0};
+				CameraSettings_ConfigurationSettings nadirSettings = {0};
+				error = setCamerasSettings(sunSettings, nadirSettings);
+				if (error != 0) {
+					printf("Error updating cameras settings.\n");
+				}
+			}
+			break;
+
+		// TO ADD: Change automatic image capture interval
+		case (?):
+			// TODO: Pass argument (interval in ms)
+			setImageCaptureInterval(interval);
+			break;
+
+		// TO ADD: Change automatic image download size
+		case (?):
+			// TODO: Pass argument (0, 1, 2, 3 or 4)
+			setImageDownloadSize(downloadSize);
+			break;
+
+		// TO ADD: Set image as ready for a new capture
+		case (?):
+			setImageReadyForNewCapture();
+			break;
+
+		// TO ADD: Change image transfer frame index
+		case (?):
+			// TODO: Pass argument (frame index)
+			setImageTransferFrameIndex(frameIndex);
+			break;
+
+		// TO ADD: Take manual image
+		case (?):
+			if (!getCubeSenseUsageState()) {
+				error = requestImageCapture(NADIR_SENSOR, SRAM2, BOTTOM_HALVE);
+				if (error != 0) {
+					printf("Failed to manually capture an image...\n");
+				}
+			}
+			break;
+
+		// TO ADD: Manually start the download of an image
+		case (?):
+			// TODO: Pass arguments (image size)
+			if (!getCubeSenseUsageState()) {
+				error = requestImageDownload(SRAM2, imageSize);
+				if (error != 0) {
+					printf("Failed to start the image download...\n");
+				}
+			}
+			break;
+
+		// TO ADD: Update ADCS settings
+		case (?):
+			// TODO: Pass arguments (nb of measurements in a burst, interval between measurements)
+			setADCSBurstSettings(nbMeasurements, interval);
+			break;
+
+		// TO ADD: Reset the adcs readiness flag so it can take another burst of measurements
+		case (?):
+			setADCSReadyForNewBurst();
+			break;
+
+		// TODO: Implement missing camera telecommands
+*/
+
 
 		// unknown telecommand
 		default:
