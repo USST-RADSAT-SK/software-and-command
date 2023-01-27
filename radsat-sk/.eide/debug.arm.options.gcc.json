@@ -1,0 +1,29 @@
+{
+    "version": 4,
+    "beforeBuildTasks": [],
+    "afterBuildTasks": [],
+    "global": {
+        "$float-abi-type": "softfp",
+        "output-debug-info": "enable",
+        "misc-control": "-fmessage-length=0 -ffunction-sections -Wall -Wextra"
+    },
+    "c/cpp-compiler": {
+        "language-c": "gnu99",
+        "language-cpp": "gnu++98",
+        "optimization": "level-debug",
+        "warnings": "all-warnings",
+        "one-elf-section-per-function": true,
+        "one-elf-section-per-data": true,
+        "C_FLAGS": "-Wno-missing-braces -Wno-missing-field-initializers",
+        "CXX_FLAGS": "-Wno-missing-braces -Wno-missing-field-initializers"
+    },
+    "asm-compiler": {
+        "ASM_FLAGS": "-D__ASSEMBLY__ -Dsdram -Dat91sam9g20 -DTRACE_LEVEL=5 -DDEBUG=1 -D'BASE_REVISION_NUMBER=$(REV)' -D'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)' -D'BASE_REVISION_HASH=$(REVHASH)'"
+    },
+    "linker": {
+        "output-format": "elf",
+        "remove-unused-input-sections": true,
+        "LD_FLAGS": "-Xlinker --gc-sections -nostartfiles -T${external-dependencies}/hal/at91/linker-scripts/sdram.lds -lc",
+        "LIB_FLAGS": "-lHALD -lFreeRTOSD -lAt91D -lHCCD -lSatelliteSubsystemsD"
+    }
+}

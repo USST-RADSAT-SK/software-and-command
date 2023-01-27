@@ -1,0 +1,17 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "cwd": "${workspaceRoot}",
+            "type": "cortex-debug",
+            "external-dependencies": "../",
+            "request": "launch",
+            "name": "jlink",
+            "servertype": "jlink",
+            "interface": "jtag",
+            "executable": "build/Debug/radsat-sk.elf",
+            "runToEntryPoint": "main",
+            "device": "AT91SAM9G20"
+        }
+    ]
+}

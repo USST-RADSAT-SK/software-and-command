@@ -2,6 +2,10 @@
 *.yml
 *.png
 *.tex
+*.swp
+
+# build files
+build/*
 
 # proprietary files and software libraries
 hal/

@@ -1,0 +1,225 @@
+{
+  "name": "radsat-sk",
+  "type": "ARM",
+  "dependenceList": [],
+  "srcDirs": [
+    ".eide/deps",
+    "framework",
+    "operation",
+    "src",
+    "testing"
+  ],
+  "virtualFolder": {
+    "name": "<virtual_root>",
+    "files": [],
+    "folders": []
+  },
+  "outDir": "build",
+  "deviceName": null,
+  "packDir": null,
+  "miscInfo": {
+    "uid": "b664629626dd318660f88dccb4d3d04e"
+  },
+  "targets": {
+    "Debug": {
+      "excludeList": [],
+      "toolchain": "GCC",
+      "compileConfig": {
+        "cpuType": "Armv5TE",
+        "floatingPointHardware": "none",
+        "scatterFilePath": "../hal/at91/linker-scripts/sdram.lds",
+        "useCustomScatterFile": true,
+        "storageLayout": {
+          "RAM": [],
+          "ROM": []
+        },
+        "options": "null"
+      },
+      "uploader": "JLink",
+      "uploadConfig": {
+        "bin": "",
+        "baseAddr": "",
+        "cpuInfo": {
+          "vendor": "Microchip",
+          "cpuName": "AT91SAM9G20"
+        },
+        "proType": 0,
+        "speed": 100,
+        "otherCmds": "gnome-terminal"
+      },
+      "uploadConfigMap": {},
+      "custom_dep": {
+        "name": "default",
+        "incList": [
+          "radsat-sk/src",
+          "../hal/freertos/include",
+          "../hal/at91/include",
+          "../hal/hal/include",
+          "../hal/hcc/include",
+          "../satellite-subsystems/satellite-subsystems/include",
+          "framework",
+          "framework/fileio",
+          "framework/serial",
+          "operation",
+          "operation/message",
+          "operation/message/protobuf",
+          "operation/message/protobuf/types",
+          "operation/message/protobuf/nanopb",
+          "operation/message/crypt",
+          "operation/services",
+          "operation/subsystems",
+          "operation/subsystems/camera",
+          "operation/utility",
+          "src/tasks",
+          ".eide/deps"
+        ],
+        "libList": [
+          "../hal/freertos/lib",
+          "../hal/at91/lib",
+          "../hal/hal/lib",
+          "../hal/hcc/lib",
+          "../satellite-subsystems/satellite-subsystems/lib"
+        ],
+        "sourceDirList": [],
+        "defineList": [
+          "sdram",
+          "at91sam9g20",
+          "TRACE_LEVEL=0",
+          "DEBUG=1",
+          "BASE_REVISION_NUMBER=$(REV)",
+          "BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)",
+          "BASE_REVISION_HASH=$(REVHASH)"
+        ]
+      }
+    },
+    "Release": {
+      "excludeList": [],
+      "toolchain": "GCC",
+      "compileConfig": {
+        "cpuType": "Cortex-M3",
+        "floatingPointHardware": "none",
+        "scatterFilePath": "",
+        "useCustomScatterFile": true,
+        "storageLayout": {
+          "RAM": [],
+          "ROM": []
+        },
+        "options": "null"
+      },
+      "uploader": "JLink",
+      "uploadConfig": {
+        "bin": "",
+        "baseAddr": "",
+        "cpuInfo": {
+          "vendor": "null",
+          "cpuName": "null"
+        },
+        "proType": 1,
+        "speed": 8000,
+        "otherCmds": ""
+      },
+      "uploadConfigMap": {},
+      "custom_dep": {
+        "name": "default",
+        "incList": [
+          "radsat-sk/src",
+          "${external-dependencies}/hal/freertos/include",
+          "${external-dependencies}/hal/at91/include",
+          "${external-dependencies}/hal/hal/include",
+          "${external-dependencies}/hal/hcc/include",
+          "${external-dependencies}/satellite-subsystems/satellite-subsystems/include",
+          "framework",
+          "framework/fileio",
+          "framework/serial",
+          "operation",
+          "operation/message",
+          "operation/message/protobuf",
+          "operation/message/protobuf/types",
+          "operation/message/protobuf/nanopb",
+          "operation/message/crypt",
+          "operation/services",
+          "operation/subsystems",
+          "operation/utility",
+          "src/tasks"
+        ],
+        "defineList": [
+          "TRACE_LEVEL=5",
+          "at91sam9g20",
+          "sdram",
+          "'BASE_REVISION_NUMBER=$(REV)'",
+          "'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)'",
+          "'BASE_REVISION_HASH=$(REVHASH)'"
+        ],
+        "sourceDirList": [],
+        "libList": []
+      }
+    },
+    "Test": {
+      "excludeList": [],
+      "toolchain": "GCC",
+      "compileConfig": {
+        "cpuType": "Cortex-M3",
+        "floatingPointHardware": "none",
+        "scatterFilePath": "",
+        "useCustomScatterFile": true,
+        "storageLayout": {
+          "RAM": [],
+          "ROM": []
+        },
+        "options": "null"
+      },
+      "uploader": "JLink",
+      "uploadConfig": {
+        "bin": "",
+        "baseAddr": "",
+        "cpuInfo": {
+          "vendor": "null",
+          "cpuName": "null"
+        },
+        "proType": 1,
+        "speed": 8000,
+        "otherCmds": ""
+      },
+      "uploadConfigMap": {},
+      "custom_dep": {
+        "name": "default",
+        "incList": [
+          "radsat-sk/src",
+          "${external-dependencies}/hal/freertos/include",
+          "${external-dependencies}/hal/at91/include",
+          "${external-dependencies}/hal/hal/include",
+          "${external-dependencies}/hal/hcc/include",
+          "${external-dependencies}/satellite-subsystems/satellite-subsystems/include",
+          "framework",
+          "framework/fileio",
+          "framework/serial",
+          "operation",
+          "operation/message",
+          "operation/message/protobuf",
+          "operation/message/protobuf/types",
+          "operation/message/protobuf/nanopb",
+          "operation/message/crypt",
+          "operation/services",
+          "operation/subsystems",
+          "operation/utility",
+          "src/tasks",
+          "testing",
+          "testing/unit"
+        ],
+        "defineList": [
+          "sdram",
+          "at91sam9g20",
+          "TRACE_LEVEL=5",
+          "DEBUG=1",
+          "'BASE_REVISION_NUMBER=$(REV)'",
+          "'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)'",
+          "'BASE_REVISION_HASH=$(REVHASH)'",
+          "TEST=1"
+        ],
+        "sourceDirList": [],
+        "libList": []
+      }
+    }
+  },
+  "version": "3.3"
+}
