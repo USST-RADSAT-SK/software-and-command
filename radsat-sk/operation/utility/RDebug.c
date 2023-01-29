@@ -7,6 +7,7 @@
 #include <RDebug.h>
 #include <RUart.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
 
 
@@ -46,4 +47,38 @@ void debugPrint(const char* stringFormat, ...) {
 	printf(buffer);
 
 #endif /* DEBUG */
+}
+
+/**
+ *  @brief    Reads an integer between a minimum and maximum value from the debug UART
+ *  @param[in] min Minimum value accepted as input
+ *  @param[in] max Maximum value accepted as input
+ *  @param[out] pValue Pointer to storage location for input value
+ *  @return   1 if successful, 0 if input is not a number or outside of specified range
+ */
+extern unsigned char debugRead(unsigned int *pValue, unsigned int min, unsigned int max) {
+    int result = 0;
+	char ascii_char;
+    do {
+		if (DBGU_IsRxReady()){
+    		ascii_char = DBGU_GetChar();
+			if (ascii_char >= '0' && ascii_char <= '9'){
+				DBGU_PutChar(ascii_char);
+				*pValue = *pValue * 10 + (ascii_char - '0');
+			}else if (ascii_char == 0x7f){
+				*pValue = *pValue / 10;
+				DBGU_PutChar(0x7f);
+			}else if (ascii_char == 0x0d){
+				DBGU_PutChar('\n');
+			}
+		}else{
+			vTaskDelay(10);
+		}
+    } while (ascii_char != 0x0d);
+
+	if (result < min || result > max) {
+        printf("Error: Value out of range\n");
+        return 0;
+    }
+    return 1;
 }
