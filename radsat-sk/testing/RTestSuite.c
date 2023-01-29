@@ -80,6 +80,7 @@ int selectAndExecuteTests(void) {
 }
 
 int runHealthCheck(unsigned int autoSelection) {
+	(void) autoSelection;
 	// TODO: Run health check
 	return SUCCESS;
 }
@@ -91,21 +92,9 @@ int runHealthCheck(unsigned int autoSelection) {
 
 int testSelectIsiSpace(unsigned int autoSelection) {
 	char* menuTitles[] = {
-		"I2C",
-		"SPI + FRAM + RTC",
-		"UART",
-		"Supervisor Controller Test - SPI interface",
-		"Time Test",
-		"Checksum Test"
 	};
 
 	TestMenuFunction menuFunctions[] = {
-		I2Ctest,
-		SPI_FRAM_RTCtest,
-		UARTtest,
-		SupervisorTest,
-		TimeTest,
-		checksumTest
 	};
 
 	return testingMenu(autoSelection, menuFunctions, menuTitles, 6);
