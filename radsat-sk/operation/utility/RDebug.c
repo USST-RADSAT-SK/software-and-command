@@ -1,12 +1,15 @@
 /**
  * @file RDebug.c
  * @date December 29, 2021
- * @author Tyrel Kostyk
+ * @author Tyrel Kostyk and Austin Hruska (jah385)
  */
 
 #include <RDebug.h>
 #include <RUart.h>
+#include <freertos/FreeRTOS.h>
+#include <freertos/task.h>
 #include <stdio.h>
+#include <stdlib.h>
 #include <stdarg.h>
 
 
@@ -15,6 +18,9 @@
 ***************************************************************************************************/
 
 #define MAX_DEBUG_CHAR_LENGTH	(4096)
+
+#define DEL (0x7f) 
+#define CR  (0x0d) 
 
 
 /***************************************************************************************************
@@ -46,4 +52,50 @@ void debugPrint(const char* stringFormat, ...) {
 	printf(buffer);
 
 #endif /* DEBUG */
+}
+
+/**
+ *  @brief    Reads an integer between a minimum and maximum value from the debug UART but calls vTaskDelay to prevent blocking.
+ *  @param[in] min Minimum value accepted as input
+ *  @param[in] max Maximum value accepted as input
+ *  @param[out] pValue Pointer to storage location for input value
+ *  @return   1 if successful, 0 if input is not a number or outside of specified range
+ */
+extern unsigned char debugReadIntMinMax(unsigned int *pValue, unsigned int min, unsigned int max) {
+	// input variable
+	char ascii_char;
+
+    do {
+		// If there is a char waiting to get read from the debug uart buffer
+		if (DBGU_IsRxReady()){
+    		ascii_char = DBGU_GetChar();
+
+			// add ascii digit to intiger 
+			if (ascii_char >= '0' && ascii_char <= '9'){
+				DBGU_PutChar(ascii_char);
+				*pValue = *pValue * 10 + (ascii_char - '0');
+
+			// Backspace remove digit in variable
+			}else if (ascii_char == DEL){
+				*pValue = *pValue / 10;
+				DBGU_PutChar(DEL);
+
+			// Finish/newline
+			}else if (ascii_char == CR){
+				DBGU_PutChar('\n');
+			}
+
+		// delay if there is nothing in the input buffer
+		}else{
+			vTaskDelay(10);
+		}
+
+    } while (ascii_char != CR);
+
+	if (*pValue < min || *pValue > max) {
+        printf("Error: Value out of range\n");
+        return 0;
+    }
+
+    return 1;
 }

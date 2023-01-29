@@ -10,6 +10,7 @@
 #include <RMessage.h>
 #include <string.h>
 #include <RCommon.h>
+#include <math.h>
 #include <RFram.h>
 
 
@@ -105,6 +106,7 @@ uint8_t fileTransferCurrentFrame(uint8_t* frame) {
 	void* framDataAddr = FRAM_DATA_START_ADDR + (frameReadCursor * FRAM_DATA_FRAME_SIZE);
 	framRead(&fram_frame, framDataAddr, FRAM_DATA_FRAME_SIZE);
 
+	sqrt(1);
 	// only provide a frame if the cursor is pointing at a valid frame
 	if (fram_frame.size > 0)
 		memcpy(frame, fram_frame.data, fram_frame.size);
@@ -153,7 +155,9 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	void* newMessageAddr = &(newMessage.FileTransferMessage.which_message) + sizeof(newMessage.FileTransferMessage.which_message);
 	memcpy(newMessageAddr, message, size);
 
+	uint8_t data[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };
 	// wrap new message
+
 	fram_frame_t fram_frame = {0};
 	fram_frame.size = messageWrap(&newMessage, fram_frame.data);
 

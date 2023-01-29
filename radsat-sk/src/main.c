@@ -34,6 +34,9 @@
 #include <RTelemetryCollectionTask.h>
 #include <RSatelliteWatchdogTask.h>
 
+#ifdef TEST
+#include <RTestSuite.h>
+#endif
 
 /***************************************************************************************************
                                    DEFINITIONS AND PRIVATE GLOBALS
@@ -108,16 +111,6 @@ int main(void) {
 		// TODO: report to system manager
 	}
 
-#ifdef TEST
-
-	// TODO: run tests
-
-#else	/* TEST */
-
-	// TODO: Antenna Diagnostic & Deployment (if necessary)
-
-	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
-
 	// initialize the Mission Initialization Task
 	error = xTaskCreate(MissionInitTask,
 						(const signed char*)"Mission Initialization Task",
@@ -130,8 +123,6 @@ int main(void) {
 		debugPrint("main(): failed to create MissionInitTask.\n");
 		// TODO: report to system manager
 	}
-
-#endif	/* TEST */
 
 	// start the FreeRTOS Scheduler - NEVER GETS PAST THIS LINE
 	vTaskStartScheduler();
@@ -386,12 +377,22 @@ void MissionInitTask(void* parameters) {
 
 	int error = SUCCESS;
 
+#ifdef TEST
+
+	// TODO: run tests
+	error = selectAndExecuteTests();
+	if (error)
+		debugPrint("Error running selectAndExecuteTest. error = %d\n", error);
+
 	// initialize the Hardware Abstraction Library (HAL) drivers
 	error = initDrivers();
 	if (error != SUCCESS) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize Drivers.\n");
 	}
+
+
+#else	/* TEST */
 
 	// initialize external components and the Satellite Subsystem Interface (SSI)
 	error = initSubsystems();
@@ -414,12 +415,23 @@ void MissionInitTask(void* parameters) {
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
 	}
 
+#ifndef DEBUG
+
+	// TODO: Antenna Diagnostic & Deployment (if necessary)
+
+#endif
+
+	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
+
 	// initialize the FreeRTOS Tasks used for typical mission operation
-	initMissionTasks();
+	error = initMissionTasks();
 	if (error != SUCCESS) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize FreeRTOS Mission Tasks.\n");
 	}
+
+#endif	/* TEST */
+
 
 	// let this task delete itself
 	vTaskDelete(NULL);

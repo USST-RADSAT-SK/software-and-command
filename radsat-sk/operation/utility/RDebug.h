@@ -16,5 +16,6 @@
 
 void debugPrint(const char* stringFormat, ...);
 
+extern unsigned char debugReadIntMinMax(unsigned int *pValue, unsigned int min, unsigned int max);
 
 #endif /* RDEBUG_H_ */
