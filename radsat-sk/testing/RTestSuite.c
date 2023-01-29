@@ -28,24 +28,61 @@
 #include <RTestDosimeter.h>
 #include <RSatelliteWatchdogTask.h>
 
-#define RUN_SELECTION	0
-#define RUN_ALL			1
+#include <RTestUtils.h>
 
-#define MENU_DELAY		80
-
+/***************************************************************************************************
+                                            DEFINITIONS
+***************************************************************************************************/
 
 /** Satellite Watchdog Task Priority. Routinely pets (resets) satellite subsystem watchdogs; low priority task. */
 static const int satelliteWatchdogTaskPriority = configMAX_PRIORITIES - 4;
+
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
+int selectAndExecuteTests(void) {
+	// initialize the Satellite Watchdog Task
+	static xTaskHandle satelliteWatchdogTaskHandle;
+	static xTaskHandle testSuiteTaskHandle;
 
-int runHealthCheck(void) {
+	int error = xTaskCreate(SatelliteWatchdogTask,
+						(const signed char*)"Satellite Watchdog Task",
+						4096,
+						NULL,
+						satelliteWatchdogTaskPriority,
+						&satelliteWatchdogTaskHandle);
+
+	if (error != pdPASS) {
+		debugPrint("selectAndExecuteTests(): failed to create SatelliteWatchdogTask.\n");
+		return E_GENERIC;
+	}
+
+	error = xTaskCreate(mainTestMenuTask,
+						(const signed char*)"Test Suite Task",
+						4096,
+						NULL,
+						configMAX_PRIORITIES - 4,
+						&testSuiteTaskHandle);
+
+	if (error != pdPASS) {
+		debugPrint("selectAndExecuteTests(): failed to create SatelliteWatchdogTask.\n");
+		return E_GENERIC;
+	}
+
+	return error;
+}
+
+int runHealthCheck(unsigned int autoSelection) {
 	// TODO: Run health check
 	return SUCCESS;
 }
+
+
+/***************************************************************************************************
+                                         PRIVATE FUNCTIONS
+***************************************************************************************************/
 
 int testSelectIsiSpace(unsigned int autoSelection) {
 	unsigned int selection = 0;
@@ -61,7 +98,7 @@ int testSelectIsiSpace(unsigned int autoSelection) {
 		printf("\t 6) Checksum Test \n\r");
 		printf("\t 0) <- Return\n\r");
 
-		while(UTIL_DbguGetIntegerMinMax(&selection, 0, 6) == 0) {
+		while(debugReadIntMinMax(&selection, 0, 6) == 0) {
 			vTaskDelay(MENU_DELAY);
 		}
 	}
@@ -92,12 +129,13 @@ int testSelectIsiSpace(unsigned int autoSelection) {
 	return returnValue;
 }
 
+
 /**
  * Run all of the unit tests
  *
  * @pre All necessary HAL, SSI, etc. initializations completed
  */
-int testSuiteRunAll(void) {
+int testSuiteRunAll(unsigned int autoSelection) {
 	int error = 0;
 	error = testDosimeterAll();
 	return error;
@@ -110,17 +148,17 @@ int testSelectRadsat(unsigned int autoSelection) {
 	if (!autoSelection) {
 		printf( "\n\r Select a test to perform: \n\r");
 		printf("\t 1) Run All Tests\n\r");
-		printf("\t 4) Dosimeter\n\r");
+		printf("\t 2) Dosimeter\n\r");
 		printf("\t 0) <- Return\n\r");
 
-		while(UTIL_DbguGetIntegerMinMax(&selection, 0, 2) == 0) {
+		while(debugReadIntMinMax(&selection, 0, 2) == 0) {
 			vTaskDelay(MENU_DELAY);
 		}
 	}
 
 	switch(selection) {
 	case 1:
-		returnValue = testSuiteRunAll();
+		returnValue = testSuiteRunAll(RUN_SELECTION);
 		break;
 	case 2:
 		returnValue = testSelectDosimeter(RUN_SELECTION);
@@ -136,76 +174,21 @@ void mainTestMenuTask(void* parameters) {
 	// ignore the input parameter
 	(void)parameters;
 
-	unsigned int selection = 0;
+	char* menuTitles[] = {
+		"Run All RADSAT Tests\n",
+		"Run Health Check\n",
+		"RADSAT Tests -> \n",
+		"ISISpace iOBC Tests ->\n"
+	};
 
-	while(1) {
-		if (!selection) {
-			printf( "\n\r Select a test to perform: \n\r");
-			printf("\t 1) Run All RADSAT Tests\n\r");
-			printf("\t 2) Run Health Check\n\r");
-			printf("\t 3) -> RADSAT Tests\n\r");
-			printf("\t 4) -> ISISpace iOBC Tests\n\r");
-			printf("\t 0) EXIT\n\r");
+	TestMenuFunction menuFunctions[] = {
+		testSelectRadsat,
+		runHealthCheck,
+		testSelectRadsat,
+		testSelectIsiSpace
+	};
 
-			while(UTIL_DbguGetIntegerMinMax(&selection, 0, 4) == 0) {
-				vTaskDelay(MENU_DELAY);
-				debugPrint("Pet\n");
-			}
-		}
-
-		switch(selection) {
-		case 1:
-			testSelectRadsat(RUN_ALL);
-			break;
-		case 2:
-			runHealthCheck();
-			break;
-		case 3:
-			testSelectRadsat(RUN_SELECTION);
-			break;
-		case 4:
-			testSelectIsiSpace(0);
-			break;
-		default:
-			break;
-		}
-	}
-}
-
-int selectAndExecuteTests(void) { //unsigned int autoSelection) {
-	// initialize the Satellite Watchdog Task
-	static xTaskHandle satelliteWatchdogTaskHandle;
-	static xTaskHandle testSuiteTaskHandle;
-
-	int error = xTaskCreate(SatelliteWatchdogTask,
-						(const signed char*)"Satellite Watchdog Task",
-						4096,
-						NULL,
-						satelliteWatchdogTaskPriority,
-						&satelliteWatchdogTaskHandle);
-
-	if (error != pdPASS) {
-		debugPrint("selectAndExecuteTests(): failed to create SatelliteWatchdogTask.\n");
-		return E_GENERIC;
-	}
-
-	// Give time to pet watchdog
-	vTaskDelay(1000);
-
-	error = xTaskCreate(mainTestMenuTask,
-							(const signed char*)"Test Suite Task",
-							4096,
-							NULL,
-							configMAX_PRIORITIES - 4,
-							&testSuiteTaskHandle);
-
-		if (error != pdPASS) {
-			debugPrint("selectAndExecuteTests(): failed to create SatelliteWatchdogTask.\n");
-			return E_GENERIC;
-		}
-
-
-	return error;
+	return testingMenu(0, menuFunctions, menuTitles, 4);
 }
 
 #endif

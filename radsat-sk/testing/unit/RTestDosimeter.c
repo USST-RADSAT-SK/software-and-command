@@ -11,6 +11,7 @@
 #include <RFileTransfer.pb.h>
 #include <stdint.h>
 #include <stdio.h>
+#include <RTestUtils.h>
 
 
 /***************************************************************************************************
@@ -107,7 +108,8 @@ int testSelectDosimeter(unsigned int autoSelection) {
 		printf("\t 2) Run Dosimeter Health Check\n\r");
 		printf("\t 0) <- Return\n\r");
 
-		while(UTIL_DbguGetIntegerMinMax(&selection, 0, 2) == 0);
+		while(debugReadIntMinMax(&selection, 0, 2) == 0)
+				vTaskDelay(MENU_DELAY);
 	}
 
 	switch(selection) {
