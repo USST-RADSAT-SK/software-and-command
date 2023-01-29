@@ -25,7 +25,7 @@
  * @pre Both Dosimeter boards must be hooked up to the OBC via I2C and powered on
  */
 int checkDosimeter(unsigned int autoSelection) {
-
+	(void) autoSelection;
 
 	// prepare a protobuf struct to populate with data
 	dosimeter_data data = { 0 };

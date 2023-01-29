@@ -37,7 +37,7 @@ int testingMenu(unsigned int autoSelection, TestMenuFunction* tests, char** menu
         } else if (selection == 0) {
             break;
 		} else {
-            tests[selection - 1](RUN_SELECTION);
+            tests[selection - 1](autoSelection);
 		}
 
 	}

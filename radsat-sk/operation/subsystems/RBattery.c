@@ -5,9 +5,9 @@
  */
 
 #include <RBattery.h>
-#include <RI2C.h>
-#include <string.h>
 #include <RCommon.h>
+#include <RI2c.h>
+#include <string.h>
 
 /***************************************************************************************************
                                             DEFINITIONS
@@ -76,7 +76,7 @@
                                           PRIVATE GLOBALS
 ***************************************************************************************************/
 /** Charging or discharging enum for current direction of the battery */
-static enum _battery_current_direction {
+enum _battery_current_direction {
 	batteryDischarging,
 	batteryCharging
 };

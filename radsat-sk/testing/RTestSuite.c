@@ -145,7 +145,7 @@ void mainTestMenuTask(void* parameters) {
 		testSelectIsiSpace
 	};
 
-	testingMenu(0, menuFunctions, menuTitles, 4);
+	testingMenu(RUN_SELECTION, menuFunctions, menuTitles, 4);
 
 	vTaskDelete(NULL);
 }
