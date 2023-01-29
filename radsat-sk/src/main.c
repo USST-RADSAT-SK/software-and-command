@@ -384,15 +384,15 @@ void MissionInitTask(void* parameters) {
 	if (error)
 		debugPrint("Error running selectAndExecuteTest. error = %d\n", error);
 
-
-#else	/* TEST */
-
 	// initialize the Hardware Abstraction Library (HAL) drivers
 	error = initDrivers();
 	if (error != SUCCESS) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize Drivers.\n");
 	}
+
+
+#else	/* TEST */
 
 	// initialize external components and the Satellite Subsystem Interface (SSI)
 	error = initSubsystems();

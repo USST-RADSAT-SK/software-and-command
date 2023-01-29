@@ -1,7 +1,7 @@
 /**
  * @file RTestDosimeter.c
  * @date December 29, 2021
- * @author Tyrel Kostyk
+ * @author Tyrel Kostyk and Austin Hruska (jah385)
  */
 
 #include <assert.h>

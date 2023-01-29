@@ -1,7 +1,7 @@
 /**
  * @file RTestSuite.h
  * @date December 29, 2021
- * @author Tyrel Kostyk (tck290)
+ * @author Tyrel Kostyk (tck290) and Austin Hruska (jah385)
  */
 
 #ifndef RTESTSUITE_H_
