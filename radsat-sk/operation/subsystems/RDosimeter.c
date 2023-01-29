@@ -43,7 +43,7 @@
 /** ADC takes 12-bit readings */
 #define ADC_BIT_RESOLUTION	(12)
 /** Used for converting ADC values to real voltage readings */
-#define MAX_ADC_VALUE		((float) (1 << 12))
+#define MAX_ADC_VALUE		((float) ((1 << 12) - 1))
 
 
 /***************************************************************************************************
@@ -263,8 +263,8 @@ void printDosimeterData(dosimeter_data* data){
 static float convertCountsToVoltage(uint8_t highByte, uint8_t lowByte) {
 
 	// high byte (top 4 bits of 12-bit value) must be masked & bit-shifted
-	uint8_t conversionResultHighByte = ((highByte & DOSIMETER_RESPONSE_HIGH_BYTE_MASK) << 8);
-	uint8_t conversionResultLowByte = lowByte;
+	uint16_t conversionResultHighByte = ((highByte & DOSIMETER_RESPONSE_HIGH_BYTE_MASK) << 8);
+	uint16_t conversionResultLowByte = lowByte;
 
 	// combine high and low values
 	float conversionResultTotal = conversionResultHighByte + conversionResultLowByte;

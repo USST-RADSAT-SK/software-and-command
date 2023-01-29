@@ -202,7 +202,7 @@ static int initTime(void) {
 	// the time (in seconds) between RTC and RTT synchronizations
 	const unsigned int syncInterval = 120;
 
-	// initilize the RTC and RTT and set the default time
+	// initialize the RTC and RTT and set the default time
 	error = Time_start(&time, syncInterval);
 	if (error != SUCCESS)
 		debugPrint("initTime(): failed to initialize RTC and RTT.\n");

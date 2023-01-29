@@ -21,13 +21,25 @@ PB_BIND(transmitter_telemetry, transmitter_telemetry, AUTO)
 PB_BIND(transceiver_telemetry, transceiver_telemetry, AUTO)
 
 
+PB_BIND(camera_power_telemetry, camera_power_telemetry, AUTO)
+
+
+PB_BIND(camera_configuration_telemetry, camera_configuration_telemetry, AUTO)
+
+
 PB_BIND(camera_telemetry, camera_telemetry, AUTO)
+
+
+PB_BIND(sun_sensor_data, sun_sensor_data, AUTO)
 
 
 PB_BIND(eps_telemetry, eps_telemetry, AUTO)
 
 
 PB_BIND(battery_telemetry, battery_telemetry, AUTO)
+
+
+PB_BIND(antenna_side_data, antenna_side_data, AUTO)
 
 
 PB_BIND(antenna_telemetry, antenna_telemetry, AUTO)
