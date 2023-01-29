@@ -17,13 +17,6 @@
 #include <RCommon.h>
 #include <RTestUtils.h>
 
-#include "demoTests/I2Ctest.h"
-#include "demoTests/SPI_FRAM_RTCtest.h"
-#include "demoTests/UARTtest.h"
-#include "demoTests/TimeTest.h"
-#include "demoTests/SupervisorTest.h"
-#include "demoTests/checksumTest.h"
-
 #include <RTestDosimeter.h>
 #include <RSatelliteWatchdogTask.h>
 
