@@ -24,22 +24,22 @@ int testingMenu(unsigned int autoSelection, TestMenuFunction* tests, char** menu
 	while (1) {
 		if (!selection) {
 			printf( "\n Select a test to perform: \n");
-            for (int i = 0; i < num; i++)
-                printf("\t%d) %s\n", i+1, tests[i]);
+            for (unsigned int i = 0; i < num; i++)
+                printf("\t%d) %s\n", i+1, menuTitles[i]);
 			printf("\t0) EXIT\n");
 
 			while(debugReadIntMinMax(&selection, 0, num) == 0)
 				vTaskDelay(MENU_DELAY);
-            selection--;
 		}
 
         if (selection == 1){
-            tests[selection](RUN_ALL);
-        } else if (selection == -1) {
+            tests[selection - 1](RUN_ALL);
+        } else if (selection == 0) {
             break;
 		} else {
-            tests[selection](RUN_SELECTION);
+            tests[selection - 1](RUN_SELECTION);
 		}
 
 	}
+    return 0;
 }

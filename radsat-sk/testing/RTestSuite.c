@@ -118,6 +118,7 @@ int testSelectIsiSpace(unsigned int autoSelection) {
  * @pre All necessary HAL, SSI, etc. initializations completed
  */
 int testSuiteRunAll(unsigned int autoSelection) {
+	(void) autoSelection;
 	int error = 0;
 	error = testDosimeterAll();
 	return error;
@@ -156,7 +157,7 @@ void mainTestMenuTask(void* parameters) {
 	};
 
 	testingMenu(0, menuFunctions, menuTitles, 4);
-	
+
 	vTaskDelete(NULL);
 }
 
