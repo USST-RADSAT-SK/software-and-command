@@ -26,6 +26,6 @@ typedef int (*TestMenuFunction)(unsigned int autoSelection);
 
 int testingMenu(unsigned int autoSelection, TestMenuFunction* tests, char** menuTitles, unsigned int num);
 
-
+extern unsigned char debugReadIntMinMax(unsigned int *pValue, unsigned int min, unsigned int max);
 
 #endif /* RTESTUTILS_H_ */

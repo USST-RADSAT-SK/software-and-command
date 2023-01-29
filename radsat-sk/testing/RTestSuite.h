@@ -7,8 +7,6 @@
 #ifndef RTESTSUITE_H_
 #define RTESTSUITE_H_
 
-#include <RTestDosimeter.h>
-
 
 /***************************************************************************************************
                                              PUBLIC API

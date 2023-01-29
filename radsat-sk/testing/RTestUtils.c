@@ -9,6 +9,7 @@
 
 #include <RTestUtils.h>
 #include <RCommon.h>
+#include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
 #include <stdio.h>
 #include <string.h>
@@ -29,11 +30,12 @@ int testingMenu(unsigned int autoSelection, TestMenuFunction* tests, char** menu
 
 			while(debugReadIntMinMax(&selection, 0, num) == 0)
 				vTaskDelay(MENU_DELAY);
+            selection--;
 		}
 
         if (selection == 1){
             tests[selection](RUN_ALL);
-        } else if (selection == 0) {
+        } else if (selection == -1) {
             break;
 		} else {
             tests[selection](RUN_SELECTION);

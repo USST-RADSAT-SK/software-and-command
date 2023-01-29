@@ -24,7 +24,7 @@
  * @pre I2C must be initialized
  * @pre Both Dosimeter boards must be hooked up to the OBC via I2C and powered on
  */
-int checkDosimeter(void) {
+int checkDosimeter(unsigned int autoSelection) {
 
 
 	// prepare a protobuf struct to populate with data
@@ -92,36 +92,22 @@ int checkDosimeter(void) {
                                              PUBLIC API
 ***************************************************************************************************/
 
-int testDosimeterAll(void) {
+int testDosimeterAll(unsigned int autoSelection) {
 	int error = 0;
-	error = checkDosimeter();
+	error = checkDosimeter(autoSelection);
 	return error;
 }
 
 int testSelectDosimeter(unsigned int autoSelection) {
-	unsigned int selection = autoSelection;
-	int returnValue = 0;
+	char* menuTitles[] = {
+		"Run all tests",
+		"Run Dosimeter Health Check"
+	};
 
-	if (!autoSelection) {
-		printf( "\n\r Select a test to perform: \n\r");
-		printf("\t 1) Run all tests\n\r");
-		printf("\t 2) Run Dosimeter Health Check\n\r");
-		printf("\t 0) <- Return\n\r");
+	TestMenuFunction menuFunctions[] = {
+		testDosimeterAll,
+		checkDosimeter
+	};
 
-		while(debugReadIntMinMax(&selection, 0, 2) == 0)
-				vTaskDelay(MENU_DELAY);
-	}
-
-	switch(selection) {
-	case 1:
-		returnValue = testDosimeterAll();
-		break;
-	case 2:
-		returnValue = checkDosimeter();
-		break;
-	default:
-		break;
-	}
-
-	return returnValue;
+	return testingMenu(autoSelection, menuFunctions, menuTitles, 2);
 }
