@@ -226,24 +226,24 @@ int16_t dosimeterTemperature(dosimeterBoard_t board) {
 
 void printDosimeterData(dosimeter_data* data){
 
-	debugPrint("Dosimeter Voltage = %f\n", data->boardOne.channelZero );
-	debugPrint("Dosimeter Voltage = %f\n", data->boardOne.channelOne  );
-	debugPrint("Dosimeter Voltage = %f\n", data->boardOne.channelTwo  );
-	debugPrint("Dosimeter Voltage = %f\n", data->boardOne.channelThree);
-	debugPrint("Dosimeter Voltage = %f\n", data->boardOne.channelFour );
-	debugPrint("Dosimeter Voltage = %f\n", data->boardOne.channelFive );
-	debugPrint("Dosimeter Voltage = %f\n", data->boardOne.channelSix  );
-	debugPrint("Dosimeter Voltage = %f\n", data->boardOne.channelSeven);
+	debugPrint("Board 1 Channel 1 = %f mv\n", data->boardOne.channelZero );
+	debugPrint("Board 1 Channel 2 = %f mv\n", data->boardOne.channelOne  );
+	debugPrint("Board 1 Channel 3 = %f mv\n", data->boardOne.channelTwo  );
+	debugPrint("Board 1 Channel 4 = %f mv\n", data->boardOne.channelThree);
+	debugPrint("Board 1 Channel 5 = %f mv\n", data->boardOne.channelFour );
+	debugPrint("Board 1 Channel 6 = %f mv\n", data->boardOne.channelFive );
+	debugPrint("Board 1 Channel 7 = %f mv\n", data->boardOne.channelSix  );
+	debugPrint("Board 1 Channel 8 = %f C\n",  data->boardOne.channelSeven);
 
 	// board two
-	debugPrint("Dosimeter Voltage = %f\n", data->boardTwo.channelZero );
-	debugPrint("Dosimeter Voltage = %f\n", data->boardTwo.channelOne  );
-	debugPrint("Dosimeter Voltage = %f\n", data->boardTwo.channelTwo  );
-	debugPrint("Dosimeter Voltage = %f\n", data->boardTwo.channelThree);
-	debugPrint("Dosimeter Voltage = %f\n", data->boardTwo.channelFour );
-	debugPrint("Dosimeter Voltage = %f\n", data->boardTwo.channelFive );
-	debugPrint("Dosimeter Voltage = %f\n", data->boardTwo.channelSix  );
-	debugPrint("Dosimeter Voltage = %f\n", data->boardTwo.channelSeven);
+	debugPrint("Board 2 Channel 1 = %f mV\n", data->boardTwo.channelZero );
+	debugPrint("Board 2 Channel 2 = %f mV\n", data->boardTwo.channelOne  );
+	debugPrint("Board 2 Channel 3 = %f mV\n", data->boardTwo.channelTwo  );
+	debugPrint("Board 2 Channel 4 = %f mV\n", data->boardTwo.channelThree);
+	debugPrint("Board 2 Channel 5 = %f mV\n", data->boardTwo.channelFour );
+	debugPrint("Board 2 Channel 6 = %f mV\n", data->boardTwo.channelFive );
+	debugPrint("Board 2 Channel 7 = %f mV\n", data->boardTwo.channelSix  );
+	debugPrint("Board 2 Channel 8 = %f C\n",  data->boardTwo.channelSeven);
 }
 
 

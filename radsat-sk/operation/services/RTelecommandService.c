@@ -22,7 +22,6 @@
  * @return The tag of the processed telecommand (0 on failure).
  */
 uint8_t telecommandHandle(uint8_t* wrappedMessage, uint8_t size) {
-	int error;
 
 	// ensure the input pointer is not NULL
 	if (wrappedMessage == 0)

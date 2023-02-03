@@ -19,14 +19,14 @@
 ***************************************************************************************************/
 
 int testingMenu(unsigned int autoSelection, TestMenuFunction* tests, char** menuTitles, unsigned int num) {
-	unsigned int selection = 0;
+	unsigned int selection = autoSelection;
 
 	while (1) {
 		if (!selection) {
 			printf( "\n Select a test to perform: \n");
             for (unsigned int i = 0; i < num; i++)
                 printf("\t%d) %s\n", i+1, menuTitles[i]);
-			printf("\t0) EXIT\n");
+			printf("\t0) <- Return\n");
 
 			while(debugReadIntMinMax(&selection, 0, num) == 0)
 				vTaskDelay(MENU_DELAY);
@@ -39,6 +39,7 @@ int testingMenu(unsigned int autoSelection, TestMenuFunction* tests, char** menu
 		} else {
             tests[selection - 1](autoSelection);
 		}
+        selection = 0;
 
 	}
     return 0;

@@ -64,6 +64,7 @@ void debugPrint(const char* stringFormat, ...) {
 extern unsigned char debugReadIntMinMax(unsigned int *pValue, unsigned int min, unsigned int max) {
 	// input variable
 	char ascii_char;
+	*pValue = 0;
 
     do {
 		// If there is a char waiting to get read from the debug uart buffer

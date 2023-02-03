@@ -377,12 +377,6 @@ void MissionInitTask(void* parameters) {
 
 	int error = SUCCESS;
 
-#ifdef TEST
-
-	// TODO: run tests
-	error = selectAndExecuteTests();
-	if (error)
-		debugPrint("Error running selectAndExecuteTest. error = %d\n", error);
 
 	// initialize the Hardware Abstraction Library (HAL) drivers
 	error = initDrivers();
@@ -390,6 +384,14 @@ void MissionInitTask(void* parameters) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize Drivers.\n");
 	}
+
+
+#ifdef TEST
+
+	// TODO: run tests
+	error = selectAndExecuteTests();
+	if (error)
+		debugPrint("Error running selectAndExecuteTest. error = %d\n", error);
 
 
 #else	/* TEST */
