@@ -18,6 +18,7 @@
 #include <RTestUtils.h>
 
 #include <RTestDosimeter.h>
+#include <RTestBattery.h>
 #include <RSatelliteWatchdogTask.h>
 
 
@@ -109,15 +110,17 @@ int testSuiteRunAll(unsigned int autoSelection) {
 int testSelectRadsat(unsigned int autoSelection) {
 	char* menuTitles[] = {
 		"Run All Tests",
-		"Dosimeter"
+		"-> Dosimeter",
+		"-> Battery"
 	};
 
 	TestMenuFunction menuFunctions[] = {
 		testSuiteRunAll,
-		testSelectDosimeter
+		testSelectDosimeter,
+		testSelectBattery
 	};
 
-	return testingMenu(autoSelection, menuFunctions, menuTitles, 2);
+	return testingMenu(autoSelection, menuFunctions, menuTitles, 3);
 }
 
 void mainTestMenuTask(void* parameters) {
