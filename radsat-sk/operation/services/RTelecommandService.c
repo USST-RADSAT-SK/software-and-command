@@ -5,7 +5,9 @@
  */
 
 #include <RTelecommandService.h>
+#include <RCameraService.h>
 #include <RMessage.h>
+#include <stdio.h>
 
 
 /***************************************************************************************************

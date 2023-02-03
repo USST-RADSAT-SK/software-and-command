@@ -6,7 +6,6 @@
 
 #include <RDosimeter.h>
 #include <RFileTransferService.h>
-#include <RFileTransfer.pb.h>
 #include <RI2c.h>
 #include <string.h>
 #include <RCommon.h>
@@ -101,28 +100,11 @@ static float convertVoltageToTemperature(float voltage);
                                              PUBLIC API
 ***************************************************************************************************/
 
-/**
- * Request and store readings from all Melanin-Dosimeter channels.
- *
- * Iterates through each channel on both boards to collect and store payload
- * data from the experimental Melanin-Dosimeter boards. Relies on I2C calls to
- * send commands and receive the information in a response.
- *
- * @pre I2C must be initialized
- * @post If successful, sends new formatted group of readings to the Downlink Manager
- * @param void
- * @return Returns 0 on Success, anything else indicates error (e.g. from I2C).
- * 		   In the event of error, no data will have been sent to the Downlink
- * 		   Manager.
- */
-int dosimeterCollectData(void) {
+int dosimeterData(dosimeter_data* data) {
 	int error = SUCCESS;
 
 	// internal buffer for receiving I2C responses
 	uint8_t dataResponse[DOSIMETER_RESPONSE_LENGTH] = { 0 };
-
-	// prepare a protobuf struct to populate with data
-	dosimeter_data data = { 0 };
 
 	// prepare a 2D array to store the values obtained in the following loops
 	float results[dosimeterBoardCount][adcChannelCount] = { 0 };
@@ -160,24 +142,48 @@ int dosimeterCollectData(void) {
 	// format protobuf message with recorded values
 
 	// board one
-	data.boardOne.channelZero = results[dosimeterBoardOne][adcChannelZero];
-	data.boardOne.channelOne = results[dosimeterBoardOne][adcChannelOne];
-	data.boardOne.channelTwo = results[dosimeterBoardOne][adcChannelTwo];
-	data.boardOne.channelThree = results[dosimeterBoardOne][adcChannelThree];
-	data.boardOne.channelFour = results[dosimeterBoardOne][adcChannelFour];
-	data.boardOne.channelFive = results[dosimeterBoardOne][adcChannelFive];
-	data.boardOne.channelSix = results[dosimeterBoardOne][adcChannelSix];
-	data.boardOne.channelSeven = results[dosimeterBoardOne][adcChannelSeven];
+	data->boardOne.channelZero = results[dosimeterBoardOne][adcChannelZero];
+	data->boardOne.channelOne = results[dosimeterBoardOne][adcChannelOne];
+	data->boardOne.channelTwo = results[dosimeterBoardOne][adcChannelTwo];
+	data->boardOne.channelThree = results[dosimeterBoardOne][adcChannelThree];
+	data->boardOne.channelFour = results[dosimeterBoardOne][adcChannelFour];
+	data->boardOne.channelFive = results[dosimeterBoardOne][adcChannelFive];
+	data->boardOne.channelSix = results[dosimeterBoardOne][adcChannelSix];
+	data->boardOne.channelSeven = results[dosimeterBoardOne][adcChannelSeven];
 
 	// board two
-	data.boardTwo.channelZero = results[dosimeterBoardTwo][adcChannelZero];
-	data.boardTwo.channelOne = results[dosimeterBoardTwo][adcChannelOne];
-	data.boardTwo.channelTwo = results[dosimeterBoardTwo][adcChannelTwo];
-	data.boardTwo.channelThree = results[dosimeterBoardTwo][adcChannelThree];
-	data.boardTwo.channelFour = results[dosimeterBoardTwo][adcChannelFour];
-	data.boardTwo.channelFive = results[dosimeterBoardTwo][adcChannelFive];
-	data.boardTwo.channelSix = results[dosimeterBoardTwo][adcChannelSix];
-	data.boardTwo.channelSeven = results[dosimeterBoardTwo][adcChannelSeven];
+	data->boardTwo.channelZero = results[dosimeterBoardTwo][adcChannelZero];
+	data->boardTwo.channelOne = results[dosimeterBoardTwo][adcChannelOne];
+	data->boardTwo.channelTwo = results[dosimeterBoardTwo][adcChannelTwo];
+	data->boardTwo.channelThree = results[dosimeterBoardTwo][adcChannelThree];
+	data->boardTwo.channelFour = results[dosimeterBoardTwo][adcChannelFour];
+	data->boardTwo.channelFive = results[dosimeterBoardTwo][adcChannelFive];
+	data->boardTwo.channelSix = results[dosimeterBoardTwo][adcChannelSix];
+	data->boardTwo.channelSeven = results[dosimeterBoardTwo][adcChannelSeven];
+
+	return  error;
+}
+
+/**
+ * Request and store readings from all Melanin-Dosimeter channels.
+ *
+ * Iterates through each channel on both boards to collect and store payload
+ * data from the experimental Melanin-Dosimeter boards. Relies on I2C calls to
+ * send commands and receive the information in a response.
+ *
+ * @pre I2C must be initialized
+ * @post If successful, sends new formatted group of readings to the Downlink Manager
+ * @param void
+ * @return Returns 0 on Success, anything else indicates error (e.g. from I2C).
+ * 		   In the event of error, no data will have been sent to the Downlink
+ * 		   Manager.
+ */
+int dosimeterCollectData(void) {
+
+	// prepare a protobuf struct to populate with data
+	dosimeter_data data = { 0 };
+
+	int error = dosimeterData(&data);
 
 	// send formatted protobuf messages to downlink manager
 	error = fileTransferAddMessage(&data, sizeof(data), file_transfer_message_DosimeterData_tag);
@@ -216,6 +222,28 @@ int16_t dosimeterTemperature(dosimeterBoard_t board) {
 	int16_t temperature = convertVoltageToTemperature(voltageReading);
 
 	return temperature;
+}
+
+void printDosimeterData(dosimeter_data* data){
+
+	debugPrint("Board 1 Channel 1 = %f mv\n", data->boardOne.channelZero );
+	debugPrint("Board 1 Channel 2 = %f mv\n", data->boardOne.channelOne  );
+	debugPrint("Board 1 Channel 3 = %f mv\n", data->boardOne.channelTwo  );
+	debugPrint("Board 1 Channel 4 = %f mv\n", data->boardOne.channelThree);
+	debugPrint("Board 1 Channel 5 = %f mv\n", data->boardOne.channelFour );
+	debugPrint("Board 1 Channel 6 = %f mv\n", data->boardOne.channelFive );
+	debugPrint("Board 1 Channel 7 = %f mv\n", data->boardOne.channelSix  );
+	debugPrint("Board 1 Channel 8 = %f C\n",  data->boardOne.channelSeven);
+
+	// board two
+	debugPrint("Board 2 Channel 1 = %f mV\n", data->boardTwo.channelZero );
+	debugPrint("Board 2 Channel 2 = %f mV\n", data->boardTwo.channelOne  );
+	debugPrint("Board 2 Channel 3 = %f mV\n", data->boardTwo.channelTwo  );
+	debugPrint("Board 2 Channel 4 = %f mV\n", data->boardTwo.channelThree);
+	debugPrint("Board 2 Channel 5 = %f mV\n", data->boardTwo.channelFour );
+	debugPrint("Board 2 Channel 6 = %f mV\n", data->boardTwo.channelFive );
+	debugPrint("Board 2 Channel 7 = %f mV\n", data->boardTwo.channelSix  );
+	debugPrint("Board 2 Channel 8 = %f C\n",  data->boardTwo.channelSeven);
 }
 
 

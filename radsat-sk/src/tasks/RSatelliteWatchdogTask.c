@@ -7,6 +7,7 @@
 
 #include <RSatelliteWatchdogTask.h>
 #include <RCommon.h>
+#include <RPdb.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -17,6 +18,7 @@
 ***************************************************************************************************/
 
 /** Satellite Watchdog Task delay (in ms). */
+
 #define SATELLITE_WATCHDOG_TASK_DELAY_MS	(100)
 
 
@@ -29,9 +31,13 @@ void SatelliteWatchdogTask(void* parameters) {
 	// ignore the input parameter
 	(void)parameters;
 
+	debugPrint("SatelliteWatchdogTask(): SatelliteWatchdogTask started.\n");
+
 	while (1) {
 
 		// TODO: implement petting satellite watchdogs
+
+
 		pdbPetWatchdog();
 		vTaskDelay(SATELLITE_WATCHDOG_TASK_DELAY_MS);
 	}

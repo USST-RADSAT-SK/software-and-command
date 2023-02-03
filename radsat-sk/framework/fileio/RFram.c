@@ -34,6 +34,9 @@ int framInit(void) {
 
 	int error = FRAM_start();
 
+	if (error == SUCCESS)
+		initialized = 1;
+
 	// TODO: record errors (if present) to System Manager
 
 	return error;
