@@ -133,14 +133,14 @@ static int checkSafeFlag(uint8_t* safeFlag);
 int batteryTelemetry(battery_status_t* dataStorage) {
 
 	// Create temporary variables for sending and receiving I2C data
-	uint8_t command[BATTERY_TELEM_COMMAND_LENGTH] = {0};
-	uint8_t response[BATTERY_RESPONSE_LENGTH] = {0};
+	uint8_t command[BATTERY_TELEM_COMMAND_LENGTH] = { 0 };
+	uint8_t response[BATTERY_RESPONSE_LENGTH] = { 0 };
 
 	// Create a temporary array for calculated voltage and current before transferring into the battery_status_t structure
-	float storedData[NUMBER_OF_CURRENT_COMMANDS] = {0};
+	float storedData[NUMBER_OF_CURRENT_COMMANDS] = { 0 };
 
 	// Create a temporary array for calculated temperatures before transferring into the battery_status_t structure
-	float storedTemperatureData[NUMBER_OF_TEMP_COMMANDS] = {0};
+	float storedTemperatureData[NUMBER_OF_TEMP_COMMANDS] = { 0 };
 
 
 	// Send 3 commands to get ADC output voltage readings from the Battery
@@ -153,7 +153,9 @@ int batteryTelemetry(battery_status_t* dataStorage) {
 		int error = batteryTalk(command, response);
 
 		if (error != SUCCESS){
-			return error;
+			debugPrint("Error = %d\n", error);
+			continue;
+			//return error;
 		}
 		memset(&storedData[i], 0, sizeof(storedData[i]));
 		memcpy(&storedData[i], response, BATTERY_RESPONSE_LENGTH);
@@ -175,7 +177,9 @@ int batteryTelemetry(battery_status_t* dataStorage) {
 		int error = batteryTalk(command, response);
 
 		if (error != SUCCESS) {
-			return error;
+			debugPrint("Error = %d\n", error);
+			continue;
+			//return error;
 		}
 
 		memset(&storedData[i], 0, sizeof(&storedData[i]));
@@ -205,8 +209,11 @@ int batteryTelemetry(battery_status_t* dataStorage) {
 		int error = batteryTalk(command, response);
 
 		if (error != SUCCESS) {
-			return error;
+			debugPrint("Error = %d\n", error);
+			continue;
+			//return error;
 		}
+		debugPrint("GTG\n");
 
 		memset(&storedTemperatureData[i], 0, sizeof(storedTemperatureData[i]));
 		memcpy(&storedTemperatureData[i], response, BATTERY_RESPONSE_LENGTH);

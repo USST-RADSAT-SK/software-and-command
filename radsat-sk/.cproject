@@ -90,8 +90,6 @@
 									<listOptionValue builtIn="false" value="../operation/subsystems/camera"/>
 									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
-									<listOptionValue builtIn="false" value="../testing"/>
-									<listOptionValue builtIn="false" value="../testing/unit"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.663972223" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>
@@ -156,7 +154,7 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="framework"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="operation"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
-						<entry excluding="RTestSuite.c|RTestSuite.h" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="testing"/>
+						<entry excluding="*|**" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="testing"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -238,6 +236,7 @@
 									<listOptionValue builtIn="false" value="../operation/message/crypt"/>
 									<listOptionValue builtIn="false" value="../operation/services"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../operation/subsystems/camera"/>
 									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
 								</option>
@@ -399,10 +398,10 @@
 									<listOptionValue builtIn="false" value="../operation/message/crypt"/>
 									<listOptionValue builtIn="false" value="../operation/services"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../operation/subsystems/camera"/>
 									<listOptionValue builtIn="false" value="../operation/utility"/>
-									<listOptionValue builtIn="false" value="../testing/unit"/>
-									<listOptionValue builtIn="false" value="../testing"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
+									<listOptionValue builtIn="false" value="../testing"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1971370393" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>
@@ -466,7 +465,7 @@
 					</folderInfo>
 					<fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.853133139.1724570827.555085295" name="RTestSuite.c" rcbsApplicability="disable" resourcePath="testing/RTestSuite.c" toolsToInvoke="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.926867254.1416169741">
 						<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.926867254.1416169741" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.926867254">
-							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.846178328" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" valueType="definedSymbols">
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.846178328" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" valueType="definedSymbols">
 								<listOptionValue builtIn="false" value="sdram"/>
 								<listOptionValue builtIn="false" value="at91sam9g20"/>
 								<listOptionValue builtIn="false" value="TRACE_LEVEL=5"/>
@@ -476,7 +475,7 @@
 								<listOptionValue builtIn="false" value="'BASE_REVISION_HASH=$(REVHASH)'"/>
 								<listOptionValue builtIn="false" value="TEST=1"/>
 							</option>
-							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.33493194" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" valueType="includePath">
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.33493194" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" valueType="includePath">
 								<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/src}&quot;"/>
 								<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/include&quot;"/>
 								<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
@@ -535,10 +534,10 @@
 		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.853133139;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.853133139.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.894727219;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.821686405">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2034562181;ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2034562181.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.2123396632;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.556885632">
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.853133139.1724570827;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.853133139.1724570827.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.926867254;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1887967793">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
-		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.853133139.1724570827;ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.853133139.1724570827.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.926867254;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1887967793">
+		<scannerConfigBuildInfo instanceId="ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2034562181;ilg.gnuarmeclipse.managedbuild.cross.config.elf.release.2034562181.;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.2123396632;ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.556885632">
 			<autodiscovery enabled="true" problemReportingEnabled="true" selectedProfileId=""/>
 		</scannerConfigBuildInfo>
 	</storageModule>
