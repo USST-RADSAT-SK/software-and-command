@@ -9,7 +9,7 @@
             "name": "jlink",
             "servertype": "jlink",
             "interface": "jtag",
-            "executable": "build/Debug/radsat-sk.elf",
+            "executable": "Debug/Debug/radsat-sk.elf",
             "runToEntryPoint": "main",
             "device": "AT91SAM9G20"
         }

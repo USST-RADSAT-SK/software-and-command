@@ -14,7 +14,7 @@
     "files": [],
     "folders": []
   },
-  "outDir": "build",
+  "outDir": "Debug",
   "deviceName": null,
   "packDir": null,
   "miscInfo": {
@@ -142,6 +142,8 @@
           "operation/utility",
           "src/tasks"
         ],
+        "libList": [],
+        "sourceDirList": [],
         "defineList": [
           "TRACE_LEVEL=5",
           "at91sam9g20",
@@ -149,9 +151,7 @@
           "'BASE_REVISION_NUMBER=$(REV)'",
           "'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)'",
           "'BASE_REVISION_HASH=$(REVHASH)'"
-        ],
-        "sourceDirList": [],
-        "libList": []
+        ]
       }
     },
     "Test": {

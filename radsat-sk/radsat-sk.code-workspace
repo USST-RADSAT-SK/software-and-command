@@ -28,16 +28,11 @@
     },
     "extensions": {
         "recommendations": [
-            "cl.eide",
             "keroc.hex-fmt",
-            "xiaoyongdong.srecord",
             "hars.cppsnippets",
-            "zixuanwang.linkerscript",
             "redhat.vscode-yaml",
-            "IBM.output-colorizer",
-            "cschlosser.doxdocgen",
-            "dan-c-underwood.arm",
-            "marus25.cortex-debug"
+            "ibm.output-colorizer",
+            "cschlosser.doxdocgen"
         ]
     }
 }
