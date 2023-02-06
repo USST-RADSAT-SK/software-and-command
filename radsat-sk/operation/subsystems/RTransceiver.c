@@ -66,7 +66,7 @@ int transceiverInit(void) {
 	// define bitrate for uplink (RX) and downlink (TX) transmissions
 	ISIStrxvuBitrate bitrate = trxvu_bitrate_9600;
 
-	int error = IsisTrxvu_initialize(&addresses, &frameLengths, &bitrate, TRANSCEIVER_INDEX);
+	int error = IsisTrxvu_initialize(&addresses, &frameLengths, &bitrate, 1);
 
 	// update flag if successfully initialized
 	if (!error)

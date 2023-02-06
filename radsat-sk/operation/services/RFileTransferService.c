@@ -10,6 +10,7 @@
 #include <RMessage.h>
 #include <string.h>
 #include <RCommon.h>
+#include <math.h>
 #include <RFram.h>
 
 
@@ -56,7 +57,7 @@ typedef struct _fram_frame_t {
 uint8_t fileTransferNextFrame(uint8_t* frame) {
 	// get the read cursor from FRAM
 	uint16_t frameReadCursor = 0;
-	framRead(&frameReadCursor, FRAM_READ_CURSOR_ADDR, 2);
+	framRead((uint8_t*)&frameReadCursor, FRAM_READ_CURSOR_ADDR, 2);
 
 	// ensure that there is a valid frame ahead
 	uint16_t nextFrameReadCursor = frameReadCursor + 1;
@@ -64,8 +65,8 @@ uint8_t fileTransferNextFrame(uint8_t* frame) {
 		nextFrameReadCursor = 0;
 
 	fram_frame_t fram_frame = {0};
-	void* framDataAddr = FRAM_DATA_START_ADDR + (nextFrameReadCursor * FRAM_DATA_FRAME_SIZE);
-	framRead(&fram_frame, framDataAddr, FRAM_DATA_FRAME_SIZE);
+	uint32_t framDataAddr = FRAM_DATA_START_ADDR + (nextFrameReadCursor * FRAM_DATA_FRAME_SIZE);
+	framRead((uint8_t*)&fram_frame, framDataAddr, FRAM_DATA_FRAME_SIZE);
 
 	if (fram_frame.size == 0)
 		return SUCCESS;
@@ -73,14 +74,14 @@ uint8_t fileTransferNextFrame(uint8_t* frame) {
 	// invalidate the current (now previous frame)
 	fram_frame_t emptyFrame = {0};
 	framDataAddr = FRAM_DATA_START_ADDR + (frameReadCursor * FRAM_DATA_FRAME_SIZE);
-	framWrite(&emptyFrame, framDataAddr, FRAM_DATA_FRAME_SIZE);
+	framWrite((uint8_t*)&emptyFrame, framDataAddr, FRAM_DATA_FRAME_SIZE);
 
 	// increment the read cursor
 	frameReadCursor++;
 	if (frameReadCursor == MAX_FRAME_COUNT)
 		frameReadCursor = 0;
 	// save read cursor value in FRAM
-	framWrite(&frameReadCursor, FRAM_READ_CURSOR_ADDR, 2);
+	framWrite((uint8_t*)&frameReadCursor, FRAM_READ_CURSOR_ADDR, 2);
 
 	// transfer the new (now current) frame into the provided buffer
 	memcpy(frame, fram_frame.data, fram_frame.size);
@@ -98,13 +99,14 @@ uint8_t fileTransferNextFrame(uint8_t* frame) {
 uint8_t fileTransferCurrentFrame(uint8_t* frame) {
 	// get the read cursor from FRAM
 	uint16_t frameReadCursor = 0;
-	framRead(&frameReadCursor, FRAM_READ_CURSOR_ADDR, 2);
+	framRead((uint8_t*)&frameReadCursor, FRAM_READ_CURSOR_ADDR, 2);
 
 	// read current frame from FRAM
 	fram_frame_t fram_frame = {0};
-	void* framDataAddr = FRAM_DATA_START_ADDR + (frameReadCursor * FRAM_DATA_FRAME_SIZE);
-	framRead(&fram_frame, framDataAddr, FRAM_DATA_FRAME_SIZE);
+	uint32_t framDataAddr = FRAM_DATA_START_ADDR + (frameReadCursor * FRAM_DATA_FRAME_SIZE);
+	framRead((uint8_t*)&fram_frame, framDataAddr, FRAM_DATA_FRAME_SIZE);
 
+	sqrt(1);
 	// only provide a frame if the cursor is pointing at a valid frame
 	if (fram_frame.size > 0)
 		memcpy(frame, fram_frame.data, fram_frame.size);
@@ -136,8 +138,8 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	// get the write & read cursors from FRAM
 	uint16_t frameWriteCursor = 0;
 	uint16_t frameReadCursor = 0;
-	framRead(&frameWriteCursor, FRAM_WRITE_CURSOR_ADDR, 2);
-	framRead(&frameReadCursor, FRAM_READ_CURSOR_ADDR, 2);
+	framRead((uint8_t*)&frameWriteCursor, FRAM_WRITE_CURSOR_ADDR, 2);
+	framRead((uint8_t*)&frameReadCursor, FRAM_READ_CURSOR_ADDR, 2);
 
 	// ensure we are not about to overwrite frames that have not been read
 	if (frameWriteCursor == frameReadCursor)
@@ -153,13 +155,15 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	void* newMessageAddr = &(newMessage.FileTransferMessage.which_message) + sizeof(newMessage.FileTransferMessage.which_message);
 	memcpy(newMessageAddr, message, size);
 
+	uint8_t data[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };
 	// wrap new message
+
 	fram_frame_t fram_frame = {0};
 	fram_frame.size = messageWrap(&newMessage, fram_frame.data);
 
 	// write data in FRAM
-	void* framDataAddr = FRAM_DATA_START_ADDR + (frameWriteCursor * FRAM_DATA_FRAME_SIZE);
-	framWrite(&fram_frame, framDataAddr, FRAM_DATA_FRAME_SIZE);
+	uint32_t framDataAddr = FRAM_DATA_START_ADDR + (frameWriteCursor * FRAM_DATA_FRAME_SIZE);
+	framWrite((uint8_t*)&fram_frame, framDataAddr, FRAM_DATA_FRAME_SIZE);
 
 	// return error if message wrapping failed
 	if (fram_frame.size == 0)
@@ -170,7 +174,7 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 	if (frameWriteCursor == MAX_FRAME_COUNT)
 		frameWriteCursor = 0;
 	// save write cursor value in FRAM
-	framWrite(&frameWriteCursor, FRAM_WRITE_CURSOR_ADDR, 2);
+	framWrite((uint8_t*)&frameWriteCursor, FRAM_WRITE_CURSOR_ADDR, 2);
 
 	// return success
 	return SUCCESS;
@@ -186,12 +190,12 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 void fileTransferReset(void) {
 	// reset the cursors to their default values
 	uint16_t defaultCursors[2] = {1,0};
-	framWrite(&defaultCursors, FRAM_WRITE_CURSOR_ADDR, 4);
+	framWrite((uint8_t*)&defaultCursors, FRAM_WRITE_CURSOR_ADDR, 4);
 
 	// reset all data frames to zero
 	fram_frame_t emptyFrame = {0};
 	for(int i=0; i<MAX_FRAME_COUNT; i++) {
-		void* framDataAddr = FRAM_DATA_START_ADDR + (i * FRAM_DATA_FRAME_SIZE);
-		framWrite(&emptyFrame, framDataAddr, FRAM_DATA_FRAME_SIZE);
+		uint32_t framDataAddr = FRAM_DATA_START_ADDR + (i * FRAM_DATA_FRAME_SIZE);
+		framWrite((uint8_t*)&emptyFrame, framDataAddr, FRAM_DATA_FRAME_SIZE);
 	}
 }
