@@ -10,6 +10,8 @@
 #include <RTelecommandService.h>
 #include <RFileTransferService.h>
 #include <RCommunicationStateMachine.h>
+#include <RRadsat.pb.h>
+#include <RFileTransferService.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -51,6 +53,10 @@ xSemaphoreHandle stateMachineMutex = NULL;
 
 
 
+#define RX_MUTEX_WAIT_TICKS 100
+#define TX_MUTEX_WAIT_TICKS 100
+xSemaphoreHandle stateMachineMutex;
+
 
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
@@ -84,128 +90,41 @@ void CommunicationRxTask(void* parameters) {
 	// ignore the input parameter
 	(void)parameters;
 
+	/*
+	stateMachineMutex = xSemaphoreCreateMutex();
+	while(1){
+		debugPrint("RxTask\n");
+		vTaskDelay(10000);
+	}
+	*/
+
+
 	int error = 0;				// error detection
 	uint16_t rxFrameCount = 0;	// number of frames currently in the receiver's buffer
 	uint16_t rxMessageSize = 0;	// size (in bytes) of a received frame
 	uint8_t rxMessage[TRANCEIVER_RX_MAX_FRAME_SIZE] = { 0 };	// input buffer for received frames
 
-	uint8_t messageType = 0; // allows uplinkHandle to return protocol or telecommand message
 
-	uint8_t messageTag = 0;
-	int z = 0;
-	uint16_t sizeToRead[3] = {15, 13, 13};
-
-	stateMachineMutex = xSemaphoreCreateMutex();
-
+	debugPrint("Starting Rx communication loop\n");
 	while (1) {
-		vTaskDelay(500);//COMMUNICATION_RX_TASK_DELAY_MS);
-
 		// get the number of frames currently in the receive buffer
-		rxFrameCount = 1;//0;
-		error = 0;
-		//error = transceiverRxFrameCount(&rxFrameCount);
-		debugPrint("Here: \n");
+		error = transceiverRxFrameCount(&rxFrameCount);
+		if (error) errorPrint("%d\n", error);
+
 		// obtain frames when present
-		if (rxFrameCount == 0 || error > 0) {
-			continue;
+		if (rxFrameCount > 0 && error == 0) {
+
+			debugPrint("Receiving frame from transceiver.\n");
+
+			// obtain new frame from the transceiver
+			error = transceiverGetFrame(rxMessage, &rxMessageSize);
+
+			// attempt to extract a message
+			genericHandle(rxMessage, rxMessageSize);
 		}
-
-		// obtain new frame from the transceiver
-		rxMessageSize = 0;
-		memset(rxMessage, 0, sizeof(rxMessage));
-		error = transceiverGetFrame(rxMessage, &rxMessageSize);
-		rxMessageSize = sizeToRead[z];
-
-		debugPrint("Message size: %d \n", rxMessageSize);
-		debugPrint("Message: ");
-		for (int j = 0; j < rxMessageSize; j++){
-			debugPrint("%x",rxMessage[j]);
-		}
-		debugPrint("\n");
-		z = (z + 1) % 3;
-		// attempt to extract a protocol messages
-
-		messageTag = uplinkHandle(rxMessage, rxMessageSize, &messageType);
-
-		// entering state machine, grab mutex
-		if (xSemaphoreTake(stateMachineMutex, RX_MUTEX_WAIT_TICKS) == pdTRUE){
-
-			if (messageTag == 0) {
-				sendNack();
-			}
-			// if a protocol message
-			else if (messageType == radsat_message_ProtocolMessage_tag){
-
-				debugPrint("messageTag for protocol message: %d\n", messageTag);
-
-				// handle protocol
-				switch (messageTag) {
-
-					// ack
-					case (protocol_message_Ack_tag):
-						ackReceived();
-						break;
-
-					// nack
-					case (protocol_message_Nack_tag):
-					default:
-						nackReceived();
-						break;
-				}
-			}
-
-			// else if telecommand message, attempt to execute
-			else if(messageType == radsat_message_TelecommandMessage_tag){
-
-				debugPrint("messageTag for telecommand message: %d\n", messageTag);
-
-				// handle protocol
-				switch (messageTag) {
-
-					// beginPass
-					case (telecommand_message_BeginPass_tag):
-						beginPass();
-						break;
-
-					// beginFileTransfer
-					case (telecommand_message_BeginFileTransfer_tag):
-						beginFileTransfer();
-						break;
-
-					// ceaseTransmission
-					case (telecommand_message_CeaseTransmission_tag):
-						ceaseTransmission();
-						break;
-
-					// resumeTransmission
-					case (telecommand_message_ResumeTransmission_tag):
-						resumeTransmission();
-						break;
-
-					// updateTime
-					case (telecommand_message_UpdateTime_tag):
-						updateTime();
-						break;
-
-					// reset
-					case (telecommand_message_Reset_tag):
-						resetSat();
-						break;
-
-					default:
-						// todo: should the default be to send a nack?
-						sendNack();
-						break;
-				}
-			}
-			else {
-				sendNack();
-			}
-
-			// release mutex, done in state machine
-			xSemaphoreGive(stateMachineMutex);
-		}
+		vTaskDelay(150);
 	}
+
 }
 
 
@@ -229,35 +148,65 @@ void CommunicationRxTask(void* parameters) {
  * @param	parameters Unused.
  */
 void CommunicationTxTask(void* parameters) {
-
 	// ignore the input parameter
 	(void)parameters;
+
 
 	int error = 0;												// error detection
 	uint8_t txSlotsRemaining = TRANCEIVER_TX_MAX_FRAME_COUNT;	// number of open frame slots in the transmitter's buffer
 	uint8_t txMessageSize = 0;									// size (in bytes) of an outgoing frame
 	uint8_t txMessage[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };	// output buffer for messages to be transmitted
+	/*
 
-	// Making sure this task doesn't try to access the Mutex before it's set
-	while (stateMachineMutex == NULL) {
-		vTaskDelay(10);
+	uint8_t txMessageSize2 = 0;
+	uint8_t txMessage2[TRANCEIVER_TX_MAX_FRAME_SIZE] = "General Kenobi";
+
+	txMessageSize = 11;
+	txMessageSize2 = 14;
+
+// uncomment this block for no transmission (including no beacon)
+
+	while (0){
+		error = IsisTrxvu_tcClearBeacon(0);
+		debugPrint("beacon error = %d\n", error);
+		vTaskDelay(5000);
 	}
 
+	error = IsisTrxvu_tcSetIdlestate(0, trxvu_idle_state_on); // remove
+
+	if (error) debugPrint("Idle state error = %d", error); // remove
 	while (1) {
+		debugPrint("Sending frame to transceiver.\n");
 
-		// getNextFrame enters the state machine, grab mutex
-		if (xSemaphoreTake(stateMachineMutex, RX_MUTEX_WAIT_TICKS) == pdTRUE){
+		error = transceiverSendFrame(framedata, framesize, &txSlotsRemaining);
+		if (error) debugPrint("value of error 1: %d\n", error);
+		debugPrint("Message 1: \"%s\" \n", txMessage);
 
-			txMessageSize = getNextFrame(txMessage);
+		error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
+		debugPrint("value of error 2: %d\n", error);
+		debugPrint("Message 2: \"%s\" \n", txMessage);
 
-			// release mutex, done in state machine
-			xSemaphoreGive(stateMachineMutex);
-		}
+		error = transceiverSendFrame(txMessage2, txMessageSize2, &txSlotsRemaining);
+		debugPrint("value of error 3: %d\n", error);
+		debugPrint("Message 3: \"%s\" \n", txMessage2);
 
-		debugPrint("txMessageSize = %d\n", txMessageSize);
+		debugPrint("\n============================\n");
+
+		vTaskDelay(5000); //COMMUNICATION_TX_TASK_LONG_DELAY_MS
+	}*/
+
+	debugPrint("Starting Tx communication loop\n");
+
+	while (1) {
+		txMessageSize = getNextFrame(txMessage);
+
+
+		//debugPrint("txMessageSize = %d\n", txMessageSize);
 		// send the message
-		if (txMessageSize > 0)
+		if (txMessageSize > 0){
+			debugPrint("Sending frame to transceiver.\n");
 			error = transceiverSendFrame(txMessage, txMessageSize, &txSlotsRemaining);
+		}
 
 		// increase Task delay time when the Transmitter's buffer is full to give it time to transmit
 		if (txSlotsRemaining > 0)

@@ -12,6 +12,7 @@
 #include <RCommon.h>
 #include <math.h>
 #include <RFram.h>
+#include <RRadsat.pb.h>
 
 
 /**

@@ -7,6 +7,8 @@
 
 #include <RProtobuf.h>
 #include <hal/errors.h>
+#include <RRadsat.pb.h>
+#include <RCommon.h>
 
 
 /***************************************************************************************************
@@ -53,6 +55,9 @@ int protoDecode(uint8_t* incomingBuffer, uint8_t bufferSize, radsat_message* dec
 	if (incomingBuffer == 0 || decodedMessage == 0)
 		return E_INPUT_POINTER_NULL;
 
+	for (int j = 0; j < bufferSize; j++){
+		debugPrint("%02X",incomingBuffer[j]);
+	}
 	// create stream object
 	pb_istream_t stream = pb_istream_from_buffer((uint8_t*)incomingBuffer, bufferSize);
 

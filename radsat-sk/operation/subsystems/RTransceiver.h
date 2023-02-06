@@ -80,6 +80,8 @@ int transceiverPowerCycle(void);
 int transceiverTelemetry(transceiver_telemetry_t* telemetry);
 int transceiverResetWatchDogs(void);
 int transceiverSoftReset(void);
+int startInterFrameFill(void);
+int stopInterFrameFill(void);
 
 
 #endif /* RTRANSCEIVER_H_ */

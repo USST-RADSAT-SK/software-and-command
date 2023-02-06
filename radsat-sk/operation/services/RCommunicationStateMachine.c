@@ -9,6 +9,7 @@
 #include <RProtocolService.h>
 #include <RTelecommandService.h>
 #include <RFileTransferService.h>
+#include <RRadsat.pb.h>
 #include <RCommunicationStateMachine.h>
 
 #include <freertos/FreeRTOS.h>
@@ -16,6 +17,7 @@
 #include <freertos/timers.h>
 
 #include <string.h>
+#include <RCommon.h>
 
 /***************************************************************************************************
                                    DEFINITIONS & PRIVATE GLOBALS
@@ -30,7 +32,7 @@ static void endQuietModeCallback(xTimerHandle timer);
 static void resetState(void);
 
 /** Maximum possible duration of a pass is 15 minutes; value set in ms. */
-#define MAX_PASS_MODE_DURATION	((portTickType)(15*60*1000))
+#define MAX_PASS_MODE_DURATION	((portTickType)(15*60*1000*portTICK_RATE_MS))
 
 /** Typical duration of quiet mode is 15 minutes; value set in ms. */
 #define QUIET_MODE_DURATION		((portTickType)(15*60*1000))
@@ -92,6 +94,7 @@ static xTimerHandle quietTimer;
 
 /** Communication co-ordination structure */
 static communication_state_t state = { 0 };
+
 
 
 /***************************************************************************************************
@@ -166,8 +169,10 @@ void ceaseTransmission(void) {
 	resetState();
 
 	// cancel any communication mode timers that may be running
-	xTimerStop(passTimer, 0);
-	xTimerStop(quietTimer, 0);
+	if (passTimer != NULL)
+		xTimerStop(passTimer, 0);
+	if (quietTimer != NULL)
+		xTimerStop(quietTimer, 0);
 
 	// enter quiet mode
 	state.mode = commModeQuiet;
@@ -191,14 +196,25 @@ void resumeTransmission(void) {
 /**
  * Updates the time on the satellite state machine after receiving the updateTime command from the ground station.
  */
-void updateTime(void) {
+int updateTime(unsigned int epochTime) {
 	if (state.mode == commModeTelecommand){
-		// todo: implement updateTime
+		int error = Time_setUnixEpoch(epochTime);
 
+		if (error) {
+			debugPrint("RComStateMachine - Time_setUnixEpoch = %d\n", error);
+		}
 		// send down the ack
 		state.telecommand.transmitReady = responseStateReady;
-		state.telecommand.responseToSend = responseAck;
+		if (error) {
+			debugPrint("RComStateMachine - Time_setUnixEpoch = %d\n", error);
+			state.telecommand.responseToSend = responseNack;
+		} else {
+			state.telecommand.responseToSend = responseAck;
+			debugPrint("Time set to %d\n", epochTime);
+		}
+		return error;
 	}
+	return -1;
 }
 
 /**
@@ -261,7 +277,6 @@ uint8_t getNextFrame(uint8_t *txMessage) {
 
 	// if we are in telecommand mode:
 	if(state.mode == commModeTelecommand && state.telecommand.transmitReady == responseStateReady){
-		debugPrint("telecommandMode\n");
 
 		// serialize the ack/nack response to be sent
 		txMessageSize = protocolGenerate(state.telecommand.responseToSend, txMessage);
@@ -276,14 +291,12 @@ uint8_t getNextFrame(uint8_t *txMessage) {
 
 	// if we are in Idle mode:
 	if(state.mode == commModeIdle || state.mode == commModeQuiet){
-		debugPrint("idleMode\n");
 		// no message to send
 		return 0;
 	}
 
 	// if we are in FileTransfer mode:
 	if(state.mode == commModeFileTransfer && state.fileTransfer.transmitReady == responseStateReady){
-		debugPrint("fileTransferMode\n");
 		// ACK received from ground Station; obtain next message and send it
 		if (state.fileTransfer.responseReceived == responseAck) {
 
@@ -328,8 +341,6 @@ uint8_t getNextFrame(uint8_t *txMessage) {
 
 	}
 
-	// todo: if we are in ImageTransfer mode:
-	//if(state.mode == commModeImageTransfer && state.imageTransfer.transmitReady == responseStateReady){}
 
 	// todo: default/no return state:
 	//if (state.mode == default)
@@ -341,6 +352,7 @@ uint8_t getNextFrame(uint8_t *txMessage) {
                                          PRIVATE FUNCTIONS
 ***************************************************************************************************/
 
+
 /**
  * Starts a timer for the max-length pass timeout.
  */
@@ -348,9 +360,12 @@ static void startPassMode(void) {
 
 	// reset any previous communication state, to ensure a fresh start
 	resetState();
+	infoPrint("Start pass mode!");
 
 	// set the mode (telecommand communications are first during a pass)
 	state.mode = commModeTelecommand;
+
+	startInterFrameFill();
 
 	// if the timer was not created yet, create it
 	if (passTimer == NULL) {
@@ -382,6 +397,8 @@ static void endPassMode(void) {
 	// reset the local communication state
 	resetState();
 
+	stopInterFrameFill();
+
 	// enter quiet mode (with a timer to exit it)
 	startQuietMode();
 }
@@ -405,6 +422,8 @@ static void startQuietMode(void) {
 
 	// enter quiet mode
 	state.mode = commModeQuiet;
+
+	stopInterFrameFill();
 
 	// if the timer was not created yet, create it
 	if (quietTimer == NULL) {
@@ -442,5 +461,6 @@ static void endQuietModeCallback(xTimerHandle xTimer) {
  */
 static void resetState(void) {
 	memset(&state, 0, sizeof(communication_state_t));
+	stopInterFrameFill();
 }
 

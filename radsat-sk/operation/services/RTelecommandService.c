@@ -35,11 +35,9 @@ uint8_t uplinkHandle(uint8_t* wrappedMessage, uint8_t size, uint8_t* messageType
 
 	// unwrap the message
 	rawSize = messageUnwrap(wrappedMessage, size, &rawMessage);
-	debugPrint("rawSize: %d\n", rawSize);
 	// exit if unwrapping failed
 	if (rawSize == 0)
 		return 0;
-	debugPrint("after rawSize\n");
 
 	// if this message is a protocol message
 	if (rawMessage.which_service == radsat_message_ProtocolMessage_tag){

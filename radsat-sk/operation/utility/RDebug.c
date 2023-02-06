@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
+#include <hal/Timing/Time.h>
 
 
 /***************************************************************************************************
@@ -27,7 +28,9 @@
                                              PUBLIC API
 ***************************************************************************************************/
 
-void debugPrint(const char* stringFormat, ...) {
+
+
+/*void debugPrint(const char* stringFormat, ...) {
 #ifdef DEBUG
 
 	// initialize the variadic argument list
@@ -51,7 +54,44 @@ void debugPrint(const char* stringFormat, ...) {
 	// transmit the UART message across the debug serial port on jtag connector
 	printf(buffer);
 
+#endif \/* DEBUG *\/
+}*/
+
+int printTime(void){
+	Time time = { 0 };
+	int error = Time_get(&time);
+	debugPrint("%d/%d/%d %d:%d:%d\n",
+			time.month,
+			time.date,
+			time.year,
+			time.hours,
+			time.minutes,
+			time.seconds
+	);
+	if (error) warningPrint("Clock not initialized... Do better.");
+	return error;
+
+}
+
+#ifdef DEBUG
+int tes(int error){
+    if (error){
+        printf("Error lol = %d\n", error);
+    }
+    return error;
+}
 #endif /* DEBUG */
+
+/**
+ * @brief	 Prints an array of raw hex bytes to terminal.
+ * @param[in] a pointer to print
+ * @param[in] size of variable being printed
+ */
+void debugPrintHex(uint8_t* values, size_t size){
+	for (size_t i = 0; i < size; i++){
+		printf("%02x", values[i]);
+	}
+	return;
 }
 
 /**

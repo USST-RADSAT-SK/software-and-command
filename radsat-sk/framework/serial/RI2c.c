@@ -93,9 +93,10 @@ int i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size) {
 	// I2C driver must be initialized
 	if (!initialized)
 		return E_NOT_INITIALIZED;
-	debugPrint("before\n");
+
+	debugPrint("before I2C read\n");
 	int error = I2C_read(slaveAddress, data, size);
-	debugPrint("after\n");
+	debugPrint("after I2C read\n");
 	// TODO: record errors (if present) to System Manager
 
 	return error;

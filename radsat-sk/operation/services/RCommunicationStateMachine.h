@@ -14,7 +14,7 @@ void beginPass();
 void beginFileTransfer();
 void ceaseTransmission();
 void resumeTransmission();
-void updateTime();
+int updateTime(unsigned int epochTime);
 void resetSat();
 void sendNack();
 void sendAck();

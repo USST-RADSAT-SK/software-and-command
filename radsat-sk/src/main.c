@@ -52,10 +52,10 @@
 static xTaskHandle missionInitTaskHandle;
 static xTaskHandle communicationRxTaskHandle;
 static xTaskHandle communicationTxTaskHandle;
-static xTaskHandle dosimeterCollectionTaskHandle;
-static xTaskHandle imageCaptureTaskHandle;
-static xTaskHandle adcsCaptureTaskHandle;
-static xTaskHandle telemetryCollectionTaskHandle;
+//static xTaskHandle dosimeterCollectionTaskHandle;
+//static xTaskHandle imageCaptureTaskHandle;
+//static xTaskHandle adcsCaptureTaskHandle;
+//static xTaskHandle telemetryCollectionTaskHandle;
 static xTaskHandle satelliteWatchdogTaskHandle;
 
 /** Communication Transmit Task Priority. Downlinks messages when necessary; very high priority task. */
@@ -64,14 +64,14 @@ static const int communicationTxTaskPriority = configMAX_PRIORITIES - 1;
 static const int communicationRxTaskPriority = configMAX_PRIORITIES - 2;
 
 /** Dosimeter Collection Task Priority. Periodically collects payload data; medium priority task. */
-static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
+//static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
 /** Image Capture Task Priority. Periodically collects image data; medium priority task. */
-static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
+//static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
 /** ADCS Capture Task Priority. Periodically collects ADCS data; medium priority task. */
-static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
+//static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
 
 /** Telemetry Collection Task Priority. Periodically collects satellite telemetry; low priority task. */
-static const int telemetryCollectionTaskPriority = configMAX_PRIORITIES - 4;
+//static const int telemetryCollectionTaskPriority = configMAX_PRIORITIES - 4;
 /** Satellite Watchdog Task Priority. Routinely pets (resets) satellite subsystem watchdogs; low priority task. */
 static const int satelliteWatchdogTaskPriority = configMAX_PRIORITIES - 4;
 /** Mission Init Task Priority. Does initializations that need to be ran post-scheduler; low priority task. */
@@ -121,6 +121,7 @@ int main(void) {
 
 	if (error != pdPASS) {
 		debugPrint("main(): failed to create MissionInitTask.\n");
+		debugPrint("error = %d\n", error);
 		// TODO: report to system manager
 	}
 
@@ -264,8 +265,6 @@ static int initMissionTasks(void) {
 
 	int error = pdPASS;
 
-
-
 	// initialize the Communication Receive Task
 	error = xTaskCreate(CommunicationRxTask,
 						(const signed char*)"Communication Receive Task",
@@ -279,6 +278,7 @@ static int initMissionTasks(void) {
 		return E_GENERIC;
 	}
 
+
 	// initialize the Communication Transmit Task
 	error = xTaskCreate(CommunicationTxTask,
 						(const signed char*)"Communication Transmit Task",
@@ -291,6 +291,8 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create CommunicationTxTask.\n");
 		return E_GENERIC;
 	}
+
+
 	/*
 	// initialize the Dosimeter Collection Task
 	error = xTaskCreate(DosimeterCollectionTask,
@@ -344,6 +346,7 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create TelemetryCollectionTask.\n");
 		return E_GENERIC;
 	}
+*/
 
 	// initialize the Satellite Watchdog Task
 	error = xTaskCreate(SatelliteWatchdogTask,
@@ -357,7 +360,7 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create SatelliteWatchdogTask.\n");
 		return E_GENERIC;
 	}
-*/
+
 	return SUCCESS;
 }
 
@@ -437,7 +440,6 @@ void MissionInitTask(void* parameters) {
 	}
 
 #endif	/* TEST */
-
 
 	// let this task delete itself
 	vTaskDelete(NULL);

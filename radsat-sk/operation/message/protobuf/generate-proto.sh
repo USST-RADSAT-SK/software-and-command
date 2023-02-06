@@ -1,4 +1,3 @@
-#!/bin/bash
 
 # generate new source and header files
 # NOTE: May have to convert line-endings of script;

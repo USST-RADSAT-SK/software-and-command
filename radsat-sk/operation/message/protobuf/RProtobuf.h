@@ -8,6 +8,7 @@
 #ifndef RPROTOBUF_H_
 #define RPROTOBUF_H_
 
+#include <pb.h>
 #include <pb_encode.h>
 #include <pb_decode.h>
 
