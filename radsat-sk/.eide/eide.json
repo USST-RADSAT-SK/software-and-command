@@ -14,7 +14,7 @@
     "files": [],
     "folders": []
   },
-  "outDir": "Debug",
+  "outDir": "Test",
   "deviceName": null,
   "packDir": null,
   "miscInfo": {
@@ -22,7 +22,13 @@
   },
   "targets": {
     "Debug": {
-      "excludeList": [],
+      "excludeList": [
+        "testing/RTestSuite.c",
+        "testing/RTestUtils.c",
+        "testing/unit/RTestBattery.c",
+        "testing/unit/RTestDosimeter.c",
+        "testing/unit/RTestPdb.c"
+      ],
       "toolchain": "GCC",
       "compileConfig": {
         "cpuType": "Armv5TE",
@@ -88,17 +94,24 @@
           "DEBUG=1",
           "BASE_REVISION_NUMBER=$(REV)",
           "BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)",
-          "BASE_REVISION_HASH=$(REVHASH)"
+          "BASE_REVISION_HASH=$(REVHASH)",
+          "__ASSEMBLY__"
         ]
       }
     },
     "Release": {
-      "excludeList": [],
+      "excludeList": [
+        "testing/RTestSuite.c",
+        "testing/RTestUtils.c",
+        "testing/unit/RTestBattery.c",
+        "testing/unit/RTestDosimeter.c",
+        "testing/unit/RTestPdb.c"
+      ],
       "toolchain": "GCC",
       "compileConfig": {
-        "cpuType": "Cortex-M3",
+        "cpuType": "Armv5TE",
         "floatingPointHardware": "none",
-        "scatterFilePath": "",
+        "scatterFilePath": "../hal/at91/linker-scripts/sdram.lds",
         "useCustomScatterFile": true,
         "storageLayout": {
           "RAM": [],
@@ -123,11 +136,11 @@
         "name": "default",
         "incList": [
           "radsat-sk/src",
-          "${external-dependencies}/hal/freertos/include",
-          "${external-dependencies}/hal/at91/include",
-          "${external-dependencies}/hal/hal/include",
-          "${external-dependencies}/hal/hcc/include",
-          "${external-dependencies}/satellite-subsystems/satellite-subsystems/include",
+          "../hal/freertos/include",
+          "../hal/at91/include",
+          "../hal/hal/include",
+          "../hal/hcc/include",
+          "../satellite-subsystems/satellite-subsystems/include",
           "framework",
           "framework/fileio",
           "framework/serial",
@@ -139,18 +152,23 @@
           "operation/message/crypt",
           "operation/services",
           "operation/subsystems",
+          "operation/subsystems/camera",
           "operation/utility",
-          "src/tasks"
+          "src/tasks",
+          ".eide/deps"
         ],
-        "libList": [],
+        "libList": [
+          "../hal/freertos/lib",
+          "../hal/at91/lib",
+          "../hal/hal/lib",
+          "../hal/hcc/lib",
+          "../satellite-subsystems/satellite-subsystems/lib"
+        ],
         "sourceDirList": [],
         "defineList": [
-          "TRACE_LEVEL=5",
-          "at91sam9g20",
           "sdram",
-          "'BASE_REVISION_NUMBER=$(REV)'",
-          "'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)'",
-          "'BASE_REVISION_HASH=$(REVHASH)'"
+          "at91sam9g20",
+          "__ASSEMBLY__"
         ]
       }
     },
@@ -158,9 +176,9 @@
       "excludeList": [],
       "toolchain": "GCC",
       "compileConfig": {
-        "cpuType": "Cortex-M3",
+        "cpuType": "Armv5TE",
         "floatingPointHardware": "none",
-        "scatterFilePath": "",
+        "scatterFilePath": "../hal/at91/linker-scripts/sdram.lds",
         "useCustomScatterFile": true,
         "storageLayout": {
           "RAM": [],
@@ -185,11 +203,11 @@
         "name": "default",
         "incList": [
           "radsat-sk/src",
-          "${external-dependencies}/hal/freertos/include",
-          "${external-dependencies}/hal/at91/include",
-          "${external-dependencies}/hal/hal/include",
-          "${external-dependencies}/hal/hcc/include",
-          "${external-dependencies}/satellite-subsystems/satellite-subsystems/include",
+          "../hal/freertos/include",
+          "../hal/at91/include",
+          "../hal/hal/include",
+          "../hal/hcc/include",
+          "../satellite-subsystems/satellite-subsystems/include",
           "framework",
           "framework/fileio",
           "framework/serial",
@@ -201,23 +219,30 @@
           "operation/message/crypt",
           "operation/services",
           "operation/subsystems",
+          "operation/subsystems/camera",
           "operation/utility",
           "src/tasks",
-          "testing",
-          "testing/unit"
+          ".eide/deps"
         ],
+        "libList": [
+          "../hal/freertos/lib",
+          "../hal/at91/lib",
+          "../hal/hal/lib",
+          "../hal/hcc/lib",
+          "../satellite-subsystems/satellite-subsystems/lib"
+        ],
+        "sourceDirList": [],
         "defineList": [
           "sdram",
           "at91sam9g20",
-          "TRACE_LEVEL=5",
+          "TRACE_LEVEL=0",
           "DEBUG=1",
-          "'BASE_REVISION_NUMBER=$(REV)'",
-          "'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)'",
-          "'BASE_REVISION_HASH=$(REVHASH)'",
-          "TEST=1"
-        ],
-        "sourceDirList": [],
-        "libList": []
+          "BASE_REVISION_NUMBER=$(REV)",
+          "BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)",
+          "BASE_REVISION_HASH=$(REVHASH)",
+          "TEST=1",
+          "__ASSEMBLY__"
+        ]
       }
     }
   },

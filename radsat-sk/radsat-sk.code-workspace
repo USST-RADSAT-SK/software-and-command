@@ -24,7 +24,8 @@
             "editor.insertSpaces": true,
             "editor.tabSize": 4,
             "editor.autoIndent": "advanced"
-        }
+        },
+        "EIDE.JLink.InstallDirectory": "/usr/bin/JLinkGDBServer"
     },
     "extensions": {
         "recommendations": [
