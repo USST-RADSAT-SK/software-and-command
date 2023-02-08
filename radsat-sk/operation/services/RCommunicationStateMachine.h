@@ -8,17 +8,26 @@
 #ifndef RCOMMUNICATIONSTATEMACHINE_H_
 #define RCOMMUNICATIONSTATEMACHINE_H_
 
-void ackReceived();
-void nackReceived();
+
+#include <RProtocolService.h>
+
+
+/** Abstraction of the communication modes */
+typedef enum _comm_mode_t {
+	commModeQuiet,	///> Prevent downlink transmissions and automatic state changes
+	commModePass,	///> Receiving Telecommands from Ground Station
+	commModeFileTransfer,	///> Transmitting data to the Ground Station
+} comm_mode_t;
+
+
 void beginPass();
 void beginFileTransfer();
 void ceaseTransmission();
-void resumeTransmission();
-int updateTime(unsigned int epochTime);
+int updateTime(uint32_t epochTime);
 void resetSat();
 void sendNack();
 void sendAck();
-uint8_t getNextFrame(uint8_t*);
+void processCommand(commandType_t type, messageSubject_t* content);
 
 
 #endif /* RCOMMUNICATIONSTATEMACHINE_H_ */

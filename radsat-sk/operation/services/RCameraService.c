@@ -18,15 +18,6 @@
                                    DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
 
-/* Number of attempts for image capture with successful detection results */
-#define VALID_IMAGE_RETRY_COUNT			(10)
-
-/* Delay in milliseconds to allow image capture to be completed */
-#define IMAGE_CAPTURE_DELAY_MS			(1000)
-
-/** Stack size (in bytes) allotted to the image download FreeRTOS Task. */
-#define DOWNLOAD_TASK_STACK_SIZE		(configMINIMAL_STACK_SIZE + 50)
-
 /** Current camera settings and initialization flag. **/
 static CameraSettings cameraSettings = { 0 };
 //static uint8_t cameraSettingsInitialized = 0;

@@ -16,14 +16,6 @@
                                    DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
 
-/** How many images to capture per day. */
-#define IMAGE_CAPTURES_PER_DAY					(1)
-
-/** Image Capture Task normal delay (in ms). */
-#define IMAGE_CAPTURE_TASK_NORMAL_DELAY_MS		(MS_PER_DAY / IMAGE_CAPTURES_PER_DAY)
-
-/** Image Capture Task short delay (in ms), used when task couldn't execute because CubeSense is in use. */
-#define IMAGE_CAPTURE_TASK_SHORT_DELAY_MS		(10000)
 
 
 /***************************************************************************************************
@@ -39,6 +31,7 @@ void ImageCaptureTask(void* parameters) {
 	// Set the default automatic image capture interval
 	setImageCaptureInterval(IMAGE_CAPTURE_TASK_NORMAL_DELAY_MS);
 
+	infoPrint("ImageCaptureTask started.");
 	while (1) {
 
 		// TODO: Uncomment function call when Brian's branch will be ready/merged

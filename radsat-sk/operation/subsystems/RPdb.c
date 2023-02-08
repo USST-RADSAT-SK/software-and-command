@@ -194,6 +194,7 @@ int pdbTelemetry(pdb_status_t* dataStorage) {
 
 	// Create an empty sunSensorData structure
 	sun_sensor_status_t sunSensorData;
+	(void) sunSensorData;
 
 	// Get sun sensor data and store it in the new pdb_status_t Structure
 	pdbSunSensorData(&dataStorage->sunSensorData);

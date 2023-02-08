@@ -70,7 +70,7 @@ uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* raw
 
 	// ensure the input pointers are not NULL
 	if (wrappedMessage == 0 || rawMessage == 0){
-		debugPrint("Input Pointers are NULL\n");
+		infoPrint("Input Pointers are NULL");
 		return 0;
 	}
 
@@ -87,7 +87,7 @@ uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* raw
 
 	// confirm preamble
 	if (header->preamble != RADSAT_SK_MESSAGE_PREAMBLE){
-		debugPrint("Bad Preamble\n");
+		errorPrint("Bad Preamble");
 		return 0;
 	}
 	// locally calculate the CRC of the entire message (except for preamble and crc itself)
@@ -96,19 +96,18 @@ uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* raw
 
 	// confirm locally-calculated CRC with the one sent with the message header
 	if (header->crc != localCrc){
-		debugPrint("CRC failure\n");
+		errorPrint("CRC failure");
 			return 0;
 	}
 
 	// deserialize the encoded message with NanoPB Protobuf decoding
 	error = protoDecode(&wrappedMessage[RADSAT_SK_HEADER_SIZE], header->size, rawMessage);
 	if (error){
-		debugPrint("Bad proto decode\n");
+		errorPrint("Bad proto decode");
 		return 0;
 	}
-	debugPrint("header->size: %d\n", header->size);
+
 	// return the size of the message itself
-	debugPrint("Made it here!!!!\n");
 	return header->size;
 }
 

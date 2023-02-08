@@ -15,12 +15,6 @@
                                    DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
 
-/** How many telemetry readings to collect per hour. */
-#define TELEMETRY_READINGS_PER_HOUR			(10)
-
-/** Telemetry Collection Task delay (in ms). */
-#define TELEMETRY_COLLECTION_TASK_DELAY_MS	(MS_PER_HOUR / TELEMETRY_READINGS_PER_HOUR)
-
 
 /***************************************************************************************************
                                            FREERTOS TASKS
@@ -31,11 +25,12 @@ void TelemetryCollectionTask(void* parameters) {
 	// ignore the input parameter
 	(void)parameters;
 
+	infoPrint("TelemetryCollectionTask started.");
 	while (1) {
 
 		// TODO: implement telemetry collection
 
-		debugPrint("TelemetryCollectionTask(): About to collect satellite telemetry data.\n");
+		infoPrint("Collecting satellite telemetry data.");
 
 		vTaskDelay(TELEMETRY_COLLECTION_TASK_DELAY_MS);
 	}

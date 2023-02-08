@@ -16,14 +16,7 @@
                                    DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
 
-/** How many ADCS readings to capture per hour. */
-#define ADCS_CAPTURES_PER_HOUR					(1)
 
-/** ADCS Capture Task normal delay (in ms). */
-#define ADCS_CAPTURE_TASK_NORMAL_DELAY_MS		(MS_PER_HOUR / ADCS_CAPTURES_PER_HOUR)
-
-/** ADCS Capture Task short delay (in ms). */
-#define ADCS_CAPTURE_TASK_SHORT_DELAY_MS		(10000)
 
 
 /***************************************************************************************************
@@ -42,6 +35,8 @@ void AdcsCaptureTask(void* parameters) {
 	// Initialize the ADCS capture settings (5 measurements, 5 seconds between measurements)
 	setADCSBurstSettings(5, 5000);
 
+
+	infoPrint("AdcsCaptureTask started.");
 	while (1) {
 
 		// TODO: Uncomment function call when Brian's branch will be ready/merged

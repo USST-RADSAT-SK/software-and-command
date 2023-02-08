@@ -42,36 +42,27 @@
                                    DEFINITIONS AND PRIVATE GLOBALS
 ***************************************************************************************************/
 
-/** How often the internal OBC Watchdog is kicked (i.e. pet, i.e. reset) in ms. */
-#define OBC_WDOG_KICK_PERIOD_MS	(15 / portTICK_RATE_MS)
-
-/** Default stack size (in bytes) allotted to each FreeRTOS Task. */
-#define DEFAULT_TASK_STACK_SIZE	(4096)
-
 /** FreeRTOS Task Handles. */
 static xTaskHandle missionInitTaskHandle;
 static xTaskHandle communicationRxTaskHandle;
-static xTaskHandle communicationTxTaskHandle;
-//static xTaskHandle dosimeterCollectionTaskHandle;
+static xTaskHandle dosimeterCollectionTaskHandle;
 //static xTaskHandle imageCaptureTaskHandle;
 //static xTaskHandle adcsCaptureTaskHandle;
-//static xTaskHandle telemetryCollectionTaskHandle;
+static xTaskHandle telemetryCollectionTaskHandle;
 static xTaskHandle satelliteWatchdogTaskHandle;
 
-/** Communication Transmit Task Priority. Downlinks messages when necessary; very high priority task. */
-static const int communicationTxTaskPriority = configMAX_PRIORITIES - 1;
 /** Communication Receive Task Priority. Constantly listening for messages; high priority task. */
 static const int communicationRxTaskPriority = configMAX_PRIORITIES - 2;
 
 /** Dosimeter Collection Task Priority. Periodically collects payload data; medium priority task. */
-//static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
+static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
 /** Image Capture Task Priority. Periodically collects image data; medium priority task. */
 //static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
 /** ADCS Capture Task Priority. Periodically collects ADCS data; medium priority task. */
 //static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
 
 /** Telemetry Collection Task Priority. Periodically collects satellite telemetry; low priority task. */
-//static const int telemetryCollectionTaskPriority = configMAX_PRIORITIES - 4;
+static const int telemetryCollectionTaskPriority = configMAX_PRIORITIES - 4;
 /** Satellite Watchdog Task Priority. Routinely pets (resets) satellite subsystem watchdogs; low priority task. */
 static const int satelliteWatchdogTaskPriority = configMAX_PRIORITIES - 4;
 /** Mission Init Task Priority. Does initializations that need to be ran post-scheduler; low priority task. */
@@ -279,21 +270,6 @@ static int initMissionTasks(void) {
 	}
 
 
-	// initialize the Communication Transmit Task
-	error = xTaskCreate(CommunicationTxTask,
-						(const signed char*)"Communication Transmit Task",
-						DEFAULT_TASK_STACK_SIZE,
-						NULL,
-						communicationTxTaskPriority,
-						&communicationTxTaskHandle);
-
-	if (error != pdPASS) {
-		debugPrint("initMissionTasks(): failed to create CommunicationTxTask.\n");
-		return E_GENERIC;
-	}
-
-
-	/*
 	// initialize the Dosimeter Collection Task
 	error = xTaskCreate(DosimeterCollectionTask,
 						(const signed char*)"Dosimeter Collection Task",
@@ -306,8 +282,8 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create DosimeterCollectionTask.\n");
 		return E_GENERIC;
 	}
-	*/
-/*
+
+	/*
 	// initialize the Image Capture Task
 	error = xTaskCreate(ImageCaptureTask,
 						(const signed char*)"Image Capture Task",
@@ -319,8 +295,9 @@ static int initMissionTasks(void) {
 	if (error != pdPASS) {
 		debugPrint("initMissionTasks(): failed to create ImageCaptureTask.\n");
 		return E_GENERIC;
-	}
+	}*/
 
+	/*
 	// initialize the ADCS Capture Task
 	error = xTaskCreate(AdcsCaptureTask,
 						(const signed char*)"ADCS Capture Task",
@@ -332,7 +309,7 @@ static int initMissionTasks(void) {
 	if (error != pdPASS) {
 		debugPrint("initMissionTasks(): failed to create AdcsCaptureTask.\n");
 		return E_GENERIC;
-	}
+	}*/
 
 	// initialize the Telemetry Collection Task
 	error = xTaskCreate(TelemetryCollectionTask,
@@ -346,7 +323,6 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create TelemetryCollectionTask.\n");
 		return E_GENERIC;
 	}
-*/
 
 	// initialize the Satellite Watchdog Task
 	error = xTaskCreate(SatelliteWatchdogTask,
@@ -423,12 +399,6 @@ void MissionInitTask(void* parameters) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
 	}
-
-#ifndef DEBUG
-
-	// TODO: Antenna Diagnostic & Deployment (if necessary)
-
-#endif
 
 	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
 

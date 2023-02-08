@@ -12,8 +12,9 @@
 #include <stdlib.h>
 #include <stdarg.h>
 #include <hal/Timing/Time.h>
+#include <hal/errors.h>
 
-
+#ifdef DEBUG
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
@@ -29,58 +30,76 @@
 ***************************************************************************************************/
 
 
+int printResolvedErrorMessage(int errorValue){
+	switch (errorValue){
+		case E_NOT_INITIALIZED:
+			printf("E_IS_INITIALIZED:-19:Attempt to initialize something that has already been initialized.");
+			return 1;
+		case E_GET_SEMAPHORE_FAILED:
+			printf("E_GET_SEMAPHORE_FAILED:-20:Failed to obtain semaphore for subsystem communication.");
+			return 1;
+		case E_INDEX_ERROR:
+			printf("E_INDEX_ERROR:-22:Incorrect index specified.");
+			return 1;
+		case E_BITRATE_INPUT_ERROR:
+			printf("E_BITRATE_INPUT_ERROR:-23:Failed to set the bitrate of the TRXUV.");
+			return 1;
+		case E_CWCHAR_INPUT_ERROR:
+			printf("E_CWCHAR_INPUT_ERROR:-24:Failed to set the cwcharrate of the TRXUV.");
+			return 1;
+		case E_IDLE_STATE_ERROR:
+			printf("E_IDLE_STATE_ERROR:-25:Failed to go into idle mode of the TRXUV.");
+			return 1;
+		case E_OUTPUT_MODE_ERROR:
+			printf("E_OUTPUT_MODE_ERROR:-26:Failed to go into outmode of the TRXUV.");
+			return 1;
+		case E_TRXUV_COMPONENT_ERROR:
+			printf("E_TRXUV_COMPONENT_ERROR:-27:Failed to choose a device in the TRXUV.");
+			return 1;
+		case E_WRONG_ADC_CHANNEL:
+			printf("E_WRONG_ADC_CHANNEL:-28:Failed to choose a correct ADC channel TRXUV.");
+			return 1;
+		case E_RESET_SYSTEM:
+			printf("E_RESET_SYSTEM:-29:Failed to reset both microcontrollers in the TRXUV.");
+			return 1;
+		case E_MEM_ALLOC:
+			printf("E_MEM_ALLOC:-30:Failed to allocate memory.");
+			return 1;
+		case E_ATT_ERROR:
+			printf("E_ATT_ERROR:-31:Failed to set attenuation value  in the TXS.");
+			return 1;
+		case E_PARAM_OUTOFBOUNDS:
+			printf("E_PARAM_OUTOFBOUNDS:-32:Failed to set attenuation value  in the TXS.");
+			return 1;
+		case E_TRXUV_FRAME_LENGTH:
+			printf("E_TRXUV_FRAME_LENGTH:-33:Input frame lenght was greater than the maximum frame length of TRXUV.");
+			return 1;
+		case E_INPUT_POINTER_NULL:
+			printf("E_INPUT_POINTER_NULL:-34:A pointer input to the function is NULL.");
+			return 1;
+		case E_COMMAND_NACKED:
+			printf("E_COMMAND_NACKED:-35:A pointer input to the function is NULL.");
+			return 1;
+		default:
+		    if (errorValue < 0)
+		        printf("Unknown error:%d", errorValue);
+			return 0;
+	}
+}
 
-/*void debugPrint(const char* stringFormat, ...) {
-#ifdef DEBUG
-
-	// initialize the variadic argument list
-	va_list arguments;
-	va_start(arguments, stringFormat);
-
-	// buffer to hold the final string after formatting
-	char buffer[MAX_DEBUG_CHAR_LENGTH] = { 0 };
-
-	// format the string, store it in the internal buffer (add 1 for the string terminating byte)
-	// original fucntion:
-	// int length = vsnprintf(buffer, MAX_DEBUG_CHAR_LENGTH, stringFormat, arguments) + 1;
-	vsnprintf(buffer, MAX_DEBUG_CHAR_LENGTH, stringFormat, arguments);
-
-	// done with the variadic arguments
-	va_end(arguments);
-
-	// transmit the UART message across UART_DEBUG_BUS/serial port 2
-	// uartTransmit(UART_DEBUG_BUS, (const uint8_t *)buffer, length);
-
-	// transmit the UART message across the debug serial port on jtag connector
-	printf(buffer);
-
-#endif \/* DEBUG *\/
-}*/
-
-int printTime(void){
+void printTime(void){
 	Time time = { 0 };
 	int error = Time_get(&time);
-	debugPrint("%d/%d/%d %d:%d:%d\n",
+	printf("%d/%d/%d %d:%d:%d GMT-6:00",
 			time.month,
 			time.date,
 			time.year,
-			time.hours,
+			time.hours-6,
 			time.minutes,
 			time.seconds
 	);
 	if (error) warningPrint("Clock not initialized... Do better.");
-	return error;
-
 }
-
-#ifdef DEBUG
-int tes(int error){
-    if (error){
-        printf("Error lol = %d\n", error);
-    }
-    return error;
-}
-#endif /* DEBUG */
 
 /**
  * @brief	 Prints an array of raw hex bytes to terminal.
@@ -140,3 +159,4 @@ extern unsigned char debugReadIntMinMax(unsigned int *pValue, unsigned int min, 
 
     return 1;
 }
+#endif /* DEBUG */

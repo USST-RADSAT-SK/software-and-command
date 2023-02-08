@@ -169,8 +169,6 @@ int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRe
 	if (message == 0)
 		return E_INPUT_POINTER_NULL;
 
-	debugPrint("sending frame...\n");
-
 	int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, slotsRemaining);
 
 	// TODO: record errors (if present) to System Manager

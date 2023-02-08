@@ -31,18 +31,13 @@ int xorDecrypt(uint8_t* buffer, uint8_t size) {
 	// uint8_t key = privateKey();
 	// if (key == 0) return -1;
 	uint8_t key = 0x01;
-	debugPrint("Xor = ");
 
 	// decrypt (XOR) every byte
 	int newValue = 0;
 	for (int i = 0; i < size; i++) {
 		newValue = buffer[i] ^ key;
 		buffer[i] = newValue;
-		debugPrint("%02x", newValue);
 	}
-
-	debugPrint("\n");
-
 	return 0;
 }
 
