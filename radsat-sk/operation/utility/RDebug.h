@@ -13,13 +13,51 @@
 
 #define __FILENAME__ (strrchr(__FILE__, '/') ? strrchr(__FILE__, '/') + 1 : __FILE__)
 
-#define ANSIRED(text)	"\e[101;30m" text "\e[0m"
-#define ANSIGRN(text)	"\e[102;30m" text "\e[0m"
-#define ANSIYEL(text)	"\e[103;30m" text "\e[0m"
+#define CSI	"\e["
 
-#define INFOTEXT 				"[  info  ]"
-#define WARNINGTEXT		ANSIYEL("[WARNING!]")
-#define ERRORTEXT		ANSIRED("[ ERROR! ]")
+
+
+#define CLEAREND	CSI "0K"
+#define CLEARHOME	CSI "1K"
+#define CLEARLINE	CSI "2K"
+
+/* Text Formatting */
+#define ULINE	";1"
+#define FAINT	";2"
+#define ITALIC	";3"
+#define BOLD	";4"
+#define BLINKS	";5"
+#define BLINKF	";6"
+#define STRIKE	";9"
+
+#define BLK "0"
+#define RED "1"
+#define GRN "2"
+#define YEL "3"
+#define BLU "4"
+#define MAG "5"
+#define CYN "6"
+#define WHT	"7"
+
+//fflush(stdout);
+#define TXTCLR(colour)	";3" colour
+#define BTXTCLR(colour)	";9" colour
+#define RSTTXT			";39"
+#define BGDCLR(colour)	";4" colour
+#define BBGDCLR(colour)	";10" colour
+#define RSTBGDCLR		";49"
+
+#define RSTALL	";0"
+
+#define ANSISTYLE(settings, text)	CSI settings "m" text CSI RSTALL "m"
+
+#define INFOTEXT 		"[  info  ]"
+#define WARNINGTEXT		ANSISTYLE( TXTCLR(BLK) BBGDCLR(YEL), "[WARNING!]")
+#define ERRORTEXT		ANSISTYLE( TXTCLR(BLK) BBGDCLR(RED), "[ ERROR! ]")
+
+#define INFOFMT 		" %15s(): "
+#define WARNINGFMT 		" %s:%d, %s(): "
+#define ERRORFMT 		" %s:%s() at line %d... \n -> "
 
 
 
@@ -28,33 +66,33 @@
 ***************************************************************************************************/
 
 #ifdef DEBUG
-// #define debugPrint(fmt, ...) 	printf("[  info  ] %s:%s: " fmt, __FILENAME__, __func__, ##__VA_ARGS__)
- #define debugPrint(fmt, ...) 	printf(fmt, ##__VA_ARGS__)
- #define infoPrint(fmt, ...) 	printf(INFOTEXT 	" %s:%d:%s: " fmt "\n", __FILENAME__, __LINE__, __func__, ##__VA_ARGS__)
- #define warningPrint(fmt, ...) printf(WARNINGTEXT 	" %s:%d:%s: " fmt "\n", __FILENAME__, __LINE__, __func__, ##__VA_ARGS__)
- #define errorPrint(fmt, ...) 	printf(ERRORTEXT	" %s:%d:%s: " fmt "\n", __FILENAME__, __LINE__, __func__, ##__VA_ARGS__)
- #define mark					printf("%s:%d:%s\n", __FILENAME__, __LINE__, __func__);
- #define radsatError(error) 	\
-	if (error < 0){	\
-		printf(ERRORTEXT " %s:%d:%s: ", __FILENAME__, __LINE__, __func__); \
-		printResolvedErrorMessage(error);	\
-		printf("\n");	\
-		return error;	\
-	}
- void printTime(void);
+	#ifndef TEST
+		#define INFOBAR
+	#endif
+	#define debugPrint(fmt, ...) 	printf(fmt, ##__VA_ARGS__)
+	#define infoPrint(fmt, ...) 	printf("\r" INFOTEXT	INFOFMT		fmt "\n", __func__, ##__VA_ARGS__)
+	#define warningPrint(fmt, ...)	printf("\r" WARNINGTEXT	WARNINGFMT 	fmt "\n", __FILENAME__, __LINE__, __func__, ##__VA_ARGS__)
+	#define errorPrint(fmt, ...) 	printf("\r" ERRORTEXT	ERRORFMT 	fmt "\n", __FILE__, __func__, __LINE__, ##__VA_ARGS__)
+	#define mark					printf("%d, %s\n", __LINE__, __func__);
+	void printTime(void);
+
+	#ifdef INFOBAR
+		char* throbber(void);
+	#endif
 #else
- #define debugPrint(fmt, ...)
- #define infoPrint(fmt, ...)
- #define warningPrint(fmt, ...)
- #define errorPrint(error)
- #define mark
- #define radsatError(error) 	\
-	if (error < 0) return error;
- #define printTime(void)
+	#define debugPrint(fmt, ...)
+	#define infoPrint(fmt, ...)
+	#define warningPrint(fmt, ...)
+	#define errorPrint(error)
+	#define mark
+	#define radsatError(error) 	\
+		if (error < 0) return error;
+	#define printTime(void)
 #endif
 
 //void debugPrint(const char* stringFormat, ...);
 
 extern unsigned char debugReadIntMinMax(unsigned int *pValue, unsigned int min, unsigned int max);
+void debugPrintHex(uint8_t* values, size_t size);
 
 #endif /* RDEBUG_H_ */

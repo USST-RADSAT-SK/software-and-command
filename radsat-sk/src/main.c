@@ -249,12 +249,14 @@ static int initObcWatchdog(void) {
 }
 
 
+#include <RFileTransferService.h>
 /**
  * Initialize all of the FreeRTOS tasks used during typical mission operation.
  */
 static int initMissionTasks(void) {
 
 	int error = pdPASS;
+	fileTransferReset();
 
 	// initialize the Communication Receive Task
 	error = xTaskCreate(CommunicationRxTask,

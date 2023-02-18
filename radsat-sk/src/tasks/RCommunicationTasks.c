@@ -11,6 +11,7 @@
 #include <RTransceiver.h>
 #include <RMessage.h>
 #include <RCommon.h>
+#include <satellite-subsystems/IsisTRXVU.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -76,12 +77,12 @@ void CommunicationRxTask(void* parameters) {
 	infoPrint("CommunicationRxTask started.");
 	while (1) {
 
-		int beacon = IsisTrxvu_tcClearBeacon();
+		//IsisTrxvu_tcClearBeacon(0);
 
 		// get the number of frames currently in the receive buffer
 		error = transceiverRxFrameCount(&rxFrameCount);
-		if (error) errorPrint("%d\n", error);
-		 messageSubject_t messageData = { 0 };
+		if (error) errorPrint("TRX Frame count%d\n", error);
+		messageSubject_t messageData = { 0 };
 
 		// obtain frames when present
 		if (rxFrameCount > 0 && error == 0) {

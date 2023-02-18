@@ -57,6 +57,7 @@ void AdcsCaptureTask(void* parameters) {
 			}
 		}
 
+		mark
 		if (cubeSenseIsInUse) {
 			// CubeSense was in use, wait only for a small delay to retry task
 			vTaskDelay(ADCS_CAPTURE_TASK_SHORT_DELAY_MS);

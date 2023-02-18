@@ -8,9 +8,17 @@
 #include <RSatelliteWatchdogTask.h>
 #include <RCommon.h>
 #include <RPdb.h>
+#include <RDebug.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+
+
+#ifdef INFOBAR
+	#define printInfoBar debugPrint("[%-8.8s]\r", throbber()); fflush(stdout);
+#else
+	#define printInfoBar
+#endif
 
 
 /***************************************************************************************************
@@ -31,6 +39,7 @@ void SatelliteWatchdogTask(void* parameters) {
 	infoPrint("SatelliteWatchdogTask started.");
 	while (1) {
 
+		printInfoBar
 		pdbPetWatchdog();
 		vTaskDelay(SATELLITE_WATCHDOG_TASK_DELAY_MS);
 	}

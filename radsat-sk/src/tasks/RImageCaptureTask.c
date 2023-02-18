@@ -75,6 +75,7 @@ void ImageCaptureTask(void* parameters) {
 			}
 		}
 
+		mark
 		if (cubeSenseIsInUse) {
 			// CubeSense was in use, wait only for a small delay to retry task
 			vTaskDelay(IMAGE_CAPTURE_TASK_SHORT_DELAY_MS);
@@ -82,6 +83,7 @@ void ImageCaptureTask(void* parameters) {
 			// Normal operations with normal delay between task execution
 			vTaskDelay(getImageCaptureInterval());
 		}
+		mark
 	}
 }
 

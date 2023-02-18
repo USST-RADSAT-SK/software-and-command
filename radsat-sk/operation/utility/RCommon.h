@@ -53,7 +53,7 @@
 
 /** Dosimeter Settings */
 #define DOSIMETER_READINGS_PER_DAY			(6)			// How many dosimeter payload readings to collect per day.
-#define DOSIMETER_COLLECTION_TASK_DELAY_MS	(1000)		// Dosimeter Collection Task delay (in ms).
+#define DOSIMETER_COLLECTION_TASK_DELAY_MS	(5000)		// Dosimeter Collection Task delay (in ms).
 
 /** Watchdog Settings */
 #define SATELLITE_WATCHDOG_TASK_DELAY_MS	(100)		// Satellite Watchdog Task delay (in ms)

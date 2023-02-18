@@ -8,6 +8,7 @@
 #include <RCameraService.h>
 #include <RMessage.h>
 #include <stdio.h>
+#include <RDebug.h>
 
 
 /***************************************************************************************************
@@ -24,7 +25,6 @@
 uint8_t uplinkHandle(uint8_t* wrappedMessage, uint8_t size, uint8_t* messageType) {
 	debugPrint("got to telecommand handle\n");
 	uint8_t rawSize = 0;
-	uint8_t returnVal = 1;
 
 	// ensure the input pointer is not NULL
 	if (wrappedMessage == 0)
@@ -53,56 +53,55 @@ uint8_t uplinkHandle(uint8_t* wrappedMessage, uint8_t size, uint8_t* messageType
 	// if this message is a telecommand message
 	else if (rawMessage.which_service == radsat_message_TelecommandMessage_tag){
 
-			// pass out the message type
-			*messageType = radsat_message_TelecommandMessage_tag;
+		// pass out the message type
+		*messageType = radsat_message_TelecommandMessage_tag;
 
-			// obtain the specific telecommand
-			uint8_t telecommand = (uint8_t) rawMessage.TelecommandMessage.which_message;
+		// obtain the specific telecommand
+		uint8_t telecommand = (uint8_t) rawMessage.TelecommandMessage.which_message;
 
-			// execute the telecommands
-			switch (telecommand) {
+		// execute the telecommands
+		switch (telecommand) {
 
-				// indicates that a communication link has been established
-				case (telecommand_message_BeginPass_tag):
-					// do nothing; this reception of this telecommand already begins the pass mode
-					break;
+			// indicates that a communication link has been established
+			case (telecommand_message_BeginPass_tag):
+				// do nothing; this reception of this telecommand already begins the pass mode
+				break;
 
-				// indicates that a telecommands are done; ready for file transfers
-				case (telecommand_message_BeginFileTransfer_tag):
-					// do nothing; higher level tasks will handle
-					break;
+			// indicates that a telecommands are done; ready for file transfers
+			case (telecommand_message_BeginFileTransfer_tag):
+				// do nothing; higher level tasks will handle
+				break;
 
-				// indicates that all downlink activities shall be ceased
-				case (telecommand_message_CeaseTransmission_tag):
-					// do nothing; higher level tasks will handle
-					break;
+			// indicates that all downlink activities shall be ceased
+			case (telecommand_message_CeaseTransmission_tag):
+				// do nothing; higher level tasks will handle
+				break;
 
-				// indicates that downlink activities may be resumed
-				case (telecommand_message_ResumeTransmission_tag):
-					// do nothing; higher level tasks will handle
-					break;
+			// indicates that downlink activities may be resumed
+			case (telecommand_message_ResumeTransmission_tag):
+				// do nothing; higher level tasks will handle
+				break;
 
-				// provides a new accurate time for the OBC to set itself to
-				case (telecommand_message_UpdateTime_tag):
-					// TODO: implement functionality
-					break;
+			// provides a new accurate time for the OBC to set itself to
+			case (telecommand_message_UpdateTime_tag):
+				// TODO: implement functionality
+				break;
 
-				// instructs OBC to reset certain components on the Satellite
-				case (telecommand_message_Reset_tag):
-					// TODO: implement functionality
-					break;
+			// instructs OBC to reset certain components on the Satellite
+			case (telecommand_message_Reset_tag):
+				// TODO: implement functionality
+				break;
 
-				// unknown telecommand
-				default:
-					// do nothing; return failure
-					return 0;
-			}
-
-			return telecommand;
+			// unknown telecommand
+			default:
+				// do nothing; return failure
+				return 0;
 		}
 
+		return telecommand;
+
 	// neither protocol or telecommand, should never happen
-	else {
+	} else {
 		*messageType = 0;
 		return 0;
 	}

@@ -18,48 +18,50 @@
 #include <freertos/timers.h>
 
 
+#ifdef DEBUG
+
+
+	static const char* getCommModeName(comm_mode_t mode){
+		switch (mode){
+		case commModeQuiet:
+			return "Quiet";
+		case commModePass:
+			return "Pass";
+		case commModeFileTransfer:
+			return "FileX";
+		default:
+			return "Unknown";
+		}
+	}
+
+
+	#undef INFOFMT
+	#undef WARNINGFMT
+	#undef ERRORFMT
+	#undef infoPrint
+	#undef warningPrint
+	#undef errorPrint
+	#define INFOFMT 		" %15s(), %5s Mode: "
+	#define WARNINGFMT 		" %s, %d, %s(), %s Mode: "
+	#define ERRORFMT 		" %s in function %s() at line %d, %s Mode... \n -> "
+	#define infoPrint(fmt, ...) 	printf(INFOTEXT		INFOFMT		fmt "\n", __func__, getCommModeName(currentMode), ##__VA_ARGS__)
+	#define warningPrint(fmt, ...) printf(WARNINGTEXT	WARNINGFMT 	fmt "\n", __FILENAME__, __LINE__, __func__, getCommModeName(currentMode), ##__VA_ARGS__)
+	#define errorPrint(fmt, ...) 	printf(ERRORTEXT	ERRORFMT 	fmt "\n", __FILE__, __func__, __LINE__, getCommModeName(currentMode), ##__VA_ARGS__)
+#endif
 /***************************************************************************************************
                                    DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
-
-int setMode(comm_mode_t mode, uint32_t passTime);
+static void passTimeoutCallback(xTimerHandle xTimer);
+typedef enum _fileTransferModeStatus{
+	newSession,
+	oldSession
+} fileTransferModeStatus_t;
 
 /** Timer for pass mode */
 static xTimerHandle passTimer;
 static comm_mode_t currentMode = commModeQuiet;
+static fileTransferModeStatus_t fileTransferSessionStatus = newSession;
 
-
-
-/***************************************************************************************************
-                                             PUBLIC API
-***************************************************************************************************/
-
-/**
- * Forcefully puts the state machine into quiet mode, without an automatic way out.
- *
- * Should only be put here via Telecommand from Ground Station. Only way out is through a
- * subsequent telecommand from the Ground Station (see @sa resumeTransmission).
- */
-void ceaseTransmission(void) {
-	setMode(commModeQuiet, 0);
-}
-
-/**
- * Updates the time on the satellite state machine after receiving the updateTime command from the ground station.
- */
-int updateTime(uint32_t epochTime) {
-	infoPrint("Setting time...");
-	debugPrint("Before: ");
-	printTime();
-	debugPrint(" \n");
-	int error = Time_setUnixEpoch(epochTime);
-	if (error)
-		errorPrint("Error Setting time: error= %d, most likely invalid input.", error);
-	debugPrint("After: ");
-	printTime();
-	debugPrint(" \n");
-	return error;
-}
 
 /**
  * If no telecommand has been successfully received, send a nack down
@@ -69,11 +71,9 @@ void sendNack(void) {
 	uint8_t message[MAX_MESSAGE_SIZE] = { 0 };
 	uint8_t size = protocolGenerate(commandNack, message);
 	transceiverSendFrame(message, size, &txSlotsRemaining);
-	if (txSlotsRemaining <= 1){
-		vTaskDelay(100);
-	}
 	infoPrint("Nack Sent.");
 }
+
 
 /**
  * If no telecommand has been successfully received, send a nack down
@@ -82,108 +82,15 @@ void sendAck(void) {
 	uint8_t txSlotsRemaining = 0;
 	uint8_t message[MAX_MESSAGE_SIZE] = { 0 };
 	uint8_t size = protocolGenerate(commandAck, message);
-	infoPrint("Msg Size = %d",size);
 	transceiverSendFrame(message, size, &txSlotsRemaining);
-	if (txSlotsRemaining <= 1){
-		vTaskDelay(100);
-	}
 	infoPrint("Ack Sent.");
 }
 
-void processPassMode(commandType_t type, messageSubject_t* content){
-	switch (type) {
-	case commandCeaseTransmission:
-		ceaseTransmission();
-		return;
-	case commandBeginPass:
-		setMode(commModePass, content->BeginPass.passLength);
-		sendAck();
-		return;
-	case commandBeginFileTransfer:
-		setMode(commandBeginFileTransfer, 0);
-		sendAck();
-		return;
-	case commandUpdateTime:
-		infoPrint("Time = %lu\n", content->UpdateTime.unixTime);
-		updateTime(content->UpdateTime.unixTime);
-		sendAck();
-		return;
-	case commandReset:
-		//resetCommand(content->Reset.device, content->Reset.hard);
-		sendAck();
-		return;
-	case commandUnknownCommand:
-		sendNack();
-		return;
-	case commandAck:
-		sendNack();
-		return;
-	case commandNack:
-		sendNack();
-		return;
-	case commandProtoUnwrapError:
-		sendNack();
-		return;
-	case commandGeneralError:
-		return;
-	default:
-		break;
-	}
-	return;
-}
 
-void processQuiet(commandType_t type, messageSubject_t* content){
-	if (type == commandBeginPass){
-		setMode(commModePass, content->BeginPass.passLength);
-		sendAck();
-	} else {
-		vTaskDelay( COMMS_QUIET_DELAY );
-	}
-	return;
-}
-
-/***************************************************************************************************
-                                             PUBLIC API
-***************************************************************************************************/
-
-
-/***************************************************************************************************
-                                         PRIVATE FUNCTIONS
-***************************************************************************************************/
+int setMode(comm_mode_t mode, uint32_t passTime);
 
 comm_mode_t getMode(void){
 	return currentMode;
-}
-
-void processCommand(commandType_t type, messageSubject_t* content){
-	if (type == commandCeaseTransmission){
-		setMode(commModeQuiet, 0);
-		return;
-	}
-	switch (getMode()){
-	case commModeQuiet:
-		processQuiet(type, content);
-		break;
-	case commModePass:
-		processPassMode(type, content);
-		break;
-	case commModeFileTransfer:
-		//processFileTransfer(type);
-		break;
-	}
-}
-
-
-
-
-/**
- * Callback function for the pass timer that ends the pass mode.
- *
- * @param timer A handle for a timer.
- */
-static void passTimeoutCallback(xTimerHandle xTimer) {
-	(void)xTimer;
-	setMode(commModeQuiet, 0);
 }
 
 
@@ -248,3 +155,176 @@ int setMode(comm_mode_t mode, uint32_t passTime) {
 	}
 	return 0;
 }
+
+
+/**
+ * Callback function for the pass timer that ends the pass mode.
+ *
+ * @param timer A handle for a timer.
+ */
+static void passTimeoutCallback(xTimerHandle xTimer) {
+	(void)xTimer;
+	setMode(commModeQuiet, 0);
+}
+
+/***************************************************************************************************
+                                             PUBLIC API
+***************************************************************************************************/
+
+/**
+ * Forcefully puts the state machine into quiet mode, without an automatic way out.
+ *
+ * Should only be put here via Telecommand from Ground Station. Only way out is through a
+ * subsequent telecommand from the Ground Station (see @sa resumeTransmission).
+ */
+void ceaseTransmission(void) {
+	setMode(commModeQuiet, 0);
+}
+
+/**
+ * Updates the time on the satellite state machine after receiving the updateTime command from the ground station.
+ */
+int updateTime(uint32_t epochTime) {
+	infoPrint("Setting time...");
+	debugPrint("Before: ");
+	printTime();
+	debugPrint(" \n");
+	int error = Time_setUnixEpoch(epochTime);
+	if (error)
+		errorPrint("Error Setting time: error= %d, most likely invalid input.", error);
+	debugPrint("After: ");
+	printTime();
+	debugPrint(" \n");
+	return error;
+}
+
+
+
+/***************************************************************************************************
+                                             PUBLIC API
+***************************************************************************************************/
+
+
+/***************************************************************************************************
+                                         PRIVATE FUNCTIONS
+***************************************************************************************************/
+
+void processFileTransfer(commandType_t type){
+	infoPrint("FProcess file tx");
+	int size = 0;
+	uint8_t txSlotsRemaining = 0;
+	uint8_t messageContainer[TRANCEIVER_TX_MAX_FRAME_SIZE] = { 0 };
+	switch (type) {
+	case commandAck:
+		if (fileTransferSessionStatus == newSession){
+			size = fileTransferCurrentFrame(messageContainer);
+		} else {
+			size = fileTransferNextFrame(messageContainer);
+		}
+		infoPrint("File Transfer Ack received.");
+		break;
+	case commandNack:
+		size = fileTransferCurrentFrame(messageContainer);
+		infoPrint("File Transfer Nack received.");
+		break;
+	case commandBeginPass:
+		fileTransferSessionStatus = newSession;
+		setMode(commModePass, 0);
+		sendAck();
+		return;
+	default:
+		return;
+	}
+
+	if (size == 0){
+		warningPrint("File Transfer size = 0...");
+		sendNack();
+		fileTransferSessionStatus = newSession;
+		setMode(commModePass, 0);
+		return;
+	}
+	transceiverSendFrame(messageContainer, size, &txSlotsRemaining);
+	fileTransferSessionStatus = oldSession;
+	return;
+}
+
+
+void processPassMode(commandType_t type, messageSubject_t* content){
+	switch (type) {
+	case commandCeaseTransmission:
+		ceaseTransmission();
+		return;
+	case commandBeginPass:
+		setMode(commModePass, content->BeginPass.passLength);
+		sendAck();
+		return;
+	case commandBeginFileTransfer:
+		setMode(commModeFileTransfer, 0);
+		sendAck();
+		return;
+	case commandUpdateTime:
+		infoPrint("Time = %lu\n", content->UpdateTime.unixTime);
+		updateTime(content->UpdateTime.unixTime);
+		sendAck();
+		return;
+	case commandReset:
+		//resetCommand(content->Reset.device, content->Reset.hard);
+		sendAck();
+		return;
+	case commandUnknownCommand:
+		sendNack();
+		return;
+	case commandAck:
+		sendNack();
+		return;
+	case commandNack:
+		sendNack();
+		return;
+	case commandProtoUnwrapError:
+		sendNack();
+		return;
+	case commandGeneralError:
+		return;
+	default:
+		break;
+	}
+	return;
+}
+
+
+void processQuiet(commandType_t type, messageSubject_t* content){
+	if (type == commandBeginPass){
+		setMode(commModePass, content->BeginPass.passLength);
+		sendAck();
+	} else {
+		vTaskDelay( COMMS_QUIET_DELAY );
+	}
+	return;
+}
+
+
+void processCommand(commandType_t type, messageSubject_t* content){
+	if (type == commandCeaseTransmission){
+		setMode(commModeQuiet, 0);
+		return;
+	}
+	infoPrint("%d", getMode());
+	switch (getMode()){
+	case commModeQuiet:
+		processQuiet(type, content);
+		break;
+	case commModePass:
+		processPassMode(type, content);
+		break;
+	case commModeFileTransfer:
+		processFileTransfer(type);
+		break;
+	}
+}
+
+
+
+
+
+
+

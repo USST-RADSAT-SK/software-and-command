@@ -87,6 +87,16 @@ int printResolvedErrorMessage(int errorValue){
 	}
 }
 
+#ifndef TEST
+// fromat string for throbber %-8.8s
+char* throbber(void){
+    static unsigned int pos = 0;
+    static char patern[] = "        ........";
+    pos = pos < 15 ? pos + 1 : 0;
+    return &patern[pos];
+}
+#endif
+
 void printTime(void){
 	Time time = { 0 };
 	int error = Time_get(&time);
@@ -107,9 +117,23 @@ void printTime(void){
  * @param[in] size of variable being printed
  */
 void debugPrintHex(uint8_t* values, size_t size){
-	for (size_t i = 0; i < size; i++){
-		printf("%02x", values[i]);
+	debugPrint("          ");
+	for (int i = 0; i<32; i++) {
+		debugPrint("%02x ", i);
 	}
+	debugPrint("\n        .");
+
+	for (int i = 0; i<32; i++) {
+		debugPrint("___");
+	}
+
+	for (unsigned int i = 0; i<size-4; i++) {
+		if (i % 32 == 0) {
+			debugPrint("\n 0x%04x | ", i);
+		}
+		debugPrint("%02x ", values[i+4]);
+	}
+	debugPrint("\n\n");
 	return;
 }
 

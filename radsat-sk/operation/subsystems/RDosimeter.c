@@ -107,11 +107,12 @@ int dosimeterData(dosimeter_data* data) {
 	uint8_t dataResponse[DOSIMETER_RESPONSE_LENGTH] = { 0 };
 
 	// prepare a 2D array to store the values obtained in the following loops
-	float results[dosimeterBoardCount][adcChannelCount] = { 0 };
+	//float results[dosimeterBoardCount][adcChannelCount] = { 0 };
 
 	// iterate through both melanin-dosimeter boards
 	for (uint8_t dosimeterBoard = dosimeterBoardOne; dosimeterBoard < dosimeterBoardCount; dosimeterBoard++) {
 
+		dosimeter_board_data* currentBoard = (&data->boardOne) + dosimeterBoard;
 		// request data from each sensor on a particular board
 		for (uint8_t adcChannel = adcChannelZero; adcChannel < adcChannelCount; adcChannel++) {
 
@@ -125,7 +126,7 @@ int dosimeterData(dosimeter_data* data) {
 
 			// check for success of I2C command
 			if (error != 0)
-				return error;
+				continue;
 
 			float finalVoltage = convertCountsToVoltage(dataResponse[0], dataResponse[1]);
 
@@ -134,12 +135,12 @@ int dosimeterData(dosimeter_data* data) {
 				finalVoltage = convertVoltageToTemperature(finalVoltage);
 
 			// store result in 2D array
-			results[dosimeterBoard][adcChannel] = finalVoltage;
+			*((&currentBoard->channelZero) + adcChannel) = finalVoltage;
 
 		}
 	}
 
-	// format protobuf message with recorded values
+	/*// format protobuf message with recorded values
 
 	// board one
 	data->boardOne.channelZero = results[dosimeterBoardOne][adcChannelZero];
@@ -160,7 +161,7 @@ int dosimeterData(dosimeter_data* data) {
 	data->boardTwo.channelFive = results[dosimeterBoardTwo][adcChannelFive];
 	data->boardTwo.channelSix = results[dosimeterBoardTwo][adcChannelSix];
 	data->boardTwo.channelSeven = results[dosimeterBoardTwo][adcChannelSeven];
-
+	*/
 	return  error;
 }
 
@@ -179,14 +180,14 @@ int dosimeterData(dosimeter_data* data) {
  * 		   Manager.
  */
 int dosimeterCollectData(void) {
-
 	// prepare a protobuf struct to populate with data
 	dosimeter_data data = { 0 };
 
 	int error = dosimeterData(&data);
+	printDosimeterData(&data);
 
-	// send formatted protobuf messages to downlink manager
-	error = fileTransferAddMessage(&data, sizeof(data), file_transfer_message_DosimeterData_tag);
+	// send formatted protobuf mssages to downlink manager
+	error = fileTransferAddMessage(&data, sizeof(dosimeter_data), file_transfer_message_DosimeterData_tag);
 
 	return  error;
 }

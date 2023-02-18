@@ -110,7 +110,9 @@ int transceiverRxFrameCount(uint16_t* numberOfFrames) {
 	if (numberOfFrames == 0)
 		return E_INPUT_POINTER_NULL;
 
+	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_rcGetFrameCount(TRANSCEIVER_INDEX, numberOfFrames);
+	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 
@@ -140,7 +142,9 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
 		.rx_framedata = messageBuffer,
 	};
 
+	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_rcGetCommandFrame(TRANSCEIVER_INDEX, &frame);
+	//i2cRelease();
 
 	// provide the size of the message to the caller
 	*sizeOfMessage = frame.rx_length;
@@ -169,7 +173,9 @@ int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRe
 	if (message == 0)
 		return E_INPUT_POINTER_NULL;
 
+	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, slotsRemaining);
+	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 
@@ -194,7 +200,9 @@ int transceiverPowerCycle(void) {
 		return E_NOT_INITIALIZED;
 
 	// send full hard reset command
+	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_hardReset(TRANSCEIVER_INDEX);
+	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 
@@ -209,7 +217,9 @@ int transceiverPowerCycle(void) {
 int transceiverSoftReset(void){
 
 	//send full soft reset command
+	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_softReset(TRANSCEIVER_INDEX);
+	//i2cRelease();
 
 	//TODO: record errors (if present) to System Manager
 	if (error != 0)
@@ -234,6 +244,7 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 	ISIStrxvuRxTelemetry rawRxTelemetry = { .fields = { 0 } };
 	ISIStrxvuTxTelemetry rawTxTelemetry = { .fields = { 0 } };
 
+	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_rcGetTelemetryAll(TRANSCEIVER_INDEX, &rawRxTelemetry);
 
 	// TODO: record errors (if present) to System Manager
@@ -241,6 +252,7 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 		return error;
 
 	error = IsisTrxvu_tcGetTelemetryAll(TRANSCEIVER_INDEX, &rawTxTelemetry);
+	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 	if (error)

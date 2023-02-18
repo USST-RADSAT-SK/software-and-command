@@ -50,7 +50,8 @@ uint8_t protocolGenerate(commandType_t command, uint8_t* wrappedMessage) {
 	}
 
 	// prepare the message
-	uint8_t finalSize = messageWrap(&rawMessage, wrappedMessage);
+	uint8_t finalSize = messageWrap(&rawMessage, (radsat_sk_raw_message_t*)wrappedMessage);
+
 
 	// return the final size of the message
 	return finalSize;
@@ -100,13 +101,13 @@ commandType_t genericHandle(uint8_t* wrappedMessage, uint8_t size, messageSubjec
 		pb_size_t response = rawMessage.ProtocolMessage.which_message;
 		switch (response) {
 			case (protocol_message_Ack_tag):
-				debugPrint("Massage unpacked: Ack");
+				infoPrint("Massage unpacked: Ack");
 				command = commandAck;
 				copyLocation = &rawMessage.ProtocolMessage.Ack;
 				copySize = sizeof(ack);
 				break;
 			case (protocol_message_Nack_tag):
-				debugPrint("Massage unpacked: Nack");
+				infoPrint("Massage unpacked: Nack");
 				command = commandNack;
 				copyLocation = &rawMessage.ProtocolMessage.Nack;
 				copySize = sizeof(nack);

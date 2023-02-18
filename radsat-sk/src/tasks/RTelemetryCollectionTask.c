@@ -32,6 +32,8 @@ void TelemetryCollectionTask(void* parameters) {
 
 		infoPrint("Collecting satellite telemetry data.");
 
+		mark
 		vTaskDelay(TELEMETRY_COLLECTION_TASK_DELAY_MS);
+		mark
 	}
 }
