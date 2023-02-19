@@ -83,9 +83,7 @@
 									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
+									<listOptionValue builtIn="false" value="../operation/message/types"/>
 									<listOptionValue builtIn="false" value="../operation/message/crypt"/>
 									<listOptionValue builtIn="false" value="../operation/services"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
@@ -234,9 +232,7 @@
 									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
+									<listOptionValue builtIn="false" value="../operation/message/types"/>
 									<listOptionValue builtIn="false" value="../operation/message/crypt"/>
 									<listOptionValue builtIn="false" value="../operation/services"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
@@ -396,16 +392,13 @@
 									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
+									<listOptionValue builtIn="false" value="../operation/message/types"/>
 									<listOptionValue builtIn="false" value="../operation/message/crypt"/>
 									<listOptionValue builtIn="false" value="../operation/services"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems/camera"/>
 									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
-									<listOptionValue builtIn="false" value="../testing"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1971370393" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>

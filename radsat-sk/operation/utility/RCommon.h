@@ -8,7 +8,7 @@
 #define RCOMMON_H_
 
 #include <RErrorManager.h>	// Error Reporting, Handling
-#include <RProtobuf.h>		// Message Struct Definitions (telemetry, etc.)
+#include <RRadsat.h>		// Message Struct Definitions (telemetry, etc.)
 #include <RDebug.h>			// Debugging Printing
 
 

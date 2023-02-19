@@ -7,9 +7,9 @@
 #ifndef RPROTOCOLSERVICE_H_
 #define RPROTOCOLSERVICE_H_
 
-#include <RProtocol.pb.h>
+#include <RProtocol.h>
 #include <RMessage.h>
-#include <RTelecommands.pb.h>
+#include <RTelecommands.h>
 #include <stdint.h>
 
 

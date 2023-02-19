@@ -10,10 +10,61 @@
 #include <RXorCipher.h>
 #include <hal/Timing/Time.h>
 
+/**
+ * Encode (serialize) a raw protobuf message with NanoPB into a buffer.
+ *
+ * @param rawMessage The raw (non-serialized) radsat_message struct to encode.
+ * @param outgoingBuffer The buffer that will hold the encoded message.
+ * @return The size of the encoded message (max 255); 0 if encoding failed.
+ */
+static uint8_t getRadsatMessageSize(radsat_tag_t tag) {
+	switch (tag) {
+	case file_transfer_ObcTelemetry_tag:
+		return file_transfer_ObcTelemetry_size;
+	case file_transfer_TransceiverTelemetry_tag:
+		return file_transfer_TransceiverTelemetry_size;
+	case file_transfer_CameraTelemetry_tag:
+		return file_transfer_CameraTelemetry_size;
+	case file_transfer_EpsTelemetry_tag:
+		return file_transfer_EpsTelemetry_size;
+	case file_transfer_BatteryTelemetry_tag:
+		return file_transfer_BatteryTelemetry_size;
+	case file_transfer_AntennaTelemetry_tag:
+		return file_transfer_AntennaTelemetry_size;
+	case file_transfer_DosimeterData_tag:
+		return file_transfer_DosimeterData_size;
+	case file_transfer_ImagePacket_tag:
+		return file_transfer_ImagePacket_size;
+	case file_transfer_ModuleErrorReport_tag:
+		return file_transfer_ModuleErrorReport_size;
+	case file_transfer_ComponentErrorReport_tag:
+		return file_transfer_ComponentErrorReport_size;
+	case file_transfer_ErrorReportSummary_tag:
+		return file_transfer_ErrorReportSummary_size;
+	case protocol_Ack_tag:
+		return protocol_Ack_size;
+	case protocol_Nack_tag:
+		return protocol_Nack_size;
+	case telecommand_BeginPass_tag:
+		return telecommand_BeginPass_size;
+	case telecommand_BeginFileTransfer_tag:
+		return telecommand_BeginFileTransfer_size;
+	case telecommand_CeaseTransmission_tag:
+		return telecommand_CeaseTransmission_size;
+	case telecommand_UpdateTime_tag:
+		return telecommand_UpdateTime_size;
+	case telecommand_Reset_tag:
+		return telecommand_Reset_size;
+	default:
+		return 0;
+	}
+}
+
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
+
 /**
  * Wrap a raw RADSAT-SK message, preparing it for downlink.
  *
@@ -33,8 +84,12 @@ uint8_t messageWrap(radsat_message* rawMessage, radsat_sk_raw_message_t* wrapped
 	}
 
 	// serialize the raw message with NanoPB Protobuf encoding
-	uint8_t encodedSize = protoEncode(rawMessage, wrappedMessage->body);
-	if (encodedSize == 0){
+	uint8_t encodedSize = getRadsatMessageSize(rawMessage->which_service);
+
+	// create stream object
+	memcpy(wrappedMessage->body, rawMessage, encodedSize);
+
+	if (encodedSize == 0) {
 		errorPrint("ProtoEncode Error Size == 0");
 		return 0;
 	}
@@ -76,6 +131,7 @@ uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* raw
 
 	radsat_sk_raw_message_t mediumRareMessage = { 0 };
 	memcpy(&mediumRareMessage, wrappedMessage, size);
+
 	// decrypt entire message
 	int error = xorDecrypt((uint8_t*)&mediumRareMessage, size);
 	if (error){
@@ -100,12 +156,9 @@ uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* raw
 	}
 
 	// deserialize the encoded message with NanoPB Protobuf decoding
-	error = protoDecode(mediumRareMessage.body, mediumRareMessage.size, rawMessage);
-	if (error){
-		errorPrint("Bad proto decode\n");
-		return 0;
-	}
+	memcpy(rawMessage, mediumRareMessage.body, mediumRareMessage.size);
 	// return the size of the message itself
 	return mediumRareMessage.size;
 }
+
 

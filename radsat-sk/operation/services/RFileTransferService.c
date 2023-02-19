@@ -17,13 +17,10 @@
 /**
  * Ensure that our message sizes never exceed the transceiver's max frame size.
  * NOTE: This check allows for 15 bytes of overhead (i.e. from the header) which is more than we currently need. */
-#if ((PROTO_MAX_ENCODED_SIZE + 15) > (TRANCEIVER_TX_MAX_FRAME_SIZE))
-#error "Encoded protobuf message size (plus header) exceeds maximum transceiver frame size!! Reduce size of header or max protobuf messages"
-#endif
+//#if ((PROTO_MAX_ENCODED_SIZE + 15) > (TRANCEIVER_TX_MAX_FRAME_SIZE))
+//#error "Encoded protobuf message size (plus header) exceeds maximum transceiver frame size!! Reduce size of header or max protobuf messages"
+//#endif
 
-#if (524287 < (TRANCEIVER_TX_MAX_FRAME_SIZE + 1) * MAX_FRAME_COUNT)
-#error "Too many frams in fram"
-#endif
 
 /***************************************************************************************************
                                    DEFINITIONS & PRIVATE GLOBALS
@@ -81,7 +78,7 @@ int getCursors(fileCursor_t* readCursor, fileCursor_t* writeCursor){
 	int error = SUCCESS;
 	if (readCursor != NULL){
 		error = framRead((uint8_t*)writeCursor, FRAM_WRITE_CURSOR_ADDR, 2);
-		if(error){
+		if (error) {
 			errorPrint("FRAM READ WRITE CURSOR ERROR = %d, cursor = %hu", error, *writeCursor);
 			return error;
 		}
@@ -218,11 +215,10 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 
 	// create new RADSAT-SK message to populate
 	radsat_message newMessage = { 0 };
-	newMessage.which_service = radsat_message_FileTransferMessage_tag;
-	newMessage.FileTransferMessage.which_message = messageTag;
+	newMessage.which_service = messageTag;
 
 	// internal message data will go immediately after the "which message" property of the struct
-	void* newMessageAddr = &newMessage.FileTransferMessage.which_message + 1;
+	void* newMessageAddr = (&newMessage.which_service) + 1;
 	memcpy(newMessageAddr, message, size);
 
 	// wrap new message

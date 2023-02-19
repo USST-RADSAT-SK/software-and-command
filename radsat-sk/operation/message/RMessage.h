@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 #include <crc.h>
-#include <RProtobuf.h>
+#include <RRadsat.h>
 
 
 /***************************************************************************************************
@@ -22,7 +22,7 @@ typedef struct __attribute__((packed)) _radsat_sk_raw_message_t {
 	crc_t crc;				///> Cyclical Redundancy Check of all of the following bytes
 	uint8_t size;			///> The size of the message in bytes (NOT including the header)
 	uint32_t timestamp;		///> The time (in seconds since Unix Epoch) that the message was formatted
-	uint8_t body[PROTO_MAX_ENCODED_SIZE];			///> Body of the message
+	uint8_t body[radsat_message_size];			///> Body of the message
 } radsat_sk_raw_message_t;
 
 /** The hardcoded preamble that will begin every RADSAT-SK message. The starting year of the RADSAT-SK Project*/

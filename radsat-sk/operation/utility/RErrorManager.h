@@ -9,7 +9,7 @@
 
 #include <stdint.h>
 #include <hal/errors.h>
-#include <RFileTransfer.pb.h>
+#include <RFileTransfer.h>
 
 
 /***************************************************************************************************

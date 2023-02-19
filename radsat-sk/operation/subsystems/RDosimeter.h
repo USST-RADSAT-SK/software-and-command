@@ -8,7 +8,7 @@
 #define RDOSIMETER_H_
 
 #include <stdint.h>
-#include <RFileTransfer.pb.h>
+#include <RFileTransfer.h>
 
 
 
