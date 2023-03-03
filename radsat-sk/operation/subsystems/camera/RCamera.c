@@ -155,7 +155,7 @@ static uint16_t getNumberOfFramesFromSize(uint8_t size);
 full_image_t * initializeNewImage(uint8_t size) {
 	uint16_t numberOfFrames = getNumberOfFramesFromSize(size);
 	full_image_t *image = calloc(1, sizeof(*image) + sizeof(tlm_image_frame_t) * numberOfFrames);
-	printf("Image allocated memory size = %i bytes\n", sizeof(*image) + sizeof(tlm_image_frame_t) * numberOfFrames);
+	infoPrint("Image allocated memory size = %i bytes\n", sizeof(*image) + sizeof(tlm_image_frame_t) * numberOfFrames);
 	if (image != NULL) {
 		image->imageSize = size;
 		image->framesCount = numberOfFrames;
@@ -239,17 +239,17 @@ int downloadImage(uint8_t sram, uint8_t location, full_image_t *image) {
 		return E_GENERIC;
 	}
 
-	printf("\n--- Initializing Image Download (TC 64) of SRAM=%i and location=%i---\n\n", sram, location);
+	infoPrint("\n--- Initializing Image Download (TC 64) of SRAM=%i and location=%i---\n", sram, location);
 	// Send telecommand 64 to initialize a download
 	error = tcInitImageDownload(sram, location, image->imageSize);
 	if (error != SUCCESS) {
-		printf("Error during tcInitImageDownload()...\n");
+		errorPrint("Error during tcInitImageDownload()...\n");
 		return error;
 	}
 
 	// Loop for the amount of frames that are being downloaded
 	for (uint16_t i = 0; i < image->framesCount; i++) {
-		printf("\nFRAME NUMBER = %i  |  Attempts:", i);
+		infoPrint("\nFRAME NUMBER = %i  |  Attempts:", i);
 		// Request image frame status until image frame is loaded in the camera buffer,
 		// the counter is used to ensure we don't deadlock
 		counter = 0;
@@ -259,7 +259,7 @@ int downloadImage(uint8_t sram, uint8_t location, full_image_t *image) {
 			} else {
 				vTaskDelay(IMAGE_FRAME_INTERVAL_MS); // Delay in ms between each frame info request
 			}
-			printf(" %i ", counter);
+			infoPrint(" %i ", counter);
 			error = tlmImageFrameInfo(&imageFrameInfo);
 			if(error != SUCCESS){
 				return error;
@@ -320,17 +320,17 @@ int getSingleDetectionStatus(SensorResultAndDetection sensorSelection) {
  * @param data a struct that will contain the sun and nadir detection angles
  * @return error; 0 on success, otherwise failure
  */
-int getResultsAndTriggerNewDetection(detection_results_t *data) {
+int getResultsAndTriggerNewDetection(adcs_detection *data) {
 	int error = 0;
 	tlm_detection_result_and_trigger_adcs_t sun_sensor_data = {0};
 	tlm_detection_result_and_trigger_adcs_t nadir_sensor_data = {0};
 
-	printf("\n--------- SUN ---------");
+	debugPrint("\n--------- SUN ---------");
 	// Request results of Sun detection with TLM 22
 	error = tlmSensorResultAndDetection(&sun_sensor_data, sensor1_sram1);
 	if (error != 0) return error;
 
-	printf("\n-------- NADIR --------");
+	debugPrint("\n-------- NADIR --------");
 	// Request results of nadir detection with TLM 23
 	error = tlmSensorResultAndDetection(&nadir_sensor_data, sensor2_sram2);
 	if (error != 0) return error;
@@ -339,12 +339,12 @@ int getResultsAndTriggerNewDetection(detection_results_t *data) {
 	if (sun_sensor_data.detectionResult == 1 || nadir_sensor_data.detectionResult == 1) {
 		vTaskDelay(1000);
 		if (sun_sensor_data.detectionResult == 1) {
-			printf("\n--------- SUN ---------");
+			debugPrint("\n--------- SUN ---------");
 			error = tlmSensorResultAndDetection(&sun_sensor_data, sensor1_sram1);
 			if (error != 0) return error;
 		}
 		if (nadir_sensor_data.detectionResult == 1) {
-			printf("\n-------- NADIR --------");
+			debugPrint("\n-------- NADIR --------");
 			error = tlmSensorResultAndDetection(&nadir_sensor_data, sensor2_sram2);
 			if (error != 0) return error;
 		}
@@ -789,7 +789,7 @@ int tlmImageFrame(tlm_image_frame_t *telemetry_reply) {
 	free(telemetryBuffer);
 
 	if (error != 0) {
-		printf("tlmImageFrame(): Error during uartTransmit()... (error=%d)\n", error);
+		warningPrint("tlmImageFrame(): Error during uartTransmit()... (error=%d)\n", error);
 		return E_GENERIC;
 	}
 
@@ -800,7 +800,7 @@ int tlmImageFrame(tlm_image_frame_t *telemetry_reply) {
 	error = receiveAndUnescapeTelemetry(telemetryBuffer, TELEMETRY_64_LEN);
 
 	if (error != 0) {
-		printf("tlmImageFrame(): Error during receiveAndUnescapeTelemetry()... (error=%d)\n", error);
+		warningPrint("tlmImageFrame(): Error during receiveAndUnescapeTelemetry()... (error=%d)\n", error);
 		free(telemetryBuffer);
 		return E_GENERIC;
 	}

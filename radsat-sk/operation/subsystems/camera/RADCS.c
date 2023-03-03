@@ -33,6 +33,7 @@ char capture_results[6][25] = {
 		"Camera timeout",
 		"SRAM overcurrent"
 };
+
 char detection_results[8][25] = {
 		"Startup",
 		"Not scheduled",
@@ -43,14 +44,22 @@ char detection_results[8][25] = {
 		"Error - Sun not found",
 		"Success"
 };
+
 void printDetectionData(tlm_detection_result_and_trigger_adcs_t *data) {
-	printf("\n--- Detection Data ---\n");
-	printf("Alpha Angle      = %d\n", data->alpha);
-	printf("Beta Angle       = %d\n", data->beta);
-	printf("Capture Result   = %d (%s)\n", data->captureResult, capture_results[data->captureResult]);
-	printf("Detection Result = %d (%s)\n", data->detectionResult, detection_results[data->detectionResult]);
-	printf("Timestamp        = %lu\n", data->timestamp);
-	printf("----------------------\n");
+	infoPrint("\n --- Detection Data ---\n\
+		Alpha Angle      = %d\n\
+		Beta Angle       = %d\n\
+		Capture Result   = %d (%s)\n\
+		Detection Result = %d (%s)\n\
+		Timestamp        = %lu",
+		data->alpha,
+		data->beta,
+		data->captureResult,
+		capture_results[data->captureResult],
+		data->detectionResult,
+		detection_results[data->detectionResult],
+		data->timestamp
+	);
 }
 
 /***************************************************************************************************
@@ -63,7 +72,7 @@ void printDetectionData(tlm_detection_result_and_trigger_adcs_t *data) {
  * @param camera defines which camera to use for capture and detection, camera 1 = 0, camera 2 = 1
  * @param sram defines which SRAM to use on Cubesense, SRAM1 = 0, SRAM2 = 1
  * @return error of telecommand attempt. 0 on success, otherwise failure
- * */
+ **/
 int tcImageCaptureAndDetection(uint8_t camera, uint8_t sram) {
 	uint8_t *telecommandBuffer;
 	uint8_t *telecommandResponse;

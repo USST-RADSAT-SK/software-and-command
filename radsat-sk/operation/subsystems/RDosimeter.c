@@ -139,29 +139,6 @@ int dosimeterData(dosimeter_data* data) {
 
 		}
 	}
-
-	/*// format protobuf message with recorded values
-
-	// board one
-	data->boardOne.channelZero = results[dosimeterBoardOne][adcChannelZero];
-	data->boardOne.channelOne = results[dosimeterBoardOne][adcChannelOne];
-	data->boardOne.channelTwo = results[dosimeterBoardOne][adcChannelTwo];
-	data->boardOne.channelThree = results[dosimeterBoardOne][adcChannelThree];
-	data->boardOne.channelFour = results[dosimeterBoardOne][adcChannelFour];
-	data->boardOne.channelFive = results[dosimeterBoardOne][adcChannelFive];
-	data->boardOne.channelSix = results[dosimeterBoardOne][adcChannelSix];
-	data->boardOne.channelSeven = results[dosimeterBoardOne][adcChannelSeven];
-
-	// board two
-	data->boardTwo.channelZero = results[dosimeterBoardTwo][adcChannelZero];
-	data->boardTwo.channelOne = results[dosimeterBoardTwo][adcChannelOne];
-	data->boardTwo.channelTwo = results[dosimeterBoardTwo][adcChannelTwo];
-	data->boardTwo.channelThree = results[dosimeterBoardTwo][adcChannelThree];
-	data->boardTwo.channelFour = results[dosimeterBoardTwo][adcChannelFour];
-	data->boardTwo.channelFive = results[dosimeterBoardTwo][adcChannelFive];
-	data->boardTwo.channelSix = results[dosimeterBoardTwo][adcChannelSix];
-	data->boardTwo.channelSeven = results[dosimeterBoardTwo][adcChannelSeven];
-	*/
 	return  error;
 }
 
@@ -184,7 +161,7 @@ int dosimeterCollectData(void) {
 	dosimeter_data data = { 0 };
 
 	int error = dosimeterData(&data);
-	printDosimeterData(&data);
+	//printDosimeterData(&data);
 
 	// send formatted protobuf mssages to downlink manager
 	error = fileTransferAddMessage(&data, sizeof(dosimeter_data), file_transfer_DosimeterData_tag);

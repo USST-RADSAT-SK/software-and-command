@@ -200,6 +200,7 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 		errorPrint("message == 0");
 		return E_INPUT_POINTER_NULL;
 	}
+	printCursorInfo();
 
 
 

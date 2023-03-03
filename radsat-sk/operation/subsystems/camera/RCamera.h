@@ -8,6 +8,7 @@
 #define RCAMERA_H_
 
 #include <RCameraCommon.h>
+#include <RFileTransfer.h>
 #include <stdint.h>
 #include <time.h>
 
@@ -20,15 +21,6 @@
 /*maximum number of bytes in one image */
 #define MAXIMUM_BYTES					1048576
 
-/* Struct used to hold the successful image detection angles */
-typedef struct _detection_results_t {
-	uint32_t sunTimestamp;
-	uint16_t sunAlphaAngle;
-	uint16_t sunBetaAngle;
-	uint32_t nadirTimestamp;
-	uint16_t nadirAlphaAngle;
-	uint16_t nadirBetaAngle;
-} detection_results_t;
 
 /* Struct that holds all power related settings */
 typedef struct _CameraSettings_PowerSettings {
@@ -80,7 +72,7 @@ int captureImage(uint8_t camera, uint8_t sram, uint8_t location);
 int captureImageAndDetect(uint8_t camera, uint8_t sram);
 int downloadImage(uint8_t sram, uint8_t location, full_image_t *image);
 int getSingleDetectionStatus(SensorResultAndDetection sensorSelection);
-int getResultsAndTriggerNewDetection(detection_results_t *data);
+int getResultsAndTriggerNewDetection(adcs_detection *data);
 int triggerNewDetectionForBothSensors(void);
 int setSettings(CameraSettings *cameraSettings);
 int getSettings(CameraSettings *cameraSettings);

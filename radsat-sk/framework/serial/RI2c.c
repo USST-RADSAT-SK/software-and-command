@@ -127,6 +127,8 @@ int i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size) {
 
 	return error;
 }
+
+
 /**
  * Writes to the slave, then reads a response
  *
@@ -157,10 +159,11 @@ int i2cTalk(uint16_t slaveAddress, uint16_t writeSize, uint16_t readSize, uint8_
 	transfer.readData = readData;
 	transfer.writeReadDelay = delay;
 
-	//if(i2cWait()) return -1;
 	int error = I2C_writeRead(&transfer);
-	//i2cRelease();
 
+	if (error){
+		errorPrint("I2C error = %d", error);
+	}
 	// TODO: record errors (if present) to System Manager
 
 	return error;

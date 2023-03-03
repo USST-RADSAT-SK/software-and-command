@@ -205,7 +205,7 @@ int takeADCSBurstMeasurements(void) {
 	for (int i = 0; i < adcsSettings.nbMeasurements; i++) {
 		printf("Detection measurement #%d\n", i);
 		// Get detection results and trigger a new detection
-		detection_results_t detectionResult = {0};
+		adcs_detection detectionResult = { 0 };
 		error = getResultsAndTriggerNewDetection(&detectionResult);
 		if (error == SUCCESS) {
 			// Store the successful result
@@ -246,8 +246,8 @@ adcs_detection_results_t * getADCSBurstResults(void) {
  * @return pointer to the new ADCS results struct in memory
  */
 adcs_detection_results_t * initializeNewADCSResults(uint8_t nbMeasurements) {
-	adcs_detection_results_t *adcs = calloc(1, sizeof(*adcs) + sizeof(detection_results_t) * nbMeasurements);
-	printf("ADCS Results allocated memory size = %i bytes\n", sizeof(*adcs) + sizeof(detection_results_t) * nbMeasurements);
+	adcs_detection_results_t *adcs = calloc(1, sizeof(*adcs) + sizeof(adcs_detection) * nbMeasurements);
+	printf("ADCS Results allocated memory size = %i bytes\n", sizeof(*adcs) + sizeof(adcs_detection) * nbMeasurements);
 	return adcs;
 }
 

@@ -17,7 +17,7 @@
 /** Struct prepared for downlink that holds the ADCS measurement results **/
 typedef struct _adcs_detection_results_t {
 	uint8_t validMeasurementsCount;
-	detection_results_t results[];  // Variable size, corresponding to the number of measurements in a burst
+	adcs_detection results[];  // Variable size, corresponding to the number of measurements in a burst
 } adcs_detection_results_t;
 
 /* Struct prepared for downlink that holds an image frame */

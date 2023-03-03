@@ -9,7 +9,37 @@
 #include <string.h>
 #include <RCommon.h>
 
+void bigEndianUint16( uint16_t* val ) {
+    *val = (*val << 8) | (*val >> 8 );
+}
 
+#ifdef DEBUG
+static char* pdbGetErrorMessage(uint8_t error) {
+	switch (error) {
+	case 0x10:
+		return "CRC code does not match data";
+	case 0x01:
+		return "Unknown command received";
+	case 0x02:
+		return "Supplied data incorrect when processing command";
+	case 0x03:
+		return "Selected channel does not exist";
+	case 0x04:
+		return "Selected channel is currently inactive";
+	case 0x13:
+		return "A reset had to occur";
+	case 0x14:
+		return "There was an error with the ADC acquisition";
+	case 0x20:
+		return "Reading from EEPROM generated an error";
+	case 0x30:
+		return "Generic warning about an error on the internal SPI bus";
+	default:
+		return "Unknow error code";
+	}
+}
+
+#endif
 /***************************************************************************************************
                                             DEFINITIONS
 ***************************************************************************************************/
@@ -67,14 +97,15 @@
 #define PDB_I2C_DELAY_MS			(1)
 
 /** Number of sun sensors on the CubeSat */
-#define NUM_SUN_SENSORS				(6)
+#define NUM_SUN_SENSORS				(9)
 
 /** Number of other Telem Command Bytes */
 #define NUM_TELEM_CALLS 			(4)
 
 /** Filter Mask and Comparison value for Recognizing Telemetry Calls */
-#define TELEM_MASK 					(0xFF0000)
-#define TELEM_CALL_COMPARISON		(0x100000)
+#define TELEM_CALL_COMPARISON		(0x10)
+
+#define PDB_ERROR 					(-110)
 
 
 /***************************************************************************************************
@@ -84,39 +115,47 @@
  *  Commands to request data for each of the 6 sun-sensors
  *	located on each face of the CubeSat Solar Arrays.
  */
-static uint32_t pdbSunSensorCommandBytes[6] = {
-		0x10E11C,     // SA1A - yPos
-		0x10E11D,     // SA1B - yNeg
-		0x10E12C,     // SA2A - xNeg
-		0x10E12D,     // SA2B - xPos
-		0x10E13C,     // SA3A - zNeg
-		0x10E13D      // SA3B - zPos
+static uint32_t pdbSunSensorCommandBytes[NUM_SUN_SENSORS] = {
+		0x10E110,
+		0x14E110,
+		0x15E110,
+		0x20E110,
+		0x24E110,
+		0x25E110,
+		0x30E110,
+		0x34E110,
+		0x35E110
 };
 
 /**
  * Commands for requesting output voltage readings for each bus and BCR
  */
 static uint32_t pdbVoltageCommandBytes[4] = {
-		0x10E280,		// Output Voltage of BCR
-		0x10E220,		// Output Voltage of Battery Bus
+		0x80E210,		// Output Voltage of BCR
+		0x20E210,		// Output Voltage of Battery Bus
 		0x10E210,		// Output Voltage of 5V Bus
-		0x10E200		// Output Voltage of 3.3V Bus
+		0x00E210		// Output Voltage of 3.3V Bus
 };
 
 /**
  * Commands for requesting output current readings for each bus and BCR
  */
 static uint32_t pdbCurrentCommandBytes[4] = {
-		0x10E284,		// Output Current of BCR in mA
-		0x10E224,		// Output Current of Battery Bus
-		0x10E214,		// Output Current of 5V Bus
-		0x10E204		// Output Current of 3.3V Bus
+		0x84E210,		// Output Current of BCR in mA
+		0x24E210,		// Output Current of Battery Bus
+		0x14E210,		// Output Current of 5V Bus
+		0x04E210		// Output Current of 3.3V Bus
+};
+
+
+static uint8_t getLastError[2] = {
+		0x03, 0x00
 };
 
 /**
  * Command for PDB Temperature Reading
  */
-static uint32_t pdbTemperatureCommandBytes = 0x10E308;
+static uint32_t pdbTemperatureCommandBytes = 0x08e310;
 
 /**
  * Command for Resetting PDB Watchdog (0x2200)
@@ -140,11 +179,11 @@ static int pdbTalk(uint8_t* command, uint8_t* response);
  * @param A pointer to a sun_sensor_status_t object, which will be filled with the converted ADC data for each sun sensor
  * @return an error code, or 0 if no error
  */
-int pdbSunSensorData(sun_sensor_status_t* sunData) {
+int pdbSunSensorData(sun_sensor_data* sunData) {
 
 	// Create temporary variables for sending and receiving I2C data
 	uint8_t command[PDB_TELEM_COMMAND_LENGTH] = {0};
-	uint8_t response[PDB_RESPONSE_LENGTH] = {0};
+	uint16_t response = {0};
 
 	// Create a temporary array for calculated sun data before transferring into the structure sunData
 	float convertedData[NUM_SUN_SENSORS] = {0};
@@ -153,30 +192,31 @@ int pdbSunSensorData(sun_sensor_status_t* sunData) {
 	for (int i = 0; i < NUM_SUN_SENSORS; i = i + 1) {
 
 		// Load command into output buffer
-		memset(command, 0, sizeof(command));
 		memcpy(command, &pdbSunSensorCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
 
-		memset(response, 0, sizeof(response));
+		int error = pdbTalk(command, (uint8_t*)&response);
 
-		int error = pdbTalk(command, response);
-
-		if (error != SUCCESS) {
-			return error;
+		if (error != SUCCESS && error > PDB_ERROR) {
+			warningPrint("I2c Error = %d\n", error);
+			continue;
+			//return error;
 		}
 
-		memset(&convertedData[i], 0, sizeof(convertedData[i]));
-		memcpy(&convertedData[i], response, PDB_RESPONSE_LENGTH);
-
-		convertedData[i] = ADC_COUNT_TO_IRRADIANCE * ((float)convertedData[i]);
+		bigEndianUint16(&response);
+		convertedData[i] = (float)response;
 	}
 
 	// Now store all of the calculated data into the proper slot in the sunData structure
-	sunData->xPos = convertedData[3]; 	// SA2B
-	sunData->xNeg = convertedData[2]; 	// SA2A
-	sunData->yPos = convertedData[0]; 	// SA1A
-	sunData->yNeg = convertedData[1]; 	// SA1B
-	sunData->zPos = convertedData[5]; 	// SA3B
-	sunData->zNeg = convertedData[4]; 	// SA3A
+	sunData->BCR1Voltage = 0.0322581 * convertedData[0];
+	sunData->SA1ACurrent = 0.0009775 * convertedData[1];
+	sunData->SA1BCurrent = 0.0009775 * convertedData[2];
+	sunData->BCR2Voltage = 0.0322581 * convertedData[3];
+	sunData->SA2ACurrent = 0.0009775 * convertedData[4];
+	sunData->SA2BCurrent = 0.0009775 * convertedData[5];
+	sunData->BCR3Voltage = 0.0322581 * convertedData[6];
+	sunData->SA3ACurrent = 0.0009775 * convertedData[7];
+	sunData->SA3BCurrent = 0.0009775 * convertedData[8];
+
 	// Could change these numbers into an ENUM with the names of the connections
 
 	return SUCCESS;
@@ -190,18 +230,18 @@ int pdbSunSensorData(sun_sensor_status_t* sunData) {
  * @param A pointer to an PDBStatus object containing all of the telemetry for the PDB system
  * @return either 0 or an error code
  */
-int pdbTelemetry(pdb_status_t* dataStorage) {
+int pdbTelemetry(eps_telemetry* dataStorage) {
 
 	// Create an empty sunSensorData structure
-	sun_sensor_status_t sunSensorData;
-	(void) sunSensorData;
+	sun_sensor_data sunSensorData;
 
+	(void) sunSensorData;
 	// Get sun sensor data and store it in the new pdb_status_t Structure
 	pdbSunSensorData(&dataStorage->sunSensorData);
 
 	// Create temporary variables for sending and receiving I2C data
 	uint8_t command[PDB_TELEM_COMMAND_LENGTH] = {0};
-	uint8_t response[PDB_RESPONSE_LENGTH] = {0};
+	uint16_t response;
 
 	// Create a temporary array for calculated sun data before transferring into the structure sunData
 	float storedData[NUM_TELEM_CALLS] = {0};
@@ -209,20 +249,17 @@ int pdbTelemetry(pdb_status_t* dataStorage) {
 	// Send 4 commands to get ADC output voltage readings from the PDB
 	for (int i = 0; i < NUM_TELEM_CALLS; i = i + 1) {
 
-		memset(command, 0, sizeof(command));
 		memcpy(command, &pdbVoltageCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
 
-		memset(response, 0, sizeof(response));
+		int error = pdbTalk(command, (uint8_t*)&response);
 
-		int error = pdbTalk(command, response);
-
-		if (error != SUCCESS) {
-			return error;
+		if (error != SUCCESS && error > PDB_ERROR) {
+			warningPrint("I2c Error = %d\n", error);
+			continue;
 		}
 
-		// Clear storedData[i] before using it
-		memset(&storedData[i], 0, sizeof(storedData[i]));
-		memcpy(&storedData[i], response, PDB_RESPONSE_LENGTH);
+		bigEndianUint16(&response);
+		storedData[i] = response;
 
 	}
 
@@ -234,19 +271,17 @@ int pdbTelemetry(pdb_status_t* dataStorage) {
 	// Send 4 commands to get ADC output current readings from the PDB
 	for (int i = 0; i < NUM_TELEM_CALLS; i = i + 1) {
 
-		memset(command, 0, sizeof(command));
 		memcpy(command, &pdbCurrentCommandBytes[i], PDB_TELEM_COMMAND_LENGTH);
 
-		memset(response, 0, sizeof(response));
+		int error = pdbTalk(command, (uint8_t*)&response);
 
-		int error = pdbTalk(command, response);
-
-		if (error != SUCCESS) {
-			return error;
+		if (error != SUCCESS && error > PDB_ERROR) {
+			warningPrint("I2c Error = %d\n", error);
+			continue;
 		}
 
-		memset(&storedData[i], 0, sizeof(storedData[i]));
-		memcpy(&storedData[i], response, PDB_RESPONSE_LENGTH);
+		bigEndianUint16(&response);
+		storedData[i] = response;
 	}
 
 
@@ -258,16 +293,18 @@ int pdbTelemetry(pdb_status_t* dataStorage) {
 
 
 	// Get ADC temperature reading from the PDB
-	memset(command, 0, sizeof(command));
 	memcpy(command, &pdbTemperatureCommandBytes, PDB_TELEM_COMMAND_LENGTH);
 
-	int error = pdbTalk(command, response);
+	int error = pdbTalk(command, (uint8_t*)&response);
 
-	if (error != SUCCESS) {
-		return error;
+	if (error != SUCCESS && error > PDB_ERROR) {
+		warningPrint("I2c Error = %d\n", error);
+		return SUCCESS;
 	}
 
-	dataStorage->PdbTemperature = (ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE * (float)(*response))
+
+	bigEndianUint16((uint16_t*)&response);
+	dataStorage->PdbTemperature = (ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE * (float)(response))
 										- ADC_COUNT_TO_MOTHERBOARD_TEMP_SHIFT;
 
 	return SUCCESS;
@@ -316,7 +353,7 @@ static int pdbTalk(uint8_t* command, uint8_t* response) {
 	// Variable selection for command length dependent on if it is a telemetry call
 	// Byte mask to look only at the command field to see if it is 0x10 (telem call)
 	//TODO: Will this method of comparison actually work with the new uint8_t* size of 'command'
-	if ((command && TELEM_MASK) == TELEM_CALL_COMPARISON) {
+	if ((command[0]) == TELEM_CALL_COMPARISON) {
 		comm_length = PDB_TELEM_COMMAND_LENGTH;
 		comm_delay = PDB_I2C_TELEM_DELAY_MS;
 	}
@@ -332,6 +369,14 @@ static int pdbTalk(uint8_t* command, uint8_t* response) {
 	if (error != SUCCESS) {
 		return error;
 	}
+	if(response[0] == 0xff){
+		uint8_t pdbError[2];
+		pdbTalk(getLastError, pdbError);
+		//bigEndianUint16(&Error);
+		errorPrint(" Error return = %u - %s", pdbError[1], pdbGetErrorMessage(pdbError[1]));
+		return PDB_ERROR - pdbError[1];
+	}
 
 	return SUCCESS;
 }
+

@@ -53,13 +53,13 @@
 
 /** Dosimeter Settings */
 #define DOSIMETER_READINGS_PER_DAY			(6)			// How many dosimeter payload readings to collect per day.
-#define DOSIMETER_COLLECTION_TASK_DELAY_MS	(5000)		// Dosimeter Collection Task delay (in ms).
+#define DOSIMETER_COLLECTION_TASK_DELAY_MS	20000//(MS_PER_HOUR / DOSIMETER_READINGS_PER_DAY)		// Dosimeter Collection Task delay (in ms).
 
 /** Watchdog Settings */
 #define SATELLITE_WATCHDOG_TASK_DELAY_MS	(100)		// Satellite Watchdog Task delay (in ms)
 
 /** Telemetry Settings */
-#define TELEMETRY_READINGS_PER_HOUR			(10)		// How many telemetry readings to collect per hour.
-#define TELEMETRY_COLLECTION_TASK_DELAY_MS	(MS_PER_HOUR / TELEMETRY_READINGS_PER_HOUR)	// Telemetry Collection Task delay (in ms).
+#define TELEMETRY_READINGS_PER_HOUR			(12)		// How many telemetry readings to collect per hour.
+#define TELEMETRY_COLLECTION_TASK_DELAY_MS	(60000)//(MS_PER_HOUR / TELEMETRY_READINGS_PER_HOUR)	// Telemetry Collection Task delay (in ms).
 
 #endif /* RCOMMON_H_ */

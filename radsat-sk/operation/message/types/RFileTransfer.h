@@ -70,6 +70,18 @@ typedef struct _module_error_report {
 } module_error_report;
 
 
+
+/* IHHIHH */
+typedef struct _adcs_detection {
+	uint32_t sunTimestamp;
+	uint16_t sunAlphaAngle;
+	uint16_t sunBetaAngle;
+	uint32_t nadirTimestamp;
+	uint16_t nadirAlphaAngle;
+	uint16_t nadirBetaAngle;
+} adcs_detection;
+
+
 // "HHHHHfI"
 typedef struct _antenna_side_data {
     uint16_t deployedAntenna1;
@@ -184,14 +196,17 @@ typedef struct _dosimeter_data {
 } dosimeter_data;
 
 
-// "ffffff"
+// "fffffffff"
 typedef struct _sun_sensor_data {
-    float xPos;
-    float xNeg;
-    float yPos;
-    float yNeg;
-    float zPos;
-    float zNeg;
+	float BCR1Voltage;
+	float SA1ACurrent;
+	float SA1BCurrent;
+	float BCR2Voltage;
+	float SA2ACurrent;
+	float SA2BCurrent;
+	float BCR3Voltage;
+	float SA3ACurrent;
+	float SA3BCurrent;
 } sun_sensor_data;
 
 // "fffffffffffffff"
@@ -221,6 +236,7 @@ typedef union _file_transfer_message {
 	module_error_report ModuleErrorReport;
 	component_error_report ComponentErrorReport;
 	error_report_summary ErrorReportSummary;
+	adcs_detection	AdcsDetection;
 } file_transfer_message;
 
 #endif

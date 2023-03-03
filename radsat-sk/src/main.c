@@ -47,7 +47,7 @@ static xTaskHandle missionInitTaskHandle;
 static xTaskHandle communicationRxTaskHandle;
 static xTaskHandle dosimeterCollectionTaskHandle;
 //static xTaskHandle imageCaptureTaskHandle;
-//static xTaskHandle adcsCaptureTaskHandle;
+static xTaskHandle adcsCaptureTaskHandle;
 static xTaskHandle telemetryCollectionTaskHandle;
 static xTaskHandle satelliteWatchdogTaskHandle;
 
@@ -59,7 +59,7 @@ static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
 /** Image Capture Task Priority. Periodically collects image data; medium priority task. */
 //static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
 /** ADCS Capture Task Priority. Periodically collects ADCS data; medium priority task. */
-//static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
+static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
 
 /** Telemetry Collection Task Priority. Periodically collects satellite telemetry; low priority task. */
 static const int telemetryCollectionTaskPriority = configMAX_PRIORITIES - 4;
@@ -299,7 +299,7 @@ static int initMissionTasks(void) {
 		return E_GENERIC;
 	}*/
 
-	/*
+
 	// initialize the ADCS Capture Task
 	error = xTaskCreate(AdcsCaptureTask,
 						(const signed char*)"ADCS Capture Task",
@@ -311,7 +311,7 @@ static int initMissionTasks(void) {
 	if (error != pdPASS) {
 		debugPrint("initMissionTasks(): failed to create AdcsCaptureTask.\n");
 		return E_GENERIC;
-	}*/
+	}
 
 	// initialize the Telemetry Collection Task
 	error = xTaskCreate(TelemetryCollectionTask,

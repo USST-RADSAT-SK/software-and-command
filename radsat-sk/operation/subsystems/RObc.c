@@ -9,6 +9,8 @@
 #include <hal/errors.h>
 #include <hal/Timing/WatchDogTimer.h>
 #include <hal/Timing/RTC.h>
+#include <hal/supervisor.h>
+#include <RFileTransfer.h>
 
 /***************************************************************************************************
                                              PUBLIC API
