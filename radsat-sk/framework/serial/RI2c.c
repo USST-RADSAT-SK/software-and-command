@@ -52,6 +52,30 @@ int i2cInit(void) {
 }
 
 
+
+/*!
+ * Blocks the bus, preventing any further transmissions on it until released. If there is a transmission
+ * ongoing, it will wait until *timeout* or the bus is released
+ * @param timeout Length of time to wait for current transmission to finish (portMAX_DELAY to wait forever)
+ * @return 0 on success, 1 if there was a timeout
+ */
+int i2cWait(void){
+	int error = I2C_blockBus(250);
+	if (error){
+		errorPrint("I2C Read FAILEd!!!!!!!");
+	}
+	return error;
+}
+
+/*!
+ * Release back the bus.
+ */
+void i2cRelease(void){
+	I2C_releaseBus();
+	return;
+}
+
+
 /**
  * Writes data to a slave component over I2C
  *
@@ -69,7 +93,9 @@ int i2cTransmit(uint16_t slaveAddress, const uint8_t* data, uint16_t size) {
 	if (!initialized)
 		return E_NOT_INITIALIZED;
 
+	//if(i2cWait()) return -1;
 	int error = I2C_write(slaveAddress, data, size);
+	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 
@@ -93,15 +119,14 @@ int i2cRecieve(uint16_t slaveAddress, uint8_t* data, uint16_t size) {
 	// I2C driver must be initialized
 	if (!initialized)
 		return E_NOT_INITIALIZED;
-	debugPrint("before\n");
+
+	debugPrint("before I2C read\n");
 	int error = I2C_read(slaveAddress, data, size);
-	debugPrint("after\n");
+	debugPrint("after I2C read\n");
 	// TODO: record errors (if present) to System Manager
 
 	return error;
 }
-
-
 /**
  * Writes to the slave, then reads a response
  *
@@ -132,7 +157,9 @@ int i2cTalk(uint16_t slaveAddress, uint16_t writeSize, uint16_t readSize, uint8_
 	transfer.readData = readData;
 	transfer.writeReadDelay = delay;
 
+	//if(i2cWait()) return -1;
 	int error = I2C_writeRead(&transfer);
+	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 

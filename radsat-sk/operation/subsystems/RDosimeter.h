@@ -8,6 +8,8 @@
 #define RDOSIMETER_H_
 
 #include <stdint.h>
+#include <RFileTransfer.h>
+
 
 
 /***************************************************************************************************
@@ -26,8 +28,10 @@ typedef enum _dosimeterBoard {
                                              PUBLIC API
 ***************************************************************************************************/
 
+int dosimeterData(dosimeter_data* data);
 int dosimeterCollectData(void);
 int16_t dosimeterTemperature(dosimeterBoard_t board);
+void printDosimeterData(dosimeter_data* data);
 
 
 #endif /* RDOSIMETER_H_ */

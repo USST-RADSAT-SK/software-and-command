@@ -64,6 +64,8 @@
 									<listOptionValue builtIn="false" value="'BASE_REVISION_NUMBER=$(REV)'"/>
 									<listOptionValue builtIn="false" value="'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)'"/>
 									<listOptionValue builtIn="false" value="'BASE_REVISION_HASH=$(REVHASH)'"/>
+									<listOptionValue builtIn="false" value="PB_C99_STATIC_ASSERT=1"/>
+									<listOptionValue builtIn="false" value="PB_ENABLE_MALLOC=1"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.asmlisting.121433134" name="Generate assembler listing (-Wa,-adhlns=&quot;$@.lst&quot;)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.assembler.asmlisting" value="false" valueType="boolean"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input.1441447076" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.assembler.input"/>
@@ -81,23 +83,24 @@
 									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
+									<listOptionValue builtIn="false" value="../operation/message/types"/>
 									<listOptionValue builtIn="false" value="../operation/message/crypt"/>
 									<listOptionValue builtIn="false" value="../operation/services"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../operation/subsystems/camera"/>
 									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.663972223" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>
+									<listOptionValue builtIn="false" value="PB_ENABLE_MALLOC=1"/>
 									<listOptionValue builtIn="false" value="at91sam9g20"/>
 									<listOptionValue builtIn="false" value="TRACE_LEVEL=0"/>
 									<listOptionValue builtIn="false" value="DEBUG=1"/>
 									<listOptionValue builtIn="false" value="'BASE_REVISION_NUMBER=$(REV)'"/>
 									<listOptionValue builtIn="false" value="'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)'"/>
 									<listOptionValue builtIn="false" value="'BASE_REVISION_HASH=$(REVHASH)'"/>
+									<listOptionValue builtIn="false" value="PB_C99_STATIC_ASSERT=1"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.534234401" name="Language standard" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.gnu99" valueType="enumerated"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otherwarnings.46945318" name="Other warning flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otherwarnings" useByScannerDiscovery="true" value="-Wno-missing-braces -Wno-missing-field-initializers" valueType="string"/>
@@ -153,7 +156,7 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="framework"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="operation"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="testing"/>
+						<entry excluding="*|**" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="testing"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -229,12 +232,11 @@
 									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
+									<listOptionValue builtIn="false" value="../operation/message/types"/>
 									<listOptionValue builtIn="false" value="../operation/message/crypt"/>
 									<listOptionValue builtIn="false" value="../operation/services"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../operation/subsystems/camera"/>
 									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
 								</option>
@@ -302,7 +304,7 @@
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="framework"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="operation"/>
 						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="src"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="testing"/>
+						<entry excluding="**" flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="testing"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -390,16 +392,13 @@
 									<listOptionValue builtIn="false" value="../framework/serial"/>
 									<listOptionValue builtIn="false" value="../operation"/>
 									<listOptionValue builtIn="false" value="../operation/message"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
-									<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
+									<listOptionValue builtIn="false" value="../operation/message/types"/>
 									<listOptionValue builtIn="false" value="../operation/message/crypt"/>
 									<listOptionValue builtIn="false" value="../operation/services"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
+									<listOptionValue builtIn="false" value="../operation/subsystems/camera"/>
 									<listOptionValue builtIn="false" value="../operation/utility"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
-									<listOptionValue builtIn="false" value="../testing"/>
-									<listOptionValue builtIn="false" value="../testing/unit"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1971370393" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">
 									<listOptionValue builtIn="false" value="sdram"/>
@@ -411,7 +410,7 @@
 									<listOptionValue builtIn="false" value="'BASE_REVISION_HASH=$(REVHASH)'"/>
 									<listOptionValue builtIn="false" value="TEST=1"/>
 								</option>
-								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otherwarnings.1632846580" name="Other warning flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otherwarnings" useByScannerDiscovery="true" value="-Wno-missing-braces -Wno-missing-field-initializers" valueType="string"/>
+								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otherwarnings.1632846580" name="Other warning flags" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.otherwarnings" useByScannerDiscovery="true" value="-Wno-missing-braces -Wno-missing-field-initializers -Wno-unused-function" valueType="string"/>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.437875250" name="Language standard" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std" useByScannerDiscovery="true" value="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.std.gnu99" valueType="enumerated"/>
 								<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.1887967793" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
 							</tool>
@@ -461,11 +460,49 @@
 							</tool>
 						</toolChain>
 					</folderInfo>
+					<fileInfo id="ilg.gnuarmeclipse.managedbuild.cross.config.elf.debug.853133139.1724570827.555085295" name="RTestSuite.c" rcbsApplicability="disable" resourcePath="testing/RTestSuite.c" toolsToInvoke="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.926867254.1416169741">
+						<tool id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.926867254.1416169741" name="Cross ARM C Compiler" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.926867254">
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.846178328" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" valueType="definedSymbols">
+								<listOptionValue builtIn="false" value="sdram"/>
+								<listOptionValue builtIn="false" value="at91sam9g20"/>
+								<listOptionValue builtIn="false" value="TRACE_LEVEL=5"/>
+								<listOptionValue builtIn="false" value="DEBUG=1"/>
+								<listOptionValue builtIn="false" value="'BASE_REVISION_NUMBER=$(REV)'"/>
+								<listOptionValue builtIn="false" value="'BASE_REVISION_HASH_SHORT=$(REVHASH_SHORT)'"/>
+								<listOptionValue builtIn="false" value="'BASE_REVISION_HASH=$(REVHASH)'"/>
+								<listOptionValue builtIn="false" value="TEST=1"/>
+							</option>
+							<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths.33493194" name="Include paths (-I)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.include.paths" valueType="includePath">
+								<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/src}&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/freertos/include&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/at91/include&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hal/include&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${external-dependencies}/hal/hcc/include&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${external-dependencies}/satellite-subsystems/satellite-subsystems/include&quot;"/>
+								<listOptionValue builtIn="false" value="../framework"/>
+								<listOptionValue builtIn="false" value="../framework/fileio"/>
+								<listOptionValue builtIn="false" value="../framework/serial"/>
+								<listOptionValue builtIn="false" value="../operation"/>
+								<listOptionValue builtIn="false" value="../operation/message"/>
+								<listOptionValue builtIn="false" value="../operation/message/protobuf"/>
+								<listOptionValue builtIn="false" value="../operation/message/protobuf/types"/>
+								<listOptionValue builtIn="false" value="../operation/message/protobuf/nanopb"/>
+								<listOptionValue builtIn="false" value="../operation/message/crypt"/>
+								<listOptionValue builtIn="false" value="../operation/services"/>
+								<listOptionValue builtIn="false" value="../operation/subsystems"/>
+								<listOptionValue builtIn="false" value="../operation/utility"/>
+								<listOptionValue builtIn="false" value="../testing"/>
+								<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/testing/unit}&quot;"/>
+								<listOptionValue builtIn="false" value="&quot;${workspace_loc:/radsat-sk/src/tasks}&quot;"/>
+							</option>
+							<inputType id="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input.602697520" superClass="ilg.gnuarmeclipse.managedbuild.cross.tool.c.compiler.input"/>
+						</tool>
+					</fileInfo>
 					<sourceEntries>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="framework"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="operation"/>
 						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="src"/>
-						<entry flags="VALUE_WORKSPACE_PATH|RESOLVED" kind="sourcePath" name="testing"/>
+						<entry flags="VALUE_WORKSPACE_PATH" kind="sourcePath" name="testing"/>
 					</sourceEntries>
 				</configuration>
 			</storageModule>
@@ -480,6 +517,7 @@
 		<configuration configurationName="Release">
 			<resource resourceType="PROJECT" workspacePath="/${ProjName}"/>
 		</configuration>
+		<configuration configurationName="Test"/>
 		<configuration configurationName="Debug">
 			<resource resourceType="PROJECT" workspacePath="/${ProjName}"/>
 		</configuration>

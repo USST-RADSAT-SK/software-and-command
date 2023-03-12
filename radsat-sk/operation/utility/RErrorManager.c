@@ -48,8 +48,8 @@ static error_record componentErrors[componentCount] = { 0 };
  * @return 0 for Success, otherwise failure.
  */
 int errorReportModule(module_t module, int errorReported) {
-
 	int error = SUCCESS;
+	/*
 
 	// record time of previous error occurance
 	uint32_t oldTime = moduleErrors[module].timeRecorded;
@@ -91,7 +91,7 @@ int errorReportModule(module_t module, int errorReported) {
 		if (error != SUCCESS) {
 			errorReportComponent(componentHalSupervisor, error);
 		}
-	}
+	}*/
 
 	return error;
 }
@@ -112,7 +112,7 @@ int errorReportModule(module_t module, int errorReported) {
 int errorReportComponent(component_t component, int errorReported) {
 
 	int error = SUCCESS;
-
+/*
 	// record time of previous error occurance
 	uint32_t oldTime = componentErrors[component].timeRecorded;
 
@@ -210,7 +210,7 @@ int errorReportComponent(component_t component, int errorReported) {
 			break;
 		}
 	}
-
+*/
 	return error;
 }
 

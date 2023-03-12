@@ -7,17 +7,24 @@
 
 #include <RSatelliteWatchdogTask.h>
 #include <RCommon.h>
+#include <RPdb.h>
+#include <RDebug.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
+
+
+#ifdef INFOBAR
+	#define printInfoBar debugPrint("[%-8.8s]\r", throbber()); fflush(stdout);
+#else
+	#define printInfoBar
+#endif
 
 
 /***************************************************************************************************
                                    DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
 
-/** Satellite Watchdog Task delay (in ms). */
-#define SATELLITE_WATCHDOG_TASK_DELAY_MS	(100)
 
 
 /***************************************************************************************************
@@ -29,9 +36,10 @@ void SatelliteWatchdogTask(void* parameters) {
 	// ignore the input parameter
 	(void)parameters;
 
+	infoPrint("SatelliteWatchdogTask started.");
 	while (1) {
 
-		// TODO: implement petting satellite watchdogs
+		printInfoBar
 		pdbPetWatchdog();
 		vTaskDelay(SATELLITE_WATCHDOG_TASK_DELAY_MS);
 	}

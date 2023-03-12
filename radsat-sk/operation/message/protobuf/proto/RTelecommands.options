@@ -1,5 +1,0 @@
-// contains protobuf options for the messages defined in RFileTransfer.proto
-
-// force all unions to be anonymous (to shorten the length of name chains)
-*.*								anonymous_oneof:1
-

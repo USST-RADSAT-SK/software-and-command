@@ -32,7 +32,12 @@ int framInit(void) {
 	if (initialized)
 		return E_IS_INITIALIZED;
 
+	infoPrint("Fram max address = %d", FRAM_getMaxAddress());
+
 	int error = FRAM_start();
+
+	if (error == SUCCESS)
+		initialized = 1;
 
 	// TODO: record errors (if present) to System Manager
 
@@ -83,4 +88,15 @@ int framWrite(uint8_t* data, uint32_t address, uint32_t size) {
 	// TODO: record errors (if present) to System Manager
 
 	return error;
+}
+
+void framPrint(void){
+	uint8_t data[32] = { 0 };
+
+	for (int i = 0; i < 32; i++){
+		framRead(data, i*32, 32);
+		debugPrintHex(data, 32);
+		printf("\n\r");
+	}
+
 }

@@ -34,38 +34,32 @@
 #include <RTelemetryCollectionTask.h>
 #include <RSatelliteWatchdogTask.h>
 
+#ifdef TEST
+#include <RTestSuite.h>
+#endif
 
 /***************************************************************************************************
                                    DEFINITIONS AND PRIVATE GLOBALS
 ***************************************************************************************************/
 
-/** How often the internal OBC Watchdog is kicked (i.e. pet, i.e. reset) in ms. */
-#define OBC_WDOG_KICK_PERIOD_MS	(15 / portTICK_RATE_MS)
-
-/** Default stack size (in bytes) allotted to each FreeRTOS Task. */
-#define DEFAULT_TASK_STACK_SIZE	(4096)
-
 /** FreeRTOS Task Handles. */
 static xTaskHandle missionInitTaskHandle;
 static xTaskHandle communicationRxTaskHandle;
-static xTaskHandle communicationTxTaskHandle;
 static xTaskHandle dosimeterCollectionTaskHandle;
-static xTaskHandle imageCaptureTaskHandle;
-static xTaskHandle adcsCaptureTaskHandle;
+//static xTaskHandle imageCaptureTaskHandle;
+//static xTaskHandle adcsCaptureTaskHandle;
 static xTaskHandle telemetryCollectionTaskHandle;
 static xTaskHandle satelliteWatchdogTaskHandle;
 
-/** Communication Transmit Task Priority. Downlinks messages when necessary; very high priority task. */
-static const int communicationTxTaskPriority = configMAX_PRIORITIES - 1;
 /** Communication Receive Task Priority. Constantly listening for messages; high priority task. */
 static const int communicationRxTaskPriority = configMAX_PRIORITIES - 2;
 
 /** Dosimeter Collection Task Priority. Periodically collects payload data; medium priority task. */
 static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
 /** Image Capture Task Priority. Periodically collects image data; medium priority task. */
-static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
+//static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
 /** ADCS Capture Task Priority. Periodically collects ADCS data; medium priority task. */
-static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
+//static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
 
 /** Telemetry Collection Task Priority. Periodically collects satellite telemetry; low priority task. */
 static const int telemetryCollectionTaskPriority = configMAX_PRIORITIES - 4;
@@ -108,16 +102,6 @@ int main(void) {
 		// TODO: report to system manager
 	}
 
-#ifdef TEST
-
-	// TODO: run tests
-
-#else	/* TEST */
-
-	// TODO: Antenna Diagnostic & Deployment (if necessary)
-
-	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
-
 	// initialize the Mission Initialization Task
 	error = xTaskCreate(MissionInitTask,
 						(const signed char*)"Mission Initialization Task",
@@ -128,10 +112,9 @@ int main(void) {
 
 	if (error != pdPASS) {
 		debugPrint("main(): failed to create MissionInitTask.\n");
+		debugPrint("error = %d\n", error);
 		// TODO: report to system manager
 	}
-
-#endif	/* TEST */
 
 	// start the FreeRTOS Scheduler - NEVER GETS PAST THIS LINE
 	vTaskStartScheduler();
@@ -266,14 +249,14 @@ static int initObcWatchdog(void) {
 }
 
 
+#include <RFileTransferService.h>
 /**
  * Initialize all of the FreeRTOS tasks used during typical mission operation.
  */
 static int initMissionTasks(void) {
 
 	int error = pdPASS;
-
-
+	fileTransferReset();
 
 	// initialize the Communication Receive Task
 	error = xTaskCreate(CommunicationRxTask,
@@ -288,19 +271,7 @@ static int initMissionTasks(void) {
 		return E_GENERIC;
 	}
 
-	// initialize the Communication Transmit Task
-	error = xTaskCreate(CommunicationTxTask,
-						(const signed char*)"Communication Transmit Task",
-						DEFAULT_TASK_STACK_SIZE,
-						NULL,
-						communicationTxTaskPriority,
-						&communicationTxTaskHandle);
 
-	if (error != pdPASS) {
-		debugPrint("initMissionTasks(): failed to create CommunicationTxTask.\n");
-		return E_GENERIC;
-	}
-	/*
 	// initialize the Dosimeter Collection Task
 	error = xTaskCreate(DosimeterCollectionTask,
 						(const signed char*)"Dosimeter Collection Task",
@@ -313,8 +284,8 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create DosimeterCollectionTask.\n");
 		return E_GENERIC;
 	}
-	*/
-/*
+
+	/*
 	// initialize the Image Capture Task
 	error = xTaskCreate(ImageCaptureTask,
 						(const signed char*)"Image Capture Task",
@@ -326,8 +297,9 @@ static int initMissionTasks(void) {
 	if (error != pdPASS) {
 		debugPrint("initMissionTasks(): failed to create ImageCaptureTask.\n");
 		return E_GENERIC;
-	}
+	}*/
 
+	/*
 	// initialize the ADCS Capture Task
 	error = xTaskCreate(AdcsCaptureTask,
 						(const signed char*)"ADCS Capture Task",
@@ -339,7 +311,7 @@ static int initMissionTasks(void) {
 	if (error != pdPASS) {
 		debugPrint("initMissionTasks(): failed to create AdcsCaptureTask.\n");
 		return E_GENERIC;
-	}
+	}*/
 
 	// initialize the Telemetry Collection Task
 	error = xTaskCreate(TelemetryCollectionTask,
@@ -366,7 +338,7 @@ static int initMissionTasks(void) {
 		debugPrint("initMissionTasks(): failed to create SatelliteWatchdogTask.\n");
 		return E_GENERIC;
 	}
-*/
+
 	return SUCCESS;
 }
 
@@ -390,12 +362,24 @@ void MissionInitTask(void* parameters) {
 
 	int error = SUCCESS;
 
+
 	// initialize the Hardware Abstraction Library (HAL) drivers
 	error = initDrivers();
 	if (error != SUCCESS) {
 		// TODO: report to system manager
 		debugPrint("MissionInitTask(): failed to initialize Drivers.\n");
 	}
+
+
+#ifdef TEST
+
+	// TODO: run tests
+	error = selectAndExecuteTests();
+	if (error)
+		debugPrint("Error running selectAndExecuteTest. error = %d\n", error);
+
+
+#else	/* TEST */
 
 	// initialize external components and the Satellite Subsystem Interface (SSI)
 	error = initSubsystems();
@@ -418,14 +402,16 @@ void MissionInitTask(void* parameters) {
 		debugPrint("MissionInitTask(): failed to initialize the time.\n");
 	}
 
-
+	// TODO: Satellite Diagnostic Check (if applicable - may be done later instead)
 
 	// initialize the FreeRTOS Tasks used for typical mission operation
-	initMissionTasks();
-	//if (error != SUCCESS) {
+	error = initMissionTasks();
+	if (error != SUCCESS) {
 		// TODO: report to system manager
-	//	debugPrint("MissionInitTask(): failed to initialize FreeRTOS Mission Tasks.\n");
-	//}
+		debugPrint("MissionInitTask(): failed to initialize FreeRTOS Mission Tasks.\n");
+	}
+
+#endif	/* TEST */
 
 	// let this task delete itself
 	vTaskDelete(NULL);

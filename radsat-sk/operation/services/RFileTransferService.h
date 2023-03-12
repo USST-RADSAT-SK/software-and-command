@@ -8,17 +8,24 @@
 #define RFILETRANSFERSERVICE_H_
 
 #include <stdint.h>
-#include <RFileTransfer.pb.h>
+#include <RFileTransfer.h>
+
+/** The max number of frames locally stored at one time. */
+#define MAX_FRAME_COUNT 		(10)
+
 
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
-uint8_t fileTransferNextFrame(uint8_t* frame);
-uint8_t fileTransferCurrentFrame(uint8_t* frame);
+short fileTransferNextFrame(uint8_t* frame);
+short fileTransferCurrentFrame(uint8_t* frame);
 
 int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTag);
 
+void fileTransferReset(void);
+
 
 #endif /* RFILETRANSFERSERVICE_H_ */
+

@@ -6,6 +6,7 @@
 
 #include <RXorCipher.h>
 #include <RKey.h>
+#include <RCommon.h>
 #include <hal/errors.h>
 
 
@@ -37,7 +38,6 @@ int xorDecrypt(uint8_t* buffer, uint8_t size) {
 		newValue = buffer[i] ^ key;
 		buffer[i] = newValue;
 	}
-
 	return 0;
 }
 

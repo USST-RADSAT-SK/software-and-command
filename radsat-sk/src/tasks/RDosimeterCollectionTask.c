@@ -16,12 +16,6 @@
                                    DEFINITIONS & PRIVATE GLOBALS
 ***************************************************************************************************/
 
-/** How many dosimeter payload readings to collect per day. */
-#define DOSIMETER_READINGS_PER_DAY			(6)
-
-/** Dosimeter Collection Task delay (in ms). */
-#define DOSIMETER_COLLECTION_TASK_DELAY_MS	(MS_PER_DAY / DOSIMETER_READINGS_PER_DAY)
-
 
 /***************************************************************************************************
                                            FREERTOS TASKS
@@ -34,18 +28,19 @@ void DosimeterCollectionTask(void* parameters) {
 
 	int error = 0;
 
+	infoPrint("DosimeterCollectionTask started.");
 	while (1) {
+		infoPrint("Collecting Dosimeter data!!!");
 
 		// TODO: check flags (once they exist) to prevent running this task during communication mode
 
-		debugPrint("DosimeterCollectionTask(): About to collect Dosimeter payload data.\n");
-
 		// collect all readings from dosimeter
 		error = dosimeterCollectData();
-
 		// if an error was detected, try again once more (if it fails again, no data will be taken this time)
-		if (error != 0)
+		if (error != 0){
+			warningPrint("Failled to collect dosimeter data, trying again");
 			dosimeterCollectData();
+		}
 
 		vTaskDelay(DOSIMETER_COLLECTION_TASK_DELAY_MS);
 	}

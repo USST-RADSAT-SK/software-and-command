@@ -10,6 +10,56 @@
 #include <RXorCipher.h>
 #include <hal/Timing/Time.h>
 
+/**
+ * Encode (serialize) a raw protobuf message with NanoPB into a buffer.
+ *
+ * @param rawMessage The raw (non-serialized) radsat_message struct to encode.
+ * @param outgoingBuffer The buffer that will hold the encoded message.
+ * @return The size of the encoded message (max 255); 0 if encoding failed.
+ */
+static uint8_t getRadsatMessageSize(radsat_tag_t tag) {
+	switch (tag) {
+	case file_transfer_ObcTelemetry_tag:
+		return file_transfer_ObcTelemetry_size;
+	case file_transfer_TransceiverTelemetry_tag:
+		return file_transfer_TransceiverTelemetry_size;
+	case file_transfer_CameraTelemetry_tag:
+		return file_transfer_CameraTelemetry_size;
+	case file_transfer_EpsTelemetry_tag:
+		return file_transfer_EpsTelemetry_size;
+	case file_transfer_BatteryTelemetry_tag:
+		return file_transfer_BatteryTelemetry_size;
+	case file_transfer_AntennaTelemetry_tag:
+		return file_transfer_AntennaTelemetry_size;
+	case file_transfer_DosimeterData_tag:
+		return file_transfer_DosimeterData_size;
+	case file_transfer_ImagePacket_tag:
+		return file_transfer_ImagePacket_size;
+	case file_transfer_ModuleErrorReport_tag:
+		return file_transfer_ModuleErrorReport_size;
+	case file_transfer_ComponentErrorReport_tag:
+		return file_transfer_ComponentErrorReport_size;
+	case file_transfer_ErrorReportSummary_tag:
+		return file_transfer_ErrorReportSummary_size;
+	case protocol_Ack_tag:
+		return protocol_Ack_size;
+	case protocol_Nack_tag:
+		return protocol_Nack_size;
+	case telecommand_BeginPass_tag:
+		return telecommand_BeginPass_size;
+	case telecommand_BeginFileTransfer_tag:
+		return telecommand_BeginFileTransfer_size;
+	case telecommand_CeaseTransmission_tag:
+		return telecommand_CeaseTransmission_size;
+	case telecommand_UpdateTime_tag:
+		return telecommand_UpdateTime_size;
+	case telecommand_Reset_tag:
+		return telecommand_Reset_size;
+	default:
+		return 0;
+	}
+}
+
 
 /***************************************************************************************************
                                              PUBLIC API
@@ -25,32 +75,37 @@
  * @param wrappedMessage The final wrapped message. Filled by function.
  * @return The total size of the message, including the header. 0 on failure.
  */
-uint8_t messageWrap(radsat_message* rawMessage, uint8_t* wrappedMessage) {
+uint8_t messageWrap(radsat_message* rawMessage, radsat_sk_raw_message_t* wrappedMessage) {
 
 	// ensure the input pointers are not NULL
-	if (rawMessage == 0 || wrappedMessage == 0)
-		return 0;
-
-	// serialize the raw message with NanoPB Protobuf encoding
-	uint8_t encodedSize = protoEncode(rawMessage, &wrappedMessage[RADSAT_SK_HEADER_SIZE]);
-	if (encodedSize == 0)
-		return 0;
-
-	// populate the message header
-	radsat_sk_header_t *header = (radsat_sk_header_t *)wrappedMessage;
-	header->preamble = RADSAT_SK_MESSAGE_PREAMBLE;
-	header->size = (uint8_t) encodedSize;
-	int error = Time_getUnixEpoch((unsigned int *)&(header->timestamp));
-	if (error != SUCCESS) {
-		errorReportComponent(componentHalTime, error);
+	if (rawMessage == NULL || wrappedMessage == NULL){
+		warningPrint("NULL Parameters");
 		return 0;
 	}
 
-	// calculate the CRC of entire message (except for preamble and crc itself)
-	header->crc = crcFast(&wrappedMessage[RADSAT_SK_HEADER_CRC_OFFSET],
-						  (int)(header->size + RADSAT_SK_HEADER_SIZE - RADSAT_SK_HEADER_CRC_OFFSET));
+	// serialize the raw message with NanoPB Protobuf encoding
+	uint8_t encodedSize = getRadsatMessageSize(rawMessage->which_service);
 
-	return header->size + RADSAT_SK_HEADER_SIZE;
+	// create stream object
+	memcpy(wrappedMessage->body, rawMessage, encodedSize);
+
+	if (encodedSize == 0) {
+		errorPrint("ProtoEncode Error Size == 0");
+		return 0;
+	}
+
+	// populate the message header
+	wrappedMessage->preamble = RADSAT_SK_MESSAGE_PREAMBLE;
+	wrappedMessage->size = (uint8_t) encodedSize;
+	wrappedMessage->timestamp = 0x01020304;
+	//Time_getUnixEpoch(&wrappedMessage->timestamp);
+
+	// calculate the CRC of entire message (except for preamble and crc itself)
+	wrappedMessage->crc = crcFast((uint8_t*)&wrappedMessage->size,
+						  (int)(wrappedMessage->size + RADSAT_SK_HEADER_SIZE - RADSAT_SK_HEADER_CRC_OFFSET));
+
+
+	return wrappedMessage->size + RADSAT_SK_HEADER_SIZE;
 }
 
 
@@ -69,38 +124,41 @@ uint8_t messageWrap(radsat_message* rawMessage, uint8_t* wrappedMessage) {
 uint8_t messageUnwrap(uint8_t* wrappedMessage, uint8_t size, radsat_message* rawMessage) {
 
 	// ensure the input pointers are not NULL
-	if (wrappedMessage == 0 || rawMessage == 0)
+	if (wrappedMessage == 0 || rawMessage == 0){
+		errorPrint("Input Pointers are NULL\n");
 		return 0;
+	}
 
+	radsat_sk_raw_message_t mediumRareMessage = { 0 };
+	memcpy(&mediumRareMessage, wrappedMessage, size);
 
 	// decrypt entire message
-	int error = xorDecrypt(wrappedMessage, size);
-	if (error)
+	int error = xorDecrypt((uint8_t*)&mediumRareMessage, size);
+	if (error){
+		errorPrint("XOR Error\n");
 		return 0;
-
-
-	// access the message header; obtain size, confirm preamble and CRC
-	radsat_sk_header_t *header = (radsat_sk_header_t *)wrappedMessage;
+	}
 
 	// confirm preamble
-	if (header->preamble != RADSAT_SK_MESSAGE_PREAMBLE)
+	if (mediumRareMessage.preamble != RADSAT_SK_MESSAGE_PREAMBLE){
+		errorPrint("Bad Preamble\n");
 		return 0;
+	}
 
-	// locally calculate the CRC of the entire message (except for preamble and crc itself)
-	crc_t localCrc = crcFast(&wrappedMessage[RADSAT_SK_HEADER_CRC_OFFSET],
-							 (int)(size - RADSAT_SK_HEADER_CRC_OFFSET));
+	// calculate the CRC of entire message (except for preamble and crc itself)
+	crc_t localCrc = crcFast((uint8_t*)&mediumRareMessage.size, (int)(mediumRareMessage.size + RADSAT_SK_HEADER_SIZE - RADSAT_SK_HEADER_CRC_OFFSET));
+
 
 	// confirm locally-calculated CRC with the one sent with the message header
-	if (header->crc != localCrc)
+	if (mediumRareMessage.crc != localCrc) {
+		errorPrint("CRC failure\n");
 		return 0;
+	}
 
 	// deserialize the encoded message with NanoPB Protobuf decoding
-	error = protoDecode(&wrappedMessage[RADSAT_SK_HEADER_SIZE], header->size, rawMessage);
-	if (error)
-		return 0;
-	debugPrint("header->size: %d\n", header->size);
+	memcpy(rawMessage, mediumRareMessage.body, mediumRareMessage.size);
 	// return the size of the message itself
-
-	return header->size;
+	return mediumRareMessage.size;
 }
+
 

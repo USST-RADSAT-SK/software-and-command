@@ -17,10 +17,26 @@
 ***************************************************************************************************/
 
 /** Index of our Transceiver; the IsisTRXVU.h SSI module allows for multiple TRX instances */
-#define TRANSCEIVER_INDEX	0
+#define TRANSCEIVER_INDEX 0
 
 #define TRX_WDOG_RESET_CMD_CODE	0xCC
 #define TRX_WDOG_RESET_CMD_SIZE	1
+
+/** For manual testing of messages */
+#define N_MESSAGES 5
+
+uint8_t msg1[15] = {0x19, 0x21, 0x2f, 0x08, 0x07, 0xa6, 0xff, 0xb7, 0x62, 0x1b, 0x05, 0x0b, 0x03, 0x09, 0x0a}; // beginPass
+uint8_t msg2[13] = {0x19, 0x21, 0xd2, 0x85, 0x05, 0xb3, 0xff, 0xb7, 0x62, 0x1b, 0x03, 0x13, 0x01}; // beginFileTransfer
+uint8_t msg3[13] = {0x19, 0x21, 0x10, 0x2a, 0x05, 0x76, 0xff, 0xb7, 0x62, 0x0b, 0x03, 0x0b, 0x01}; // ack
+uint8_t msg4[13] = {0x19, 0x21, 0x10, 0x2a, 0x05, 0x76, 0xff, 0xb7, 0x62, 0x0b, 0x03, 0x0b, 0x01}; // ack
+uint8_t msg5[13] = {0x19, 0x21, 0x10, 0x2a, 0x05, 0x76, 0xff, 0xb7, 0x62, 0x0b, 0x03, 0x0b, 0x01}; // ack
+
+int messageLengths[] = { 15, 13, 13, 13, 13 }; // in bytes
+
+uint8_t* messages[N_MESSAGES] = {msg1, msg2, msg3, msg4, msg5};
+
+int curMsgIdx = 0;
+
 
 
 /** Track whether the Transceiver has been initialized yet */
@@ -33,7 +49,6 @@ static uint8_t initialized = 0;
 
 static int transceiverRxUpTime(uint16_t* uptime);
 static int transceiverTxUpTime(uint16_t* uptime);
-
 
 /***************************************************************************************************
                                              PUBLIC API
@@ -66,7 +81,7 @@ int transceiverInit(void) {
 	// define bitrate for uplink (RX) and downlink (TX) transmissions
 	ISIStrxvuBitrate bitrate = trxvu_bitrate_9600;
 
-	int error = IsisTrxvu_initialize(&addresses, &frameLengths, &bitrate, TRANSCEIVER_INDEX);
+	int error = IsisTrxvu_initialize(&addresses, &frameLengths, &bitrate, 1);
 
 	// update flag if successfully initialized
 	if (!error)
@@ -86,6 +101,7 @@ int transceiverInit(void) {
  */
 int transceiverRxFrameCount(uint16_t* numberOfFrames) {
 
+
 	// transceiver must be initialized first
 	if (!initialized)
 		return E_NOT_INITIALIZED;
@@ -94,7 +110,9 @@ int transceiverRxFrameCount(uint16_t* numberOfFrames) {
 	if (numberOfFrames == 0)
 		return E_INPUT_POINTER_NULL;
 
+	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_rcGetFrameCount(TRANSCEIVER_INDEX, numberOfFrames);
+	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 
@@ -110,35 +128,32 @@ int transceiverRxFrameCount(uint16_t* numberOfFrames) {
  * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
 int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
-	uint16_t slaveAddress = 0x4A;
-	uint16_t sizeToRead = 15;
 
 	// transceiver must be initialized first
-	//if (!initialized)
-	//	return E_NOT_INITIALIZED;
+	 if (!initialized)
+		return E_NOT_INITIALIZED;
 
 	// ensure the pointers are valid
 	if (messageBuffer == 0 || sizeOfMessage == 0)
 		return E_INPUT_POINTER_NULL;
 
-	int error = i2cRecieve(slaveAddress, messageBuffer, sizeToRead); //sizeOfMessage);
-	debugPrint("error: %d\n", error);
-	*sizeOfMessage = sizeToRead;
 	// create an RX Frame struct to receive the frame (and length) into
-	//ISIStrxvuRxFrame frame = {
-	//	.rx_framedata = messageBuffer,
-	//};
+	ISIStrxvuRxFrame frame = {
+		.rx_framedata = messageBuffer,
+	};
 
-	//int error = IsisTrxvu_rcGetCommandFrame(TRANSCEIVER_INDEX, &frame);
+	//if(i2cWait()) return -1;
+	int error = IsisTrxvu_rcGetCommandFrame(TRANSCEIVER_INDEX, &frame);
+	//i2cRelease();
 
 	// provide the size of the message to the caller
-	//*sizeOfMessage = frame.rx_length;
+	*sizeOfMessage = frame.rx_length;
+
 
 	// TODO: record errors (if present) to System Manager
 
 	return error;
 }
-
 
 /**
  * Sends a data frame to the Transmitter's buffer.
@@ -149,18 +164,18 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
  * @return	Error code; 0 for success, otherwise see hal/error.c
  */
 int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRemaining) {
-	uint16_t slaveAddress = 0x4A;
+
 	// transceiver must be initialized first
-	//if (!initialized)
-	//	return E_NOT_INITIALIZED;
+	if (!initialized)
+		return E_NOT_INITIALIZED;
 
 	// ensure the pointer is valid (slotsRemaining is optional)
 	if (message == 0)
 		return E_INPUT_POINTER_NULL;
-	debugPrint("trxSendFrame\n");
-	int error = i2cTransmit(slaveAddress, message, messageSize);
 
-	//int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, slotsRemaining);
+	//if(i2cWait()) return -1;
+	int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, slotsRemaining);
+	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 
@@ -185,7 +200,9 @@ int transceiverPowerCycle(void) {
 		return E_NOT_INITIALIZED;
 
 	// send full hard reset command
+	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_hardReset(TRANSCEIVER_INDEX);
+	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 
@@ -200,7 +217,9 @@ int transceiverPowerCycle(void) {
 int transceiverSoftReset(void){
 
 	//send full soft reset command
+	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_softReset(TRANSCEIVER_INDEX);
+	//i2cRelease();
 
 	//TODO: record errors (if present) to System Manager
 	if (error != 0)
@@ -225,6 +244,7 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 	ISIStrxvuRxTelemetry rawRxTelemetry = { .fields = { 0 } };
 	ISIStrxvuTxTelemetry rawTxTelemetry = { .fields = { 0 } };
 
+	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_rcGetTelemetryAll(TRANSCEIVER_INDEX, &rawRxTelemetry);
 
 	// TODO: record errors (if present) to System Manager
@@ -232,6 +252,7 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 		return error;
 
 	error = IsisTrxvu_tcGetTelemetryAll(TRANSCEIVER_INDEX, &rawTxTelemetry);
+	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 	if (error)
@@ -322,6 +343,24 @@ static int transceiverRxUpTime(uint16_t* uptime) {
 
 	// TODO: record errors (if present) to System Manager
 
+	return error;
+}
+
+
+/**
+ * @brief	enable sending of frame bytes for symbol recovery
+ */
+int startInterFrameFill(void){
+	int error = IsisTrxvu_tcSetIdlestate(0, trxvu_idle_state_on);
+	return error;
+}
+
+
+/**
+ * @brief	disables sending of frame bytes for symbol recovery
+ */
+int stopInterFrameFill(void){
+	int error = IsisTrxvu_tcSetIdlestate(0, trxvu_idle_state_off);
 	return error;
 }
 

@@ -1,21 +1,20 @@
 /**
- * @file RTestDosimeter.h
+ * @file RTestSuite.h
  * @date December 29, 2021
- * @author Tyrel Kostyk and Austin Hruska (jah385)
+ * @author Tyrel Kostyk (tck290) and Austin Hruska (jah385)
  */
 
-#ifndef RTESTDOSIMETER_H_
-#define RTESTDOSIMETER_H_
-
+#ifndef RTESTSUITE_H_
+#define RTESTSUITE_H_
 
 
 /***************************************************************************************************
                                              PUBLIC API
 ***************************************************************************************************/
 
-int testSelectDosimeter(unsigned int autoSelection);
-int checkDosimeter(void);
-int testDosimeterAll(void);
+int testSuiteRunAll(void);
+
+int selectAndExecuteTests(void);
 
 
-#endif /* RTESTDOSIMETER_H_ */
+#endif /* RTESTSUITE_H_ */

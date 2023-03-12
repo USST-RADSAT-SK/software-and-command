@@ -6,7 +6,6 @@
 
 #include <RDosimeter.h>
 #include <RFileTransferService.h>
-#include <RFileTransfer.pb.h>
 #include <RI2c.h>
 #include <string.h>
 #include <RCommon.h>
@@ -101,6 +100,71 @@ static float convertVoltageToTemperature(float voltage);
                                              PUBLIC API
 ***************************************************************************************************/
 
+int dosimeterData(dosimeter_data* data) {
+	int error = SUCCESS;
+
+	// internal buffer for receiving I2C responses
+	uint8_t dataResponse[DOSIMETER_RESPONSE_LENGTH] = { 0 };
+
+	// prepare a 2D array to store the values obtained in the following loops
+	//float results[dosimeterBoardCount][adcChannelCount] = { 0 };
+
+	// iterate through both melanin-dosimeter boards
+	for (uint8_t dosimeterBoard = dosimeterBoardOne; dosimeterBoard < dosimeterBoardCount; dosimeterBoard++) {
+
+		dosimeter_board_data* currentBoard = (&data->boardOne) + dosimeterBoard;
+		// request data from each sensor on a particular board
+		for (uint8_t adcChannel = adcChannelZero; adcChannel < adcChannelCount; adcChannel++) {
+
+			// reset internal buffer
+			memset(dataResponse, 0, DOSIMETER_RESPONSE_LENGTH);
+
+			// tell dosimeter to begin conversion; receive 12-bit data into our internal buffer
+			error = i2cTalk(dosimeterBoardSlaveAddr[dosimeterBoard], DOSIMETER_COMMAND_LENGTH,
+								DOSIMETER_RESPONSE_LENGTH, &dosimeterCommandBytes[adcChannel],
+								dataResponse, DOSIMETER_I2C_DELAY);
+
+			// check for success of I2C command
+			if (error != 0)
+				continue;
+
+			float finalVoltage = convertCountsToVoltage(dataResponse[0], dataResponse[1]);
+
+			// if reading the temperature sensor, convert it to celsius
+			if (adcChannel == temperatureSensor)
+				finalVoltage = convertVoltageToTemperature(finalVoltage);
+
+			// store result in 2D array
+			*((&currentBoard->channelZero) + adcChannel) = finalVoltage;
+
+		}
+	}
+
+	/*// format protobuf message with recorded values
+
+	// board one
+	data->boardOne.channelZero = results[dosimeterBoardOne][adcChannelZero];
+	data->boardOne.channelOne = results[dosimeterBoardOne][adcChannelOne];
+	data->boardOne.channelTwo = results[dosimeterBoardOne][adcChannelTwo];
+	data->boardOne.channelThree = results[dosimeterBoardOne][adcChannelThree];
+	data->boardOne.channelFour = results[dosimeterBoardOne][adcChannelFour];
+	data->boardOne.channelFive = results[dosimeterBoardOne][adcChannelFive];
+	data->boardOne.channelSix = results[dosimeterBoardOne][adcChannelSix];
+	data->boardOne.channelSeven = results[dosimeterBoardOne][adcChannelSeven];
+
+	// board two
+	data->boardTwo.channelZero = results[dosimeterBoardTwo][adcChannelZero];
+	data->boardTwo.channelOne = results[dosimeterBoardTwo][adcChannelOne];
+	data->boardTwo.channelTwo = results[dosimeterBoardTwo][adcChannelTwo];
+	data->boardTwo.channelThree = results[dosimeterBoardTwo][adcChannelThree];
+	data->boardTwo.channelFour = results[dosimeterBoardTwo][adcChannelFour];
+	data->boardTwo.channelFive = results[dosimeterBoardTwo][adcChannelFive];
+	data->boardTwo.channelSix = results[dosimeterBoardTwo][adcChannelSix];
+	data->boardTwo.channelSeven = results[dosimeterBoardTwo][adcChannelSeven];
+	*/
+	return  error;
+}
+
 /**
  * Request and store readings from all Melanin-Dosimeter channels.
  *
@@ -116,71 +180,14 @@ static float convertVoltageToTemperature(float voltage);
  * 		   Manager.
  */
 int dosimeterCollectData(void) {
-	int error = SUCCESS;
-
-	// internal buffer for receiving I2C responses
-	uint8_t dataResponse[DOSIMETER_RESPONSE_LENGTH] = { 0 };
-
 	// prepare a protobuf struct to populate with data
 	dosimeter_data data = { 0 };
 
-	// prepare a 2D array to store the values obtained in the following loops
-	float results[dosimeterBoardCount][adcChannelCount] = { 0 };
+	int error = dosimeterData(&data);
+	printDosimeterData(&data);
 
-	// iterate through both melanin-dosimeter boards
-	for (uint8_t dosimeterBoard = dosimeterBoardOne; dosimeterBoard < dosimeterBoardCount; dosimeterBoard++) {
-
-		// request data from each sensor on a particular board
-		for (uint8_t adcChannel = adcChannelZero; adcChannel < adcChannelCount; adcChannel++) {
-
-			// reset internal buffer
-			memset(dataResponse, 0, DOSIMETER_RESPONSE_LENGTH);
-
-			// tell dosimeter to begin conversion; receive 12-bit data into our internal buffer
-			error = i2cTalk(dosimeterBoardSlaveAddr[dosimeterBoard], DOSIMETER_COMMAND_LENGTH,
-								DOSIMETER_RESPONSE_LENGTH, &dosimeterCommandBytes[adcChannel],
-								dataResponse, DOSIMETER_I2C_DELAY);
-
-			// check for success of I2C command
-			if (error != 0)
-				return error;
-
-			float finalVoltage = convertCountsToVoltage(dataResponse[0], dataResponse[1]);
-
-			// if reading the temperature sensor, convert it to celsius
-			if (adcChannel == temperatureSensor)
-				finalVoltage = convertVoltageToTemperature(finalVoltage);
-
-			// store result in 2D array
-			results[dosimeterBoard][adcChannel] = finalVoltage;
-
-		}
-	}
-
-	// format protobuf message with recorded values
-
-	// board one
-	data.boardOne.channelZero = results[dosimeterBoardOne][adcChannelZero];
-	data.boardOne.channelOne = results[dosimeterBoardOne][adcChannelOne];
-	data.boardOne.channelTwo = results[dosimeterBoardOne][adcChannelTwo];
-	data.boardOne.channelThree = results[dosimeterBoardOne][adcChannelThree];
-	data.boardOne.channelFour = results[dosimeterBoardOne][adcChannelFour];
-	data.boardOne.channelFive = results[dosimeterBoardOne][adcChannelFive];
-	data.boardOne.channelSix = results[dosimeterBoardOne][adcChannelSix];
-	data.boardOne.channelSeven = results[dosimeterBoardOne][adcChannelSeven];
-
-	// board two
-	data.boardTwo.channelZero = results[dosimeterBoardTwo][adcChannelZero];
-	data.boardTwo.channelOne = results[dosimeterBoardTwo][adcChannelOne];
-	data.boardTwo.channelTwo = results[dosimeterBoardTwo][adcChannelTwo];
-	data.boardTwo.channelThree = results[dosimeterBoardTwo][adcChannelThree];
-	data.boardTwo.channelFour = results[dosimeterBoardTwo][adcChannelFour];
-	data.boardTwo.channelFive = results[dosimeterBoardTwo][adcChannelFive];
-	data.boardTwo.channelSix = results[dosimeterBoardTwo][adcChannelSix];
-	data.boardTwo.channelSeven = results[dosimeterBoardTwo][adcChannelSeven];
-
-	// send formatted protobuf messages to downlink manager
-	error = fileTransferAddMessage(&data, sizeof(data), file_transfer_message_DosimeterData_tag);
+	// send formatted protobuf mssages to downlink manager
+	error = fileTransferAddMessage(&data, sizeof(dosimeter_data), file_transfer_DosimeterData_tag);
 
 	return  error;
 }
@@ -216,6 +223,28 @@ int16_t dosimeterTemperature(dosimeterBoard_t board) {
 	int16_t temperature = convertVoltageToTemperature(voltageReading);
 
 	return temperature;
+}
+
+void printDosimeterData(dosimeter_data* data){
+
+	debugPrint("Board 1 Channel 1 = %f mv\n", data->boardOne.channelZero );
+	debugPrint("Board 1 Channel 2 = %f mv\n", data->boardOne.channelOne  );
+	debugPrint("Board 1 Channel 3 = %f mv\n", data->boardOne.channelTwo  );
+	debugPrint("Board 1 Channel 4 = %f mv\n", data->boardOne.channelThree);
+	debugPrint("Board 1 Channel 5 = %f mv\n", data->boardOne.channelFour );
+	debugPrint("Board 1 Channel 6 = %f mv\n", data->boardOne.channelFive );
+	debugPrint("Board 1 Channel 7 = %f mv\n", data->boardOne.channelSix  );
+	debugPrint("Board 1 Channel 8 = %f C\n",  data->boardOne.channelSeven);
+
+	// board two
+	debugPrint("Board 2 Channel 1 = %f mV\n", data->boardTwo.channelZero );
+	debugPrint("Board 2 Channel 2 = %f mV\n", data->boardTwo.channelOne  );
+	debugPrint("Board 2 Channel 3 = %f mV\n", data->boardTwo.channelTwo  );
+	debugPrint("Board 2 Channel 4 = %f mV\n", data->boardTwo.channelThree);
+	debugPrint("Board 2 Channel 5 = %f mV\n", data->boardTwo.channelFour );
+	debugPrint("Board 2 Channel 6 = %f mV\n", data->boardTwo.channelFive );
+	debugPrint("Board 2 Channel 7 = %f mV\n", data->boardTwo.channelSix  );
+	debugPrint("Board 2 Channel 8 = %f C\n",  data->boardTwo.channelSeven);
 }
 
 
