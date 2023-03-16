@@ -9,6 +9,7 @@
 #include <hal/Timing/WatchDogTimer.h>
 #include <hal/Timing/Time.h>
 #include <hal/Drivers/LED.h>
+#include <hal/supervisor.h>
 
 #include <hal/boolean.h>
 #include <hal/Utility/util.h>
@@ -48,9 +49,10 @@ static xTaskHandle missionInitTaskHandle;
 static xTaskHandle communicationRxTaskHandle;
 static xTaskHandle dosimeterCollectionTaskHandle;
 //static xTaskHandle imageCaptureTaskHandle;
-static xTaskHandle adcsCaptureTaskHandle;
+//static xTaskHandle adcsCaptureTaskHandle;
 static xTaskHandle telemetryCollectionTaskHandle;
 static xTaskHandle satelliteWatchdogTaskHandle;
+static xTaskHandle antennaDeploymentAttemptTaskHandle;
 
 /** Communication Receive Task Priority. Constantly listening for messages; high priority task. */
 static const int communicationRxTaskPriority = configMAX_PRIORITIES - 2;
@@ -60,7 +62,7 @@ static const int dosimeterCollectionTaskPriority = configMAX_PRIORITIES - 3;
 /** Image Capture Task Priority. Periodically collects image data; medium priority task. */
 //static const int imageCaptureTaskPriority = configMAX_PRIORITIES - 3;
 /** ADCS Capture Task Priority. Periodically collects ADCS data; medium priority task. */
-static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
+//static const int adcsCaptureTaskPriority = configMAX_PRIORITIES - 3;
 
 /** Telemetry Collection Task Priority. Periodically collects satellite telemetry; low priority task. */
 static const int telemetryCollectionTaskPriority = configMAX_PRIORITIES - 4;
@@ -69,6 +71,7 @@ static const int satelliteWatchdogTaskPriority = configMAX_PRIORITIES - 4;
 /** Mission Init Task Priority. Does initializations that need to be ran post-scheduler; low priority task. */
 static const int missionInitTaskPriority = configMAX_PRIORITIES - 4;
 
+static const int antennaDeploymentAttemptPriority = configMAX_PRIORITIES - 2;
 
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
@@ -113,15 +116,14 @@ int main(void) {
 						&missionInitTaskHandle);
 
 	if (error != pdPASS) {
-		debugPrint("main(): failed to create MissionInitTask.\n");
-		debugPrint("error = %d\n", error);
+		errorPrint("main(): failed to create MissionInitTask error = %d\n", error);
 		// TODO: report to system manager
 	}
 
 	// start the FreeRTOS Scheduler - NEVER GETS PAST THIS LINE
 	vTaskStartScheduler();
 
-	debugPrint("main(): failed to start the FreeRTOS Scheduler.\n");
+	errorPrint("main(): failed to start the FreeRTOS Scheduler.");
 
 	// should never get here
 	exit(0);
@@ -139,6 +141,8 @@ static int initBoard(void) {
 
 	// Enable the Instruction cache of the ARM9 core. Keep the MMU and Data Cache disabled.
 	CP15_Enable_I_Cache();
+	int error = Supervisor_start(NULL, 0);
+	if (error) errorPrint("Failed to start Superviser. Error = %d", error);
 
 	return SUCCESS;
 }
@@ -154,21 +158,21 @@ static int initDrivers(void) {
 	// initialize the Auxillary Camera UART port for communication with Camera
 	error = uartInit(UART_CAMERA_BUS);
 	if (error != SUCCESS) {
-		debugPrint("initDriver(): failed to initialize Camera UART.\n");
+		errorPrint("initDriver(): failed to initialize Camera UART.");
 		return error;
 	}
 
 	// initialize the FRAM memory module for safe persistent storage
 	error = framInit();
 	if (error != SUCCESS) {
-		debugPrint("initDriver(): failed to initialize FRAM.\n");
+		errorPrint("initDriver(): failed to initialize FRAM.");
 		return error;
 	}
 
 	// initialize the I2C bus for general inter-component communication
 	error = i2cInit();
 	if (error != SUCCESS) {
-		debugPrint("initDriver(): failed to initialize I2C.\n");
+		errorPrint("initDriver(): failed to initialize I2C.\n");
 		return error;
 	}
 
@@ -183,42 +187,16 @@ static int initTime(void) {
 
 	int error = SUCCESS;
 
-	// create Time struct with default times (estimated Launch date)
-	Time time = { 0 };
-	time.year = 22;		// 2022
-	time.month = 8;		// August
-	time.date = 1;		// the 1st
-	time.day = 2;		// Monday
-	time.hours = 12;	// 12:00:00
-	time.minutes = 0;	// 12:00:00
-	time.seconds = 0;	// 12:00:00
-
 	// the time (in seconds) between RTC and RTT synchronizations
 	const unsigned int syncInterval = 120;
 
 	// initialize the RTC and RTT and set the default time
-	error = Time_start(&time, syncInterval);
+	error = Time_start(NULL, syncInterval);
 	if (error != SUCCESS)
-		debugPrint("initTime(): failed to initialize RTC and RTT.\n");
+		errorPrint("initTime(): failed to initialize RTC and RTT.");
 
 	return error;
 }
-
-
-/**
- * Attempt to deploy the antenna.
- */
-static int attemptAntennaDeployment(void) {
-
-	int error = SUCCESS;
-
-	error = antennaDeploymentAttempt();
-	if (error != SUCCESS)
-		debugPrint("attemptAntennaDeployment(): failed to deploy antenna.\n");
-
-	return error;
-}
-
 
 
 /**
@@ -231,14 +209,14 @@ static int initSubsystems(void) {
 	// initialize the Transceiver module
 	error = transceiverInit();
 	if (error != SUCCESS) {
-		debugPrint("initSubsystems(): failed to initialize Transceiver subsystem.\n");
+		errorPrint("initSubsystems(): failed to initialize Transceiver subsystem.");
 		return error;
 	}
 
 	// initialize the antenna module
 	error = antennaInit();
 	if (error != SUCCESS){
-		debugPrint("initSubsystems(): failed to initialized Antenna subsystem.\n");
+		errorPrint("initSubsystems(): failed to initialized Antenna subsystem.");
 		return error;
 	}
 
@@ -266,8 +244,8 @@ static int initObcWatchdog(void) {
 	error = WDT_startWatchdogKickTask(OBC_WDOG_KICK_PERIOD_MS, TRUE);
 #endif
 
-	if (error != SUCCESS)
-		debugPrint("initObcWatchdog(): failed to start background OBC WDOG task.\n");
+	if (error)
+		errorPrint("initObcWatchdog(): failed to start background OBC WDOG task.");
 
 	return error;
 }
@@ -278,20 +256,32 @@ static int initObcWatchdog(void) {
  * Initialize all of the FreeRTOS tasks used during typical mission operation.
  */
 static int initMissionTasks(void) {
+	//fileTransferReset();
 
-	int error = pdPASS;
-	fileTransferReset();
+
+	// initialize the Satellite Watchdog Task
+	int error = xTaskCreate(SatelliteWatchdogTask,
+						(const signed char*)"Satellite Watchdog Task",
+						DEFAULT_TASK_STACK_SIZE,
+						NULL,
+						satelliteWatchdogTaskPriority,
+						&satelliteWatchdogTaskHandle);
+
+	if (error != pdPASS) {
+		errorPrint("initMissionTasks(): failed to create SatelliteWatchdogTask.");
+		return E_GENERIC;
+	}
+
 
 	// initialize the Communication Receive Task
-	error = xTaskCreate(CommunicationRxTask,
+	 error = xTaskCreate(CommunicationRxTask,
 						(const signed char*)"Communication Receive Task",
 						DEFAULT_TASK_STACK_SIZE,
 						NULL,
 						communicationRxTaskPriority,
 						&communicationRxTaskHandle);
-
 	if (error != pdPASS) {
-		debugPrint("initMissionTasks(): failed to create CommunicationRxTask.\n");
+		errorPrint("initMissionTasks(): failed to create CommunicationRxTask.");
 		return E_GENERIC;
 	}
 
@@ -305,7 +295,7 @@ static int initMissionTasks(void) {
 						&dosimeterCollectionTaskHandle);
 
 	if (error != pdPASS) {
-		debugPrint("initMissionTasks(): failed to create DosimeterCollectionTask.\n");
+		errorPrint("initMissionTasks(): failed to create DosimeterCollectionTask.");
 		return E_GENERIC;
 	}
 
@@ -324,6 +314,7 @@ static int initMissionTasks(void) {
 	}*/
 
 
+	/*
 	// initialize the ADCS Capture Task
 	error = xTaskCreate(AdcsCaptureTask,
 						(const signed char*)"ADCS Capture Task",
@@ -333,9 +324,10 @@ static int initMissionTasks(void) {
 						&adcsCaptureTaskHandle);
 
 	if (error != pdPASS) {
-		debugPrint("initMissionTasks(): failed to create AdcsCaptureTask.\n");
+		errorPrint("initMissionTasks(): failed to create AdcsCaptureTask.");
 		return E_GENERIC;
 	}
+	*/
 
 	// initialize the Telemetry Collection Task
 	error = xTaskCreate(TelemetryCollectionTask,
@@ -346,20 +338,19 @@ static int initMissionTasks(void) {
 						&telemetryCollectionTaskHandle);
 
 	if (error != pdPASS) {
-		debugPrint("initMissionTasks(): failed to create TelemetryCollectionTask.\n");
+		errorPrint("initMissionTasks(): failed to create TelemetryCollectionTask.");
 		return E_GENERIC;
 	}
 
-	// initialize the Satellite Watchdog Task
-	error = xTaskCreate(SatelliteWatchdogTask,
-						(const signed char*)"Satellite Watchdog Task",
+	// initialize the Antenna Task
+	error = xTaskCreate(antennaDeploymentAttempt,
+						(const signed char*)"Antenna Deployment Task",
 						DEFAULT_TASK_STACK_SIZE,
 						NULL,
-						satelliteWatchdogTaskPriority,
-						&satelliteWatchdogTaskHandle);
-
+						antennaDeploymentAttemptPriority,
+						&antennaDeploymentAttemptTaskHandle);
 	if (error != pdPASS) {
-		debugPrint("initMissionTasks(): failed to create SatelliteWatchdogTask.\n");
+		errorPrint("initMissionTasks(): failed to create antennaDeploymentAttempt.");
 		return E_GENERIC;
 	}
 
@@ -391,7 +382,7 @@ void MissionInitTask(void* parameters) {
 	error = initDrivers();
 	if (error != SUCCESS) {
 		// TODO: report to system manager
-		debugPrint("MissionInitTask(): failed to initialize Drivers.\n");
+		errorPrint("MissionInitTask(): failed to initialize Drivers.");
 	}
 
 
@@ -400,7 +391,7 @@ void MissionInitTask(void* parameters) {
 	// TODO: run tests
 	error = selectAndExecuteTests();
 	if (error)
-		debugPrint("Error running selectAndExecuteTest. error = %d\n", error);
+		errorPrint("Error running selectAndExecuteTest. error = %d", error);
 
 
 #else	/* TEST */
@@ -409,35 +400,28 @@ void MissionInitTask(void* parameters) {
 	error = initSubsystems();
 	if (error != SUCCESS) {
 		// TODO: report to system manager
-		debugPrint("MissionInitTask(): failed to initialize Subsystems.\n");
+		errorPrint("MissionInitTask(): failed to initialize Subsystems.");
 	}
 
 	// initialize the internal OBC watchdog, and start a task that automatically pets it
 	error = initObcWatchdog();
 	if (error != SUCCESS) {
 		// TODO: report to system manager
-		debugPrint("MissionInitTask(): failed to initialize Obc Watchdog.\n");
+		errorPrint("MissionInitTask(): failed to initialize Obc Watchdog.");
 	}
 
 	// initialize the RTC and RTT to the default time
 	error = initTime();
 	if (error != SUCCESS) {
 		// TODO: report to system manager
-		debugPrint("MissionInitTask(): failed to initialize the time.\n");
-	}
-
-	// attempt to deploy the antenna
-	error = attemptAntennaDeployment();
-	if (error != SUCCESS) {
-		// TODO: report system manager
-		debugPrint("attemptAntennaDeployment(): failed to deploy the antenna.\n");
+		errorPrint("MissionInitTask(): failed to initialize the time.");
 	}
 
 	// initialize the FreeRTOS Tasks used for typical mission operation
 	error = initMissionTasks();
 	if (error != SUCCESS) {
 		// TODO: report to system manager
-		debugPrint("MissionInitTask(): failed to initialize FreeRTOS Mission Tasks.\n");
+		errorPrint("MissionInitTask(): failed to initialize FreeRTOS Mission Tasks.");
 	}
 
 #endif	/* TEST */

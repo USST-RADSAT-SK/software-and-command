@@ -24,19 +24,8 @@
 ***************************************************************************************************/
 
 /** Communication Receive Task delay (in ms). */
-#define COMMUNICATION_RX_TASK_DELAY_MS			1000//((portTickType)1)
-
-/** Communication Transmit Task delay (in ms) during typical operation. */
-#define COMMUNICATION_TX_TASK_SHORT_DELAY_MS	100//((portTickType)1)
-
-/**
- * Communication Transmit Task delay (in ms) when the transmitter's buffer is full.
- *
- * Transmission speed: 9600 bps => roughly 1 byte per ms; This delay should long enough to transmit
- * one full frame.
- */
-#define COMMUNICATION_TX_TASK_LONG_DELAY_MS		1000/((portTickType)TRANCEIVER_TX_MAX_FRAME_SIZE)
-
+#define COMMUNICATION_RX_TASK_DELAY_MS			150//((portTickType)1)
+#define COMMUNICATION_RX_TASK_SHORT_DELAY_MS	10//((portTickType)1)
 
 /***************************************************************************************************
                                        PRIVATE FUNCTION STUBS
@@ -94,10 +83,14 @@ void CommunicationRxTask(void* parameters) {
 
 			// attempt to extract a message
 			commandType_t type = genericHandle(rxMessage, rxMessageSize, &messageData);
+			mark
 			processCommand(type, &messageData);
+			mark
 
+			vTaskDelay(COMMUNICATION_RX_TASK_SHORT_DELAY_MS);
+		} else {
+			vTaskDelay(COMMUNICATION_RX_TASK_DELAY_MS);
 		}
-		vTaskDelay(150);
 	}
 
 }

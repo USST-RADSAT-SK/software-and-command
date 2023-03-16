@@ -24,7 +24,6 @@ typedef struct _obc_telemetry_t {
 ***************************************************************************************************/
 
 int obcTelemetry(obc_telemetry_t* telemetry);
-void obcPetWatchdogs(void);
-
+int powerCycleIobc(void);
 
 #endif /* ROBC_H_ */

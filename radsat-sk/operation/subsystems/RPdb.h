@@ -23,5 +23,7 @@
 int pdbSunSensorData(sun_sensor_data* sunData);
 int pdbTelemetry(eps_telemetry* dataStorage);
 int pdbPetWatchdog(void);
+void pdbReset(void);
+void pdbResetSat(void);
 
 #endif /* RPdb_H_ */

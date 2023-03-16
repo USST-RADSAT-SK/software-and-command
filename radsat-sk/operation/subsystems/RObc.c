@@ -24,14 +24,16 @@
 int obcTelemetry(obc_telemetry_t* telemetry){
 	float temperature = 0;
 	int error = RTC_getTemperature(&temperature);
-
-	if (error != SUCCESS) {
-		// TODO: record errors (if present) to System Manager
-		return error;
-	}
-
+	if (error) errorPrint("Failed to get telem. error = %d", error);
 	telemetry->temperature = temperature;
 	return SUCCESS;
 
 }
 
+
+int powerCycleIobc(void){
+	supervisor_generic_reply_t reply;
+	int error = Supervisor_powerCycleIobc(&reply, SUPERVISOR_SPI_INDEX);
+	if (error) errorPrint("Failed to reset OBC. error = %d", error);
+	return error;
+}

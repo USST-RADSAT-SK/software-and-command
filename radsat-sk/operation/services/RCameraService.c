@@ -19,7 +19,7 @@
 ***************************************************************************************************/
 
 /** Current camera settings and initialization flag. **/
-static CameraSettings cameraSettings = { 0 };
+static Camera_Configuration cameraSettings = { 0 };
 //static uint8_t cameraSettingsInitialized = 0;
 
 /** Interval (in ms) for the automatic image and ADCS capture tasks. **/
@@ -63,6 +63,7 @@ typedef struct _adcs_capture_settings_t {
 } adcs_capture_settings_t;
 static adcs_capture_settings_t adcsSettings = {0};
 
+
 /** Pointer to a local ADCS measurements results prepared for downlink. */
 static adcs_detection_results_t *adcsResults;
 /** Flag indicating ADCS is ready for a new burst (1=ready, 0=not ready). **/
@@ -105,25 +106,11 @@ int requestReset(uint8_t resetOption) {
  * @param nadirSettings defines the nadir camera settings to set
  * @return error, 0 for success, otherwise failure
  */
-int setCamerasSettings(CameraSettings_ConfigurationSettings sunSettings, CameraSettings_ConfigurationSettings nadirSettings) {
+int setCamerasSettings(Camera_Configuration_Settings sunSettings, Camera_Configuration_Settings nadirSettings) {
 	// Flag CubeSense as "in use"
 	cubeSenseIsInUse = 1;
 
 	int error;
-
-	// TODO: Do we need this or not? Is the FULL struct sent via telecommand?
-	/*if (!cameraSettingsInitialized) {
-		printf("Getting camera settings...\n");
-		error = getSettings(&cameraSettings);
-		if (error != SUCCESS) {
-			printf("Failed to get camera settings...\n");
-			cubeSenseIsInUse = 0;
-			return E_GENERIC;
-		}
-		printf("Exposure = %i\n", cameraSettings.cameraTwoSettings.exposure);
-		printf("Detection Threshold = %i\n", cameraSettings.cameraTwoSettings.detectionThreshold);
-		cameraSettingsInitialized = 1;
-	}*/
 
 	cameraSettings.cameraOneSettings = sunSettings;
 	cameraSettings.cameraTwoSettings = nadirSettings;
@@ -178,7 +165,7 @@ void setADCSBurstSettings(uint8_t nbMeasurements, int interval) {
  *
  * @return error, 0 for success, otherwise failure
  */
-int takeADCSBurstMeasurements(void) {
+int takeADCSBurstMeasurements(adcs_burst* burstResults) {
 	// Flag CubeSense as "in use"
 	cubeSenseIsInUse = 1;
 
@@ -188,33 +175,37 @@ int takeADCSBurstMeasurements(void) {
 	free(adcsResults);
 
 	// Allocate memory to struct to store measurements
-	adcsResults = initializeNewADCSResults(adcsSettings.nbMeasurements);
+	adcsResults = initializeNewADCSResults(ADCS_BURST_NUMBER_OF_CAPTURES);
 
 	// Run a first image capture & detect so the first results can be read
 	error = triggerNewDetectionForBothSensors();
 	if (error != SUCCESS) {
-		printf("Failed to trigger a first capture and detect...\n");
+		errorPrint("Failed to trigger a first capture and detect...\n");
 	}
 
 	// Wait for first captures to be done
-	vTaskDelay(adcsSettings.interval);
+	vTaskDelay(ADCS_BURST_INTERVAL_MS);
 
 	// Iterate to get the detection results
 	uint8_t resultIndex = 0;
-	printf("Number of measurements = %d\n", adcsSettings.nbMeasurements);
-	for (int i = 0; i < adcsSettings.nbMeasurements; i++) {
-		printf("Detection measurement #%d\n", i);
+	infoPrint("Number of measurements = %d\n", ADCS_BURST_NUMBER_OF_CAPTURES);
+	for (int i = 0; i < ADCS_BURST_NUMBER_OF_CAPTURES; i++) {
+		infoPrint("Detection measurement #%d\n", i);
 		// Get detection results and trigger a new detection
 		adcs_detection detectionResult = { 0 };
 		error = getResultsAndTriggerNewDetection(&detectionResult);
-		if (error == SUCCESS) {
+#ifdef ADCS_DISCARD_MISSED_MEASUREMENTS
+		if (error == SUCCESS)
+#endif
+		{
 			// Store the successful result
+			burstResults->detections[resultIndex] = detectionResult;
 			adcsResults->results[resultIndex] = detectionResult;
 			resultIndex++;
 		}
 
 		// Wait before the next measurement
-		vTaskDelay(adcsSettings.interval);
+		vTaskDelay(ADCS_BURST_INTERVAL_MS);
 	}
 	// Store the number of valid measurements
 	adcsResults->validMeasurementsCount = resultIndex;
@@ -388,7 +379,7 @@ int requestImageCaptureAndDetect(uint8_t camera, uint8_t sram) {
 			// Get the detection status using the nadir sensor
 			detectionStatus = getSingleDetectionStatus(camera == 0 ? sensor1 : sensor2);
 		} else {
-			printf("Failed during image capture...\n");
+			errorPrint("Failed during image capture...\n");
 		}
 
 		// Wait before a retry
@@ -400,7 +391,7 @@ int requestImageCaptureAndDetect(uint8_t camera, uint8_t sram) {
 
 	// Detection results are still invalid, stop trying
 	if (detectionStatus != 0) {
-		printf("Failed to capture a valid image...\n");
+		errorPrint("Failed to capture a valid image...\n");
 		// Flag CubeSense as "not used"
 		cubeSenseIsInUse = 0;
 		return E_GENERIC;
@@ -409,9 +400,9 @@ int requestImageCaptureAndDetect(uint8_t camera, uint8_t sram) {
 	// Detection success, so take another image in the bottom location
 	error = requestImageCapture(camera, sram, BOTTOM_HALVE);
 	if (error != SUCCESS) {
-		printf("Failed to capture image in bottom location...\n");
+		errorPrint("Failed to capture image in bottom location...\n");
 	} else {
-		printf("Successfully captured image in bottom location.\n");
+		infoPrint("Successfully captured image in bottom location.\n");
 	}
 	vTaskDelay(IMAGE_CAPTURE_DELAY_MS);
 

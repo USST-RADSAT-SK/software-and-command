@@ -6,6 +6,7 @@
  */
 
 #include <RSatelliteWatchdogTask.h>
+#include <Rtransceiver.h>
 #include <RCommon.h>
 #include <RPdb.h>
 #include <RDebug.h>
@@ -41,6 +42,7 @@ void SatelliteWatchdogTask(void* parameters) {
 
 		printInfoBar
 		pdbPetWatchdog();
+		resetBeacon();
 		vTaskDelay(SATELLITE_WATCHDOG_TASK_DELAY_MS);
 	}
 }

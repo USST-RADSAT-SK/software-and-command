@@ -8,6 +8,7 @@
 #define RCAMERASERVICE_H_
 
 #include <RCamera.h>
+#include <RTelecommands.h>
 #include <stdint.h>
 
 /***************************************************************************************************
@@ -32,7 +33,7 @@ typedef struct _image_frame_t {
 
 /** General functions **/
 int requestReset(uint8_t resetOption);
-int setCamerasSettings(CameraSettings_ConfigurationSettings sunSettings, CameraSettings_ConfigurationSettings nadirSettings);
+int setCamerasSettings(Camera_Configuration_Settings sunSettings, Camera_Configuration_Settings nadirSettings);
 /***********************/
 
 /** ADCS Capture functions **/
@@ -40,7 +41,7 @@ void setADCSCaptureInterval(int interval);
 int getADCSCaptureInterval(void);
 
 void setADCSBurstSettings(uint8_t nbMeasurements, int interval);
-int takeADCSBurstMeasurements(void);
+int takeADCSBurstMeasurements(adcs_burst* burstResults);
 adcs_detection_results_t * getADCSBurstResults(void);
 adcs_detection_results_t * initializeNewADCSResults(uint8_t nbMeasurements);
 

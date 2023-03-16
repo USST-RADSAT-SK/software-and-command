@@ -398,6 +398,8 @@
 									<listOptionValue builtIn="false" value="../operation/subsystems"/>
 									<listOptionValue builtIn="false" value="../operation/subsystems/camera"/>
 									<listOptionValue builtIn="false" value="../operation/utility"/>
+									<listOptionValue builtIn="false" value="../testing/unit"/>
+									<listOptionValue builtIn="false" value="../testing"/>
 									<listOptionValue builtIn="false" value="../src/tasks"/>
 								</option>
 								<option id="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs.1971370393" name="Defined symbols (-D)" superClass="ilg.gnuarmeclipse.managedbuild.cross.option.c.compiler.defs" useByScannerDiscovery="false" valueType="definedSymbols">

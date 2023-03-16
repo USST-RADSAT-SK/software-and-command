@@ -127,6 +127,9 @@ static uint32_t pdbSunSensorCommandBytes[NUM_SUN_SENSORS] = {
 		0x35E110
 };
 
+static uint16_t resetCommand = 0x0080;
+static uint16_t resetPDMCommand = 0x0f70;
+
 /**
  * Commands for requesting output voltage readings for each bus and BCR
  */
@@ -186,7 +189,7 @@ int pdbSunSensorData(sun_sensor_data* sunData) {
 	uint16_t response = {0};
 
 	// Create a temporary array for calculated sun data before transferring into the structure sunData
-	float convertedData[NUM_SUN_SENSORS] = {0};
+	uint16_t convertedData[NUM_SUN_SENSORS] = {0};
 
 	// Send 6 commands to get each of the sun sensor's data
 	for (int i = 0; i < NUM_SUN_SENSORS; i = i + 1) {
@@ -203,19 +206,19 @@ int pdbSunSensorData(sun_sensor_data* sunData) {
 		}
 
 		bigEndianUint16(&response);
-		convertedData[i] = (float)response;
+		convertedData[i] = response;
 	}
 
 	// Now store all of the calculated data into the proper slot in the sunData structure
-	sunData->BCR1Voltage = 0.0322581 * convertedData[0];
-	sunData->SA1ACurrent = 0.0009775 * convertedData[1];
-	sunData->SA1BCurrent = 0.0009775 * convertedData[2];
-	sunData->BCR2Voltage = 0.0322581 * convertedData[3];
-	sunData->SA2ACurrent = 0.0009775 * convertedData[4];
-	sunData->SA2BCurrent = 0.0009775 * convertedData[5];
-	sunData->BCR3Voltage = 0.0322581 * convertedData[6];
-	sunData->SA3ACurrent = 0.0009775 * convertedData[7];
-	sunData->SA3BCurrent = 0.0009775 * convertedData[8];
+	sunData->BCR1Voltage = convertedData[0];
+	sunData->SA1ACurrent = convertedData[1];
+	sunData->SA1BCurrent = convertedData[2];
+	sunData->BCR2Voltage = convertedData[3];
+	sunData->SA2ACurrent = convertedData[4];
+	sunData->SA2BCurrent = convertedData[5];
+	sunData->BCR3Voltage = convertedData[6];
+	sunData->SA3ACurrent = convertedData[7];
+	sunData->SA3BCurrent = convertedData[8];
 
 	// Could change these numbers into an ENUM with the names of the connections
 
@@ -263,10 +266,10 @@ int pdbTelemetry(eps_telemetry* dataStorage) {
 
 	}
 
-	dataStorage->outputVoltageBCR = ADC_COUNT_TO_BCR_OUTPUT_VOLTAGE * storedData[0];
-	dataStorage->outputVoltageBatteryBus = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_VOLTAGE * storedData[1];
-	dataStorage->outputVoltage5VBus = ADC_COUNT_TO_5V_BUS_OUTPUT_VOLTAGE * storedData[2];
-	dataStorage->outputVoltage3V3Bus = ADC_COUNT_TO_3V3_BUS_OUTPUT_VOLTAGE * storedData[3];
+	dataStorage->outputVoltageBCR = storedData[0];
+	dataStorage->outputVoltageBatteryBus = storedData[1];
+	dataStorage->outputVoltage5VBus = storedData[2];
+	dataStorage->outputVoltage3V3Bus = storedData[3];
 
 	// Send 4 commands to get ADC output current readings from the PDB
 	for (int i = 0; i < NUM_TELEM_CALLS; i = i + 1) {
@@ -286,10 +289,10 @@ int pdbTelemetry(eps_telemetry* dataStorage) {
 
 
 	// Get ADC Output current readings from the PDB
-	dataStorage->outputCurrentBCR_mA = ADC_COUNT_TO_BCR_OUTPUT_CURRENT * storedData[0];
-	dataStorage->outputCurrentBatteryBus = ADC_COUNT_TO_BATTERY_BUS_OUTPUT_CURRENT * storedData[1];
-	dataStorage->outputCurrent5VBus = ADC_COUNT_TO_5V_BUS_OUTPUT_CURRENT * storedData[2];
-	dataStorage->outputCurrent3V3Bus = ADC_COUNT_TO_3V3_BUS_OUTPUT_CURRENT * storedData[3];
+	dataStorage->outputCurrentBCR_mA = storedData[0];
+	dataStorage->outputCurrentBatteryBus = storedData[1];
+	dataStorage->outputCurrent5VBus = storedData[2];
+	dataStorage->outputCurrent3V3Bus = storedData[3];
 
 
 	// Get ADC temperature reading from the PDB
@@ -304,8 +307,7 @@ int pdbTelemetry(eps_telemetry* dataStorage) {
 
 
 	bigEndianUint16((uint16_t*)&response);
-	dataStorage->PdbTemperature = (ADC_COUNT_TO_MOTHERBOARD_TEMP_SCALE * (float)(response))
-										- ADC_COUNT_TO_MOTHERBOARD_TEMP_SHIFT;
+	dataStorage->PdbTemperature = response;
 
 	return SUCCESS;
 }
@@ -330,6 +332,17 @@ int pdbPetWatchdog(void) {
 	}
 
 	return SUCCESS;
+}
+
+
+void pdbReset(void){
+	uint8_t response[2];
+	pdbTalk((uint8_t*)&resetCommand, response);
+}
+
+void pdbResetSat(void){
+	uint8_t response[2];
+	pdbTalk((uint8_t*)&resetPDMCommand, response);
 }
 
 

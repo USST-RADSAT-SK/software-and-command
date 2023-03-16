@@ -41,6 +41,8 @@ static uint8_t getRadsatMessageSize(radsat_tag_t tag) {
 		return file_transfer_ComponentErrorReport_size;
 	case file_transfer_ErrorReportSummary_tag:
 		return file_transfer_ErrorReportSummary_size;
+	case file_transfer_adcs_burst_tag:
+		return file_transfer_adcs_burst_size;
 	case protocol_Ack_tag:
 		return protocol_Ack_size;
 	case protocol_Nack_tag:
@@ -82,7 +84,19 @@ uint8_t messageWrap(radsat_message* rawMessage, radsat_sk_raw_message_t* wrapped
 		warningPrint("NULL Parameters");
 		return 0;
 	}
-
+/*
+	debugPrint("file_transfer_ObcTelemetry_size         = %d\n",file_transfer_ObcTelemetry_size         );
+	debugPrint("file_transfer_TransceiverTelemetry_size = %d\n",file_transfer_TransceiverTelemetry_size );
+	debugPrint("file_transfer_CameraTelemetry_size      = %d\n",file_transfer_CameraTelemetry_size      );
+	debugPrint("file_transfer_EpsTelemetry_size         = %d\n",file_transfer_EpsTelemetry_size         );
+	debugPrint("file_transfer_BatteryTelemetry_size     = %d\n",file_transfer_BatteryTelemetry_size     );
+	debugPrint("file_transfer_AntennaTelemetry_size     = %d\n",file_transfer_AntennaTelemetry_size     );
+	debugPrint("file_transfer_DosimeterData_size        = %d\n",file_transfer_DosimeterData_size        );
+	debugPrint("file_transfer_ImagePacket_size          = %d\n",file_transfer_ImagePacket_size          );
+	debugPrint("file_transfer_ModuleErrorReport_size    = %d\n",file_transfer_ModuleErrorReport_size    );
+	debugPrint("file_transfer_ComponentErrorReport_size = %d\n",file_transfer_ComponentErrorReport_size );
+	debugPrint("file_transfer_ErrorReportSummary_size   = %d\n",file_transfer_ErrorReportSummary_size   );
+*/
 	// serialize the raw message with NanoPB Protobuf encoding
 	uint8_t encodedSize = getRadsatMessageSize(rawMessage->which_service);
 
@@ -90,15 +104,14 @@ uint8_t messageWrap(radsat_message* rawMessage, radsat_sk_raw_message_t* wrapped
 	memcpy(wrappedMessage->body, rawMessage, encodedSize);
 
 	if (encodedSize == 0) {
-		errorPrint("ProtoEncode Error Size == 0");
+		errorPrint("Encode Error Size == 0");
 		return 0;
 	}
 
 	// populate the message header
 	wrappedMessage->preamble = RADSAT_SK_MESSAGE_PREAMBLE;
 	wrappedMessage->size = (uint8_t) encodedSize;
-	wrappedMessage->timestamp = 0x01020304;
-	//Time_getUnixEpoch(&wrappedMessage->timestamp);
+	Time_getUnixEpoch(&wrappedMessage->timestamp);
 
 	// calculate the CRC of entire message (except for preamble and crc itself)
 	wrappedMessage->crc = crcFast((uint8_t*)&wrappedMessage->size,

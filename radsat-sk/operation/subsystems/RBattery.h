@@ -23,6 +23,7 @@
 
 int batteryTelemetry(battery_telemetry* dataStorage);
 int batteryIsNotSafe(uint8_t* safeFlag);
+void batteryReset(void);
 
 
 #endif /* RBATTERY_H_ */

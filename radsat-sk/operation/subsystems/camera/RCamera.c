@@ -393,7 +393,7 @@ int triggerNewDetectionForBothSensors(void) {
  * @param cameraSettings a struct that will used to house all important settings on board
  * @return 0 on success, otherwise failure
  */
-int getSettings(CameraSettings *cameraSettings) {
+int getSettings(camera_telemetry *cameraSettings) {
 	int error;
 	tlm_status_t tlmStatusStruct = {0};
 	tlm_power_t tlmPowerStruct = {0};
@@ -416,25 +416,25 @@ int getSettings(CameraSettings *cameraSettings) {
 		return error;
 
 	// Assign settings to master settings struct
-	cameraSettings->upTime = tlmStatusStruct.runtimeSeconds;
-	cameraSettings->powerSettings.current_3V3 = tlmPowerStruct.threeVcurrent;
-	cameraSettings->powerSettings.current_5V = tlmPowerStruct.fiveVcurrent;
-	cameraSettings->powerSettings.current_SRAM_1 = tlmPowerStruct.sramOneCurrent;
-	cameraSettings->powerSettings.current_SRAM_2 = tlmPowerStruct.sramTwoCurrent;
-	cameraSettings->powerSettings.overcurrent_SRAM_1 = tlmPowerStruct.sramOneOverCurrent;
-	cameraSettings->powerSettings.overcurrent_SRAM_2 = tlmPowerStruct.sramTwoOverCurrent;
-	cameraSettings->cameraOneSettings.autoAdjustMode = tlmConfigStruct.cameraOneAutoAdjustMode;
-	cameraSettings->cameraOneSettings.autoGainControl = tlmConfigStruct.cameraOneAGC;
-	cameraSettings->cameraOneSettings.blueGain = tlmConfigStruct.cameraOneBlueGain;
-	cameraSettings->cameraOneSettings.detectionThreshold = tlmConfigStruct.cameraOneDetectionThreshold;
-	cameraSettings->cameraOneSettings.exposure = tlmConfigStruct.cameraOneExposure;
-	cameraSettings->cameraOneSettings.redGain = tlmConfigStruct.cameraOneRedGain;
-	cameraSettings->cameraTwoSettings.autoAdjustMode = tlmConfigStruct.cameraTwoAutoAdjustMode;
-	cameraSettings->cameraTwoSettings.autoGainControl = tlmConfigStruct.cameraTwoAGC;
-	cameraSettings->cameraTwoSettings.blueGain = tlmConfigStruct.cameraTwoBlueGain;
-	cameraSettings->cameraTwoSettings.detectionThreshold = tlmConfigStruct.cameraTwoDetectionThreshold;
-	cameraSettings->cameraTwoSettings.exposure = tlmConfigStruct.cameraTwoExposure;
-	cameraSettings->cameraTwoSettings.redGain = tlmConfigStruct.cameraTwoRedGain;
+	cameraSettings->uptime = tlmStatusStruct.runtimeSeconds;
+	cameraSettings->powerTelemetry.current_3V3 = tlmPowerStruct.threeVcurrent;
+	cameraSettings->powerTelemetry.current_5V = tlmPowerStruct.fiveVcurrent;
+	cameraSettings->powerTelemetry.current_SRAM_1 = tlmPowerStruct.sramOneCurrent;
+	cameraSettings->powerTelemetry.current_SRAM_2 = tlmPowerStruct.sramTwoCurrent;
+	cameraSettings->powerTelemetry.overcurrent_SRAM_1 = tlmPowerStruct.sramOneOverCurrent;
+	cameraSettings->powerTelemetry.overcurrent_SRAM_2 = tlmPowerStruct.sramTwoOverCurrent;
+	cameraSettings->cameraOneTelemetry.autoAdjustMode = tlmConfigStruct.cameraOneAutoAdjustMode;
+	cameraSettings->cameraOneTelemetry.autoGainControl = tlmConfigStruct.cameraOneAGC;
+	cameraSettings->cameraOneTelemetry.blueGain = tlmConfigStruct.cameraOneBlueGain;
+	cameraSettings->cameraOneTelemetry.detectionThreshold = tlmConfigStruct.cameraOneDetectionThreshold;
+	cameraSettings->cameraOneTelemetry.exposure = tlmConfigStruct.cameraOneExposure;
+	cameraSettings->cameraOneTelemetry.redGain = tlmConfigStruct.cameraOneRedGain;
+	cameraSettings->cameraTwoTelemetry.autoAdjustMode = tlmConfigStruct.cameraTwoAutoAdjustMode;
+	cameraSettings->cameraTwoTelemetry.autoGainControl = tlmConfigStruct.cameraTwoAGC;
+	cameraSettings->cameraTwoTelemetry.blueGain = tlmConfigStruct.cameraTwoBlueGain;
+	cameraSettings->cameraTwoTelemetry.detectionThreshold = tlmConfigStruct.cameraTwoDetectionThreshold;
+	cameraSettings->cameraTwoTelemetry.exposure = tlmConfigStruct.cameraTwoExposure;
+	cameraSettings->cameraTwoTelemetry.redGain = tlmConfigStruct.cameraTwoRedGain;
 
 	return SUCCESS;
 }
@@ -444,7 +444,7 @@ int getSettings(CameraSettings *cameraSettings) {
  *
  * @param cameraSettings a struct that will contain the values that want to be adjusted
  * */
-int setSettings(CameraSettings *cameraSettings) {
+int setSettings(Camera_Configuration *cameraSettings) {
 	int error;
 
 	// Update Auto adjust for camera one

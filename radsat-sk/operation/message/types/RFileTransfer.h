@@ -12,26 +12,30 @@ typedef enum _image_type_t {
     image_type_t_Thumbnail = 3
 } image_type_t;
 
+
+
+
 typedef struct _camera_configuration_telemetry {
-    uint32_t detectionThreshold;
-    uint32_t autoAdjustMode;
-    uint32_t exposure;
-    uint32_t autoGainControl;
-    uint32_t blueGain;
-    uint32_t redGain;
+    uint8_t detectionThreshold;
+    uint8_t autoAdjustMode;
+    uint16_t exposure;
+    uint8_t autoGainControl;
+    uint8_t blueGain;
+    uint8_t redGain;
 } camera_configuration_telemetry;
 
 typedef struct _camera_power_telemetry {
-    float current_3V3;
-    float current_5V;
-    float current_SRAM_1;
-    float current_SRAM_2;
-    uint32_t overcurrent_SRAM_1;
-    uint32_t overcurrent_SRAM_2;
+	uint16_t current_3V3;
+    uint16_t current_5V;
+    uint16_t current_SRAM_1;
+    uint16_t current_SRAM_2;
+    uint16_t overcurrent_SRAM_1;
+    uint16_t overcurrent_SRAM_2;
 } camera_power_telemetry;
 
+// "HHHHHHHBBHBBBBBHBBB"
 typedef struct _camera_telemetry {
-    uint32_t uptime;
+    uint16_t uptime;
     camera_power_telemetry powerTelemetry;
     camera_configuration_telemetry cameraOneTelemetry;
     camera_configuration_telemetry cameraTwoTelemetry;
@@ -72,7 +76,7 @@ typedef struct _module_error_report {
 
 
 /* IHHIHH */
-typedef struct _adcs_detection {
+typedef struct __attribute__ ((__packed__)) _adcs_detection {
 	uint32_t sunTimestamp;
 	uint16_t sunAlphaAngle;
 	uint16_t sunBetaAngle;
@@ -82,16 +86,43 @@ typedef struct _adcs_detection {
 } adcs_detection;
 
 
-// "HHHHHfI"
-typedef struct _antenna_side_data {
-    uint16_t deployedAntenna1;
-    uint16_t deployedAntenna2;
-    uint16_t deployedAntenna3;
-    uint16_t deployedAntenna4;
-    uint16_t armed;
-    float boardTemp;
-    uint32_t uptime;
+//
+typedef struct __attribute__ ((__packed__)) _adcs_burst {
+	adcs_detection detections[15];
+} adcs_burst;
+
+/** Antenna Deployment status Struct
+ * H
+ */
+typedef struct __attribute__ ((__packed__)) {
+	unsigned short armed : 1,
+	ant4Deploying : 1,
+	ant4Timeout : 1,
+	ant4Undeployed : 1,
+	: 1,
+	ant3Deploying : 1,
+	ant3Timeout : 1,
+	ant3Undeployed : 1,
+	ignoreFlag : 1,
+	ant2Deploying : 1,
+	ant2Timeout : 1,
+	ant2Undeployed : 1,
+	: 1,
+	ant1Deploying : 1,
+	ant1Timeout : 1,
+	ant1Undeployed : 1;
+} antenna_deployment_status; ///< Struct with individual fields of ISIS AntS status data
+
+
+/** Struct that holds telemetry for one side of the Antenna
+ * HfI
+ */
+typedef struct __attribute__ ((__packed__)) _antenna_telemetry_side_t {
+	antenna_deployment_status deployStatus;	///< Antenna Deployment status.
+	float boardTemp; 					 		///< Antenna board temperature.
+	unsigned int uptime;							///< Antenna Uptime in Seconds.
 } antenna_side_data;
+
 
 // "HHHHHfIHHHHHfI"
 typedef struct _antenna_telemetry {
@@ -140,7 +171,7 @@ typedef struct _obc_telemetry {
     obc_adc_values_t obc_adc_values;
 } obc_telemetry;
 
-
+/*
 // "fffffffffII"
 typedef struct _receiver_telemetry {
     float rxDoppler;
@@ -169,9 +200,38 @@ typedef struct _transmitter_telemetry {
     float boardTemperature;
     uint32_t uptime;
 } transmitter_telemetry;
+*/
+// "HHHHHHHHHHH"
+typedef struct __attribute__ ((__packed__)) _receiver_telemetry {
+    uint16_t rxDoppler;
+    uint16_t rxRssi;
+    uint16_t busVoltage;
+    uint16_t totalCurrent;
+    uint16_t txCurrent;
+    uint16_t rxCurrent;
+    uint16_t powerAmplifierCurrent;
+    uint16_t powerAmplifierTemperature;
+    uint16_t boardTemperature;
+    uint16_t uptime;
+    uint16_t frames;
+} receiver_telemetry;
 
-// "fffffffffIIfffffffffI"
-typedef struct _transceiver_telemetry {
+// "HHHHHHHHHH"
+typedef struct __attribute__ ((__packed__)) _transmitter_telemetry {
+    uint16_t reflectedPower;
+    uint16_t forwardPower;
+    uint16_t busVoltage;
+    uint16_t totalCurrent;
+    uint16_t txCurrent;
+    uint16_t rxCurrent;
+    uint16_t powerAmplifierCurrent;
+    uint16_t powerAmplifierTemperature;
+    uint16_t boardTemperature;
+    uint16_t uptime;
+} transmitter_telemetry;
+
+// "HHHHHHHHHHHHHHHHHHHHH"
+typedef struct __attribute__ ((__packed__))_transceiver_telemetry {
     receiver_telemetry receiver;
     transmitter_telemetry transmitter;
 } transceiver_telemetry;
@@ -195,7 +255,7 @@ typedef struct _dosimeter_data {
     dosimeter_board_data boardTwo;
 } dosimeter_data;
 
-
+/*
 // "fffffffff"
 typedef struct _sun_sensor_data {
 	float BCR1Voltage;
@@ -222,7 +282,34 @@ typedef struct _eps_telemetry {
     float outputCurrent3V3Bus;
     float PdbTemperature;
 } eps_telemetry;
+*/
 
+// "HHHHHHHHH"
+typedef struct _sun_sensor_data {
+	uint16_t BCR1Voltage;
+	uint16_t SA1ACurrent;
+	uint16_t SA1BCurrent;
+	uint16_t BCR2Voltage;
+	uint16_t SA2ACurrent;
+	uint16_t SA2BCurrent;
+	uint16_t BCR3Voltage;
+	uint16_t SA3ACurrent;
+	uint16_t SA3BCurrent;
+} sun_sensor_data;
+
+// "HHHHHHHHHHHHHHHHHH"
+typedef struct _eps_telemetry {
+    sun_sensor_data sunSensorData;
+    uint16_t outputVoltageBCR;
+    uint16_t outputVoltageBatteryBus;
+    uint16_t outputVoltage5VBus;
+    uint16_t outputVoltage3V3Bus;
+    uint16_t outputCurrentBCR_mA;
+    uint16_t outputCurrentBatteryBus;
+    uint16_t outputCurrent5VBus;
+    uint16_t outputCurrent3V3Bus;
+    uint16_t PdbTemperature;
+} eps_telemetry;
 
 typedef union _file_transfer_message {
 	obc_telemetry ObcTelemetry;
@@ -236,7 +323,7 @@ typedef union _file_transfer_message {
 	module_error_report ModuleErrorReport;
 	component_error_report ComponentErrorReport;
 	error_report_summary ErrorReportSummary;
-	adcs_detection	AdcsDetection;
+	adcs_burst	AdcsBerst;
 } file_transfer_message;
 
 #endif

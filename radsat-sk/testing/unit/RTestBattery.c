@@ -8,7 +8,7 @@
 #include <RBattery.h>
 #include <RCommon.h>
 #include <hal/Utility/util.h>
-#include <RFileTransfer.pb.h>
+#include <RFileTransfer.h>
 #include <stdint.h>
 #include <stdio.h>
 #include <RTestUtils.h>

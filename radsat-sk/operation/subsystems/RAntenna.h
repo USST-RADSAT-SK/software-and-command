@@ -8,6 +8,7 @@
 #define RANTENNA_H_
 
 #include <stdint.h>
+#include <RFileTransfer.h>
 
 /***************************************************************************************************
                                             DEFINITIONS
@@ -23,36 +24,13 @@
 #define ANTENNAS_ON_BOARD 1
 
 /** Number of Attempts allowed for deployment */
-#define MAX_DEPLOYMENT_ATTEMPTS 5
+#define MAX_DEPLOYMENT_ATTEMPTS 3
 
 /** Max Time allowed for a deployment for an Antenna in seconds */
 #define MAX_DEPLOYMENT_TIMEOUT 60
 
 /** Time delay between deployment attempts in milliseconds */
-#define INTER_DEPLOYMENT_DELAY_MS 2*1000
-
-/** Antenna Deployment status Struct */
-typedef struct _antenna_deployment_status_t {
-	int DeployedAntennaOne;
-	int DeployedAntennaTwo;
-	int DeployedAntennaThree;
-	int DeployedAntennaFour;
-	int AntennaArmed;
-} antenna_deployment_status_t;
-
-/** Struct that holds telemetry for one side of the Antenna */
-typedef struct _antenna_telemetry_side_t {
-	antenna_deployment_status_t deployStatus;	///< Antenna Deployment status.
-	float board_temp; 					 		///< Antenna board temperature.
-	uint32_t uptime;							///< Antenna Uptime in Seconds.
-} antenna_telemetry_side_t;
-
-/** Struct that holds all telemetry for the Antenna */
-typedef struct _antenna_telemetry_t {
-	antenna_telemetry_side_t sideA;	///< Antenna Telemetry for side A.
-	antenna_telemetry_side_t sideB; ///< Antenna Telemetry for side B.
-} antenna_telemetry_t;
-
+#define INTER_DEPLOYMENT_DELAY_MS 15*1000
 
 
 /***************************************************************************************************
@@ -60,8 +38,8 @@ typedef struct _antenna_telemetry_t {
 ***************************************************************************************************/
 
 int antennaInit(void);
-int antennaDeploymentAttempt(void);
-int antennaTelemetry(antenna_telemetry_t* telemetry);
+void antennaDeploymentAttempt(void* parameters);
+int antennaTelemetry(antenna_telemetry* telemetry);
 int antennaReset(void);
 
 #endif /* RANTENNA_H_ */

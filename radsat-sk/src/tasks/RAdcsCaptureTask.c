@@ -34,6 +34,7 @@ void AdcsCaptureTask(void* parameters) {
 
 	// Initialize the ADCS capture settings (5 measurements, 5 seconds between measurements)
 	setADCSBurstSettings(5, 5000);
+	adcs_burst burstResults = { 0 };
 
 
 	infoPrint("AdcsCaptureTask started.");
@@ -50,14 +51,14 @@ void AdcsCaptureTask(void* parameters) {
 		uint8_t adcsReadyForNewBurst = getADCSReadyForNewBurstState();
 
 		if (!commIsActive && !cubeSenseIsInUse && adcsReadyForNewBurst) {
-			printf("Starting ADCS burst measurements\n");
-			error = takeADCSBurstMeasurements();
-			if (error != 0) {
-				printf("Failed to capture ADCS measurements...\n");
+			infoPrint("Starting ADCS burst measurements\n");
+			error = takeADCSBurstMeasurements(&burstResults);
+			if (error) {
+				errorPrint("Failed to capture ADCS measurements...\n");
 			}
+			//fileTransferAddMessage(&burstResults, sizeof(burstResults), file_transfer_adcs_burst_tag );
 		}
 
-		mark
 		if (cubeSenseIsInUse) {
 			// CubeSense was in use, wait only for a small delay to retry task
 			vTaskDelay(ADCS_CAPTURE_TASK_SHORT_DELAY_MS);

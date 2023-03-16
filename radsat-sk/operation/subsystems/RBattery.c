@@ -118,6 +118,8 @@ static uint8_t getLastError[2] = {
 		0x03, 0x00
 };
 
+static uint16_t resetCommand = 0x0080;
+
 /**
  * 3 Byte commands for requesting output voltage readings for each bus
  */
@@ -282,6 +284,14 @@ int batteryIsNotSafe(uint8_t* safeFlag) {
 	}
 
 	return SUCCESS;
+}
+
+
+
+
+void batteryReset(void){
+	uint8_t response[2];
+	batteryTalk((uint8_t*)&resetCommand, response);
 }
 
 

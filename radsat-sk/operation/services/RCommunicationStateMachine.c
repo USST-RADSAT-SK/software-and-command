@@ -9,9 +9,13 @@
 #include <RTransceiver.h>
 #include <RFileTransferService.h>
 #include <RCommon.h>
+#include <RObc.h>
+#include <RFileTransferService.h>
 
 #include <hal/Timing/Time.h>
 #include <string.h>
+#include <RPdb.h>
+#include <RBattery.h>
 
 #include <freertos/FreeRTOS.h>
 #include <freertos/task.h>
@@ -19,8 +23,6 @@
 
 
 #ifdef DEBUG
-
-
 	static const char* getCommModeName(comm_mode_t mode){
 		switch (mode){
 		case commModeQuiet:
@@ -221,7 +223,9 @@ void processFileTransfer(commandType_t type){
 		} else {
 			size = fileTransferNextFrame(messageContainer);
 		}
+		mark
 		infoPrint("File Transfer Ack received.");
+		mark
 		break;
 	case commandNack:
 		size = fileTransferCurrentFrame(messageContainer);
@@ -235,7 +239,7 @@ void processFileTransfer(commandType_t type){
 	default:
 		return;
 	}
-
+	mark
 	if (size == 0){
 		warningPrint("File Transfer size = 0...");
 		sendNack();
@@ -243,8 +247,11 @@ void processFileTransfer(commandType_t type){
 		setMode(commModePass, 0);
 		return;
 	}
+	mark
 	transceiverSendFrame(messageContainer, size, &txSlotsRemaining);
+	mark
 	fileTransferSessionStatus = oldSession;
+	mark
 	return;
 }
 
@@ -307,19 +314,60 @@ void processCommand(commandType_t type, messageSubject_t* content){
 	if (type == commandCeaseTransmission){
 		setMode(commModeQuiet, 0);
 		return;
+	} else if (type == commandReset){
+		switch (content->Reset.device){
+		case reset_device_obc:
+			warningPrint("Resetting OBC hard");
+			powerCycleIobc();
+			return;
+		case reset_device_trxvu:
+			if (content->Reset.resetType) {
+				warningPrint("Resetting TRXVU soft");
+				transceiverSoftReset();
+			}
+			else {
+				warningPrint("Resetting TRXVU hard");
+				transceiverPowerCycle();
+			}
+			return;
+		case reset_device_antenna:
+			return;
+		case reset_device_eps:
+			if (content->Reset.resetType) {
+				warningPrint("Resetting PDB soft");
+				pdbReset();
+			}
+			else {
+				warningPrint("Resetting PDB hard");
+				pdbResetSat();
+			}
+			return;
+		case reset_device_battery:
+			warningPrint("Resetting battery");
+			batteryReset();
+			return;
+		case reset_device_fram:
+			warningPrint("Resetting FRAM");
+			fileTransferReset();
+			return;
+		}
+
 	}
 	infoPrint("%d", getMode());
 	switch (getMode()){
 	case commModeQuiet:
 		processQuiet(type, content);
-		break;
+		return;
 	case commModePass:
 		processPassMode(type, content);
-		break;
+		return;
 	case commModeFileTransfer:
+		mark
 		processFileTransfer(type);
+		mark
 		break;
 	}
+	mark
 }
 
 

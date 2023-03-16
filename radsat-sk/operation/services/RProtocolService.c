@@ -106,7 +106,7 @@ commandType_t genericHandle(uint8_t* wrappedMessage, uint8_t size, messageSubjec
 		break;
 	case (telecommand_BeginPass_tag):
 		// do nothing; this reception of this telecommand already begins the pass mode
-		infoPrint("Massage unpacked: beginPass, PassTime=%lus", rawMessage.TelecommandMessage.BeginPass.passLength);
+		infoPrint("Massage unpacked: beginPass, PassTime=%ds", rawMessage.TelecommandMessage.BeginPass.passLength);
 		command = commandBeginPass;
 		copyLocation = &rawMessage.TelecommandMessage.BeginPass;
 		copySize = sizeof(begin_pass);

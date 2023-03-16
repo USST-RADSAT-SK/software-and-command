@@ -9,6 +9,7 @@
 
 #include <RCameraCommon.h>
 #include <RFileTransfer.h>
+#include <RTelecommands.h>
 #include <stdint.h>
 #include <time.h>
 
@@ -20,35 +21,6 @@
 
 /*maximum number of bytes in one image */
 #define MAXIMUM_BYTES					1048576
-
-
-/* Struct that holds all power related settings */
-typedef struct _CameraSettings_PowerSettings {
-    float current_3V3;
-    float current_5V;
-    float current_SRAM_1;
-    float current_SRAM_2;
-    uint8_t overcurrent_SRAM_1;
-    uint8_t overcurrent_SRAM_2;
-} CameraSettings_PowerSettings;
-
-/* Struct that holds all Camera configuration related settings */
-typedef struct _CameraSettings_ConfigurationSettings {
-    uint8_t detectionThreshold;
-    uint8_t autoAdjustMode;
-    uint16_t exposure;
-    uint8_t autoGainControl;
-    uint8_t blueGain;
-    uint8_t redGain;
-} CameraSettings_ConfigurationSettings;
-
-/* Struct for Camera Settings Collection Function */
-typedef struct _CameraSettings {
-    uint16_t upTime;
-    CameraSettings_PowerSettings powerSettings;
-    CameraSettings_ConfigurationSettings cameraOneSettings;
-    CameraSettings_ConfigurationSettings cameraTwoSettings;
-} CameraSettings;
 
 /* Struct for telemetry image frame */
 typedef struct _tlm_image_frame_t {
@@ -74,8 +46,8 @@ int downloadImage(uint8_t sram, uint8_t location, full_image_t *image);
 int getSingleDetectionStatus(SensorResultAndDetection sensorSelection);
 int getResultsAndTriggerNewDetection(adcs_detection *data);
 int triggerNewDetectionForBothSensors(void);
-int setSettings(CameraSettings *cameraSettings);
-int getSettings(CameraSettings *cameraSettings);
+int setSettings(Camera_Configuration *cameraSettings);
+int getSettings(camera_telemetry *cameraSettings);
 int executeReset(uint8_t resetOption);
 
 #endif /* RCAMERA_H_ */

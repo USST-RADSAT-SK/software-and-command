@@ -36,7 +36,7 @@
 #define ERROR_MESSAGE_WRAPPING	(-2)
 
 typedef uint16_t fileCursor_t;
-typedef uint16_t framAddress_t;
+typedef unsigned int framAddress_t;
 typedef uint8_t file_t;
 
 /** Struct that defines a prepared FRAM frame and its total size. */
@@ -48,6 +48,10 @@ typedef struct _fram_frame_t {
 
 static fileCursor_t frameWriteCursor = 0;
 static fileCursor_t frameReadCursor = 0;
+
+#if (FRAM_DATA_START_ADDR + MAX_FRAME_COUNT * FRAM_DATA_FRAME_SIZE - 1 > 524287)
+#error "Number of Frames can't fit in buffer"
+#endif
 
 //typedef union {
 //	fram_frame_t framed;
@@ -64,48 +68,56 @@ fileCursor_t cursorIncrement(fileCursor_t value) {
 	return value + 1 >= MAX_FRAME_COUNT ? 0 : value + 1;
 }
 
-uint16_t cursorToAddress(fileCursor_t cursor) {
+framAddress_t cursorToAddress(fileCursor_t cursor) {
 	return FRAM_DATA_START_ADDR + cursor * FRAM_DATA_FRAME_SIZE;
 }
 
 fileCursor_t cursorDistance(fileCursor_t readCursor, fileCursor_t writeCursor) {
-	if ( writeCursor > readCursor )
-		return MAX_FRAME_COUNT + writeCursor - readCursor;
+	if ( readCursor > writeCursor )
+		return MAX_FRAME_COUNT - readCursor + writeCursor;
+	if (readCursor == writeCursor)
+		return 0;
 	return writeCursor - readCursor;
 }
 
 int getCursors(fileCursor_t* readCursor, fileCursor_t* writeCursor){
 	int error = SUCCESS;
-	if (readCursor != NULL){
+	if (writeCursor != NULL){
 		error = framRead((uint8_t*)writeCursor, FRAM_WRITE_CURSOR_ADDR, 2);
 		if (error) {
-			errorPrint("FRAM READ WRITE CURSOR ERROR = %d, cursor = %hu", error, *writeCursor);
-			return error;
+			unsigned int maxFramAddress = FRAM_getMaxAddress();
+			errorPrint("FRAM READ WRITE CURSOR ERROR = %d, address = %u, cursor = %u, max = %u", error, FRAM_WRITE_CURSOR_ADDR, *writeCursor, maxFramAddress);
 		}
 	}
-	if (writeCursor != NULL){
+	if (readCursor != NULL){
 		error = framRead((uint8_t*)readCursor, FRAM_READ_CURSOR_ADDR, 2);
 		if(error){
-			errorPrint("FRAM READ READ CURSOR ERROR = %d, cursor = %hu", error, *readCursor);
+			unsigned int maxFramAddress = FRAM_getMaxAddress();
+			errorPrint("FRAM READ READ CURSOR ERROR = %d, address = %u, cursor = %u, max = %u", error,  FRAM_READ_CURSOR_ADDR, *readCursor, maxFramAddress);
 		}
 	}
 	return error;
 }
 
 void printCursorInfo(void){
-	getCursors(&frameReadCursor, &frameWriteCursor);
-	uint16_t delta = cursorDistance(frameReadCursor, frameWriteCursor);
-	infoPrint("Read: %hu, Write: %hu, Delta: %hu", frameReadCursor, frameWriteCursor, delta);
+	static fileCursor_t tempFrameWriteCursor = 0;
+	static fileCursor_t tempFrameReadCursor = 0;
+	getCursors(&tempFrameReadCursor, &tempFrameWriteCursor);
+	fileCursor_t delta = cursorDistance(tempFrameReadCursor, tempFrameWriteCursor);
+	infoPrint("Read: %hu, Write: %hu, Delta: %hu", tempFrameReadCursor, tempFrameWriteCursor, delta);
 	return;
 }
+
 
 int writeCursor(fileCursor_t* readCursor, fileCursor_t* writeCursor){
 	int error = SUCCESS;
 	if (readCursor != NULL){
 		error += framWrite((uint8_t*)readCursor, FRAM_READ_CURSOR_ADDR, 2);
+		if (error) errorPrint("Fram write Read cursor error = %d", error);
 	}
 	if (writeCursor != NULL){
 		error = framWrite((uint8_t*)writeCursor, FRAM_WRITE_CURSOR_ADDR, 2);
+		if (error) errorPrint("Fram write Write cursor error = %d", error);
 	}
 	assert(error != E_NOT_INITIALIZED);
 	assert(error != E_INDEX_ERROR);
@@ -120,7 +132,8 @@ uint8_t readFile(fram_frame_t* dataIn, fileCursor_t cursor) {
 
 int writeFile(fram_frame_t* dataOut, fileCursor_t cursor) {
 	int error = framWrite((uint8_t*)dataOut, cursorToAddress(cursor), FRAM_DATA_FRAME_SIZE);
-	assert(!error);
+	if (error) errorPrint("write File error = %d", error);
+	//assert(!error);
 	return error;
 }
 
@@ -208,7 +221,7 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 #ifndef OVERWRITE
 	// get the write & read cursors from FRAM
 	getCursors(&frameReadCursor, &frameWriteCursor);
-	if (cursorIncrement(frameWriteCursor) == frameReadCursor){
+	if (cursorIncrement(frameWriteCursor) == frameReadCursor) {
 		warningPrint("Fram Full Write %u > Read %u", frameWriteCursor, frameReadCursor);
 		return ERROR_CURSOR;
 	}
@@ -239,10 +252,8 @@ int fileTransferAddMessage(const void* message, uint8_t size, uint16_t messageTa
 #ifdef OVERWRITE
 	if (frameWriteCursor == frameReadCursor){
 		frameReadCursor = cursorIncrement(frameReadCursor);
+		writeCursor(&frameReadCursor, NULL);
 	}
-	writeCursor(&frameReadCursor, &frameWriteCursor);
-#else /* OVERWRITE */
-	// save write cursor value in FRAM
 	writeCursor(NULL, &frameWriteCursor);
 #endif /* OVERWRITE */
 

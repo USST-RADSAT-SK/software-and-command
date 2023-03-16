@@ -54,7 +54,7 @@ int framInit(void) {
  * @param size The number of bytes to copy out of the FRAM peripheral.
  * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
  */
-int framRead(uint8_t* data, uint32_t address, uint32_t size) {
+int framRead(uint8_t* data, unsigned int address, uint32_t size) {
 
 	// FRAM driver must be initialized first
 	if (!initialized)
@@ -77,7 +77,7 @@ int framRead(uint8_t* data, uint32_t address, uint32_t size) {
  * @param size The number of bytes to copy into the FRAM peripheral.
  * @return 0 for success, non-zero for failure. See hal/Storage/FRAM.h for details.
  */
-int framWrite(uint8_t* data, uint32_t address, uint32_t size) {
+int framWrite(uint8_t* data, unsigned int address, uint32_t size) {
 
 	// FRAM driver must be initialized first
 	if (!initialized)

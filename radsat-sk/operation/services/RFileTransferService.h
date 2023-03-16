@@ -10,8 +10,6 @@
 #include <stdint.h>
 #include <RFileTransfer.h>
 
-/** The max number of frames locally stored at one time. */
-#define MAX_FRAME_COUNT 		(400)
 
 
 

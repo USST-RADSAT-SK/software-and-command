@@ -101,18 +101,11 @@ int transceiverInit(void) {
  */
 int transceiverRxFrameCount(uint16_t* numberOfFrames) {
 
-
-	// transceiver must be initialized first
-	if (!initialized)
-		return E_NOT_INITIALIZED;
-
 	// ensure the pointer is valid
 	if (numberOfFrames == 0)
 		return E_INPUT_POINTER_NULL;
 
-	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_rcGetFrameCount(TRANSCEIVER_INDEX, numberOfFrames);
-	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 
@@ -129,10 +122,6 @@ int transceiverRxFrameCount(uint16_t* numberOfFrames) {
  */
 int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
 
-	// transceiver must be initialized first
-	 if (!initialized)
-		return E_NOT_INITIALIZED;
-
 	// ensure the pointers are valid
 	if (messageBuffer == 0 || sizeOfMessage == 0)
 		return E_INPUT_POINTER_NULL;
@@ -142,9 +131,7 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
 		.rx_framedata = messageBuffer,
 	};
 
-	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_rcGetCommandFrame(TRANSCEIVER_INDEX, &frame);
-	//i2cRelease();
 
 	// provide the size of the message to the caller
 	*sizeOfMessage = frame.rx_length;
@@ -154,6 +141,7 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
 
 	return error;
 }
+
 
 /**
  * Sends a data frame to the Transmitter's buffer.
@@ -165,17 +153,11 @@ int transceiverGetFrame(uint8_t* messageBuffer, uint16_t* sizeOfMessage) {
  */
 int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRemaining) {
 
-	// transceiver must be initialized first
-	if (!initialized)
-		return E_NOT_INITIALIZED;
-
 	// ensure the pointer is valid (slotsRemaining is optional)
 	if (message == 0)
 		return E_INPUT_POINTER_NULL;
 
-	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_tcSendAX25DefClSign(TRANSCEIVER_INDEX, message, messageSize, slotsRemaining);
-	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 
@@ -195,14 +177,8 @@ int transceiverSendFrame(uint8_t* message, uint8_t messageSize, uint8_t* slotsRe
  */
 int transceiverPowerCycle(void) {
 
-	// transceiver must be initialized first
-	if (!initialized)
-		return E_NOT_INITIALIZED;
-
 	// send full hard reset command
-	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_hardReset(TRANSCEIVER_INDEX);
-	//i2cRelease();
 
 	// TODO: record errors (if present) to System Manager
 
@@ -217,15 +193,11 @@ int transceiverPowerCycle(void) {
 int transceiverSoftReset(void){
 
 	//send full soft reset command
-	//if(i2cWait()) return -1;
 	int error = IsisTrxvu_softReset(TRANSCEIVER_INDEX);
-	//i2cRelease();
 
 	//TODO: record errors (if present) to System Manager
-	if (error != 0)
-			return error;
 
-	return SUCCESS;
+	return error;
 }
 
 /**
@@ -234,7 +206,7 @@ int transceiverSoftReset(void){
  * @param	telemetry A rx_telemetry struct filled with receiver telemetry data. Set by function.
  * @return	Error code; 0 for success, otherwise see hal/errors.h.
  */
-int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
+int transceiverTelemetry(transceiver_telemetry* telemetry) {
 
 	// ensure the pointer is valid
 	if (telemetry == 0)
@@ -244,36 +216,15 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 	ISIStrxvuRxTelemetry rawRxTelemetry = { .fields = { 0 } };
 	ISIStrxvuTxTelemetry rawTxTelemetry = { .fields = { 0 } };
 
-	//if(i2cWait()) return -1;
+
 	int error = IsisTrxvu_rcGetTelemetryAll(TRANSCEIVER_INDEX, &rawRxTelemetry);
-
-	// TODO: record errors (if present) to System Manager
-	if (error)
-		return error;
-
 	error = IsisTrxvu_tcGetTelemetryAll(TRANSCEIVER_INDEX, &rawTxTelemetry);
-	//i2cRelease();
+	error = transceiverRxUpTime(&telemetry->receiver.uptime);
+	error = transceiverRxFrameCount(&telemetry->receiver.frames);
+	error = transceiverTxUpTime(&telemetry->transmitter.uptime);
 
-	// TODO: record errors (if present) to System Manager
-	if (error)
-		return error;
-
-	uint16_t uptime = 0;
-	error = transceiverRxUpTime(&uptime);
-	telemetry->rx.uptime = uptime;
-
-	if (error)
-		return error;
-
-	uint16_t rxFrames = 0;
-	error = transceiverRxFrameCount(&rxFrames);
-	telemetry->rx.frames = rxFrames;
-
-	if (error)
-		return error;
-
+	/*
 	// convert the raw receiver values to true telemetry values
-	// TODO: confirm that the MCU can accurately perform these calculations
 	telemetry->rx.rx_doppler = (rawRxTelemetry.fields.rx_doppler * 13.352) - 223000;
 	telemetry->rx.rx_rssi = (rawRxTelemetry.fields.rx_rssi * 0.03) - 152;
 	telemetry->rx.bus_volt = rawRxTelemetry.fields.bus_volt * 0.00488;
@@ -285,7 +236,6 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 	telemetry->rx.board_temp = (rawRxTelemetry.fields.board_temp * -0.07669) + 195.6037;
 
 	// convert the raw transmitter values to true telemetry values
-	// TODO: confirm that the MCU can accurately perform these calculations
 	telemetry->tx.tx_reflpwr = rawTxTelemetry.fields.tx_reflpwr * rawTxTelemetry.fields.tx_reflpwr * 0.0005887;
     telemetry->tx.tx_fwrdpwr = rawTxTelemetry.fields.tx_fwrdpwr * rawTxTelemetry.fields.tx_fwrdpwr * 0.0005887;
     telemetry->tx.bus_volt = rawTxTelemetry.fields.bus_volt * 0.00488;
@@ -295,10 +245,29 @@ int transceiverTelemetry(transceiver_telemetry_t* telemetry) {
 	telemetry->tx.vupa_curr = rawTxTelemetry.fields.vupa_curr * 0.16643964;
 	telemetry->tx.pa_temp = (rawTxTelemetry.fields.pa_temp * -0.07669) + 195.6037;
 	telemetry->tx.board_temp = (rawTxTelemetry.fields.board_temp * -0.07669) + 195.6037;
+*/
 
-	uptime = 0;
-	error = transceiverTxUpTime(&uptime);
-	telemetry->tx.uptime = uptime;
+	// convert the raw receiver values to true telemetry values
+	telemetry->receiver.rxDoppler	= rawRxTelemetry.fields.rx_doppler;
+	telemetry->receiver.rxRssi		= rawRxTelemetry.fields.rx_rssi;
+	telemetry->receiver.busVoltage		= rawRxTelemetry.fields.bus_volt;
+	telemetry->receiver.totalCurrent	= rawRxTelemetry.fields.vutotal_curr;
+	telemetry->receiver.txCurrent		= rawRxTelemetry.fields.vutx_curr;
+	telemetry->receiver.rxCurrent		= rawRxTelemetry.fields.vurx_curr;
+	telemetry->receiver.powerAmplifierCurrent		= rawRxTelemetry.fields.vupa_curr;
+	telemetry->receiver.powerAmplifierTemperature		= rawRxTelemetry.fields.pa_temp;
+	telemetry->receiver.boardTemperature	= rawRxTelemetry.fields.board_temp;
+
+	// convert the raw transmitter values to true telemetry values
+	telemetry->transmitter.reflectedPower	= rawTxTelemetry.fields.tx_reflpwr;
+    telemetry->transmitter.forwardPower		= rawTxTelemetry.fields.tx_fwrdpwr;
+    telemetry->transmitter.busVoltage		= rawTxTelemetry.fields.bus_volt;
+	telemetry->transmitter.totalCurrent		= rawTxTelemetry.fields.vutotal_curr;
+	telemetry->transmitter.txCurrent		= rawTxTelemetry.fields.vutx_curr;
+	telemetry->transmitter.rxCurrent		= rawTxTelemetry.fields.vurx_curr;
+	telemetry->transmitter.powerAmplifierCurrent	= rawTxTelemetry.fields.vupa_curr;
+	telemetry->transmitter.powerAmplifierTemperature	= rawTxTelemetry.fields.pa_temp;
+	telemetry->transmitter.boardTemperature	= rawTxTelemetry.fields.board_temp;
 
 	return error;
 }
@@ -351,7 +320,7 @@ static int transceiverRxUpTime(uint16_t* uptime) {
  * @brief	enable sending of frame bytes for symbol recovery
  */
 int startInterFrameFill(void){
-	int error = IsisTrxvu_tcSetIdlestate(0, trxvu_idle_state_on);
+	int error = IsisTrxvu_tcSetIdlestate(TRANSCEIVER_INDEX, trxvu_idle_state_on);
 	return error;
 }
 
@@ -360,8 +329,16 @@ int startInterFrameFill(void){
  * @brief	disables sending of frame bytes for symbol recovery
  */
 int stopInterFrameFill(void){
-	int error = IsisTrxvu_tcSetIdlestate(0, trxvu_idle_state_off);
+	int error = IsisTrxvu_tcSetIdlestate(TRANSCEIVER_INDEX, trxvu_idle_state_off);
 	return error;
+}
+
+
+/**
+ * @brief	reset the TRXVU beacon timer.
+ */
+void resetBeacon(void) {
+	IsisTrxvu_tcClearBeacon(TRANSCEIVER_INDEX);
 }
 
 

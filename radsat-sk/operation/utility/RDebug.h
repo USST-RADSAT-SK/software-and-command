@@ -83,7 +83,7 @@
 	#define debugPrint(fmt, ...)
 	#define infoPrint(fmt, ...)
 	#define warningPrint(fmt, ...)
-	#define errorPrint(error)
+	#define errorPrint(fmt, ...)
 	#define mark
 	#define radsatError(error) 	\
 		if (error < 0) return error;
