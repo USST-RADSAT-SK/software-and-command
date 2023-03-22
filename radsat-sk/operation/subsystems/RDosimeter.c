@@ -161,7 +161,7 @@ int dosimeterCollectData(void) {
 	dosimeter_data data = { 0 };
 
 	int error = dosimeterData(&data);
-	//printDosimeterData(&data);
+	printDosimeterData(&data);
 
 	// send formatted protobuf mssages to downlink manager
 	error = fileTransferAddMessage(&data, sizeof(dosimeter_data), file_transfer_DosimeterData_tag);

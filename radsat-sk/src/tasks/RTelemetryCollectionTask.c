@@ -271,14 +271,14 @@ void TelemetryCollectionTask(void* parameters) {
 		else infoPrint("Camera Telemetry collected");
 		fileTransferAddMessage(&camera_telemetry_R, sizeof(camera_telemetry_R), file_transfer_CameraTelemetry_tag );
 
-		/*
+
 		printAntennaTelemetry();
 		printTransceiverTelemetry();
 		printBatteryTelemetry();
 		printPdbTelemetry();
 
 		printCameraTelemetry();
-		*/
+
 		vTaskDelay(TELEMETRY_COLLECTION_TASK_DELAY_MS);
 	}
 }
